@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Observing log</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0F1B2E">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,600;1,400;1,600&family=Schibsted+Grotesk:wght@400;500;700&display=swap">
+<style>
+:root{
+  --bg:#E9EDF2; --surface:#F8FAFC; --ink:#13233B; --muted:#56677F; --line:#C2CBD8;
+  --accent:#9A6400; --accent-fill:#C98A1B; --on-accent:#fff; --danger:#A3261B; --photo-bg:#0b1220;
+  --serif:"Spectral",Georgia,"Times New Roman",serif;
+  --sans:"Schibsted Grotesk",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F1B2E; --surface:#17263D; --ink:#E3E9F2; --muted:#93A3BA; --line:#2C3F5C;
+    --accent:#F0B84A; --accent-fill:#F0B84A; --on-accent:#14213a; --danger:#FF8A7A; --photo-bg:#060b14;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F1B2E; --surface:#17263D; --ink:#E3E9F2; --muted:#93A3BA; --line:#2C3F5C;
+  --accent:#F0B84A; --accent-fill:#F0B84A; --on-accent:#14213a; --danger:#FF8A7A; --photo-bg:#060b14;
+}
+:root[data-night="1"]{
+  --bg:#070000; --surface:#140202; --ink:#E2493B; --muted:#9C3026; --line:#451310;
+  --accent:#FF6B57; --accent-fill:#FF6B57; --on-accent:#140202; --danger:#FF6B57; --photo-bg:#b80000;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.5 var(--sans)}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+img{max-width:100%}
+.wrap{max-width:1120px;margin:0 auto;padding:20px 16px 56px}
+
+/* header */
+.top{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;margin-bottom:22px}
+.top h1{font:600 1.75rem/1.1 var(--serif);margin:0;margin-right:auto}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);order:3;width:100%}
+.tabs button{background:none;border:0;border-bottom:2px solid transparent;padding:8px 14px;margin-bottom:-1px;color:var(--muted);font-weight:500}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent-fill)}
+.menu{position:relative}
+#catBtn::after{content:"";display:inline-block;margin-left:8px;border:4px solid transparent;border-top-color:currentColor;border-bottom:0;vertical-align:middle}
+.tabs .pop{position:absolute;top:100%;left:0;z-index:5;min-width:200px;background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:4px;display:grid}
+.tabs .pop button{display:flex;justify-content:space-between;gap:16px;border:0;margin:0;border-radius:3px;text-align:left;color:var(--ink);font-weight:400}
+.tabs .pop button:hover{background:var(--bg)}
+.tabs .pop button[aria-current="true"]{font-weight:700}
+.tabs .pop small{color:var(--muted)}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:4px;padding:8px 14px;font-weight:500}
+.btn.primary{background:var(--accent-fill);border-color:var(--accent-fill);color:var(--on-accent);font-weight:700}
+.btn.quiet{background:none}
+.btn.danger{color:var(--danger)}
+.btn[aria-pressed="true"]{border-color:var(--accent-fill);color:var(--accent)}
+.btn:disabled{opacity:.55;cursor:default}
+[hidden]{display:none!important}
+
+/* progress + chart */
+.progress{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 18px;margin:0 0 10px}
+.progress h2{font:italic 400 1.5rem/1.2 var(--serif);margin:0}
+.progress p{margin:0;color:var(--muted);font-size:.9rem}
+.bar{height:4px;background:var(--line);margin:0 0 14px}
+.bar i{display:block;height:100%;background:var(--accent-fill);width:0;transition:width .4s}
+.chartbox{overflow-x:auto;border:1px solid var(--line);background:var(--surface)}
+.chartbox svg{display:block;min-width:680px;width:100%;height:auto}
+.chart .grid{stroke:var(--line);stroke-width:1}
+.chart .ecl{stroke:var(--muted);stroke-width:1;stroke-dasharray:2 5;fill:none}
+.chart text{font:12px var(--sans);fill:var(--muted)}
+.chart .lab{font:italic 12px var(--serif)}
+.chart .o{cursor:pointer}
+.sym{stroke:var(--muted);fill:var(--surface);stroke-width:1.3}
+.sym .x{stroke:var(--muted)}
+.seen .sym{stroke:var(--accent-fill);fill:var(--accent-fill)}
+.seen .sym .x{stroke:var(--on-accent)}
+.chart .o:hover .sym{stroke:var(--ink)}
+
+/* type filters double as the chart legend */
+.types{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 22px}
+.types button{display:flex;align-items:center;gap:7px;background:none;border:1px solid transparent;border-radius:4px;padding:4px 9px 4px 6px;font-size:.875rem;color:var(--muted)}
+.types button[aria-pressed="true"]{border-color:var(--accent-fill);color:var(--ink)}
+.types svg{width:18px;height:18px;flex:none}
+.types b{color:var(--ink);font-weight:500;font-variant-numeric:tabular-nums}
+
+/* toolbar */
+.tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px}
+.seg{display:flex;border:1px solid var(--line);border-radius:4px;overflow:hidden}
+.seg button{background:none;border:0;padding:7px 12px;color:var(--muted);font-size:.9rem}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);font-weight:500}
+.tools input,.tools select{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:7px 10px;font-size:.9rem}
+.tools input{flex:1 1 160px;min-width:0}
+
+/* tiles */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(108px,1fr));gap:8px}
+.tile{position:relative;aspect-ratio:1;border:1px solid var(--line);background:none;border-radius:3px;padding:8px;text-align:left;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden;color:var(--muted)}
+.tile .des{font:italic 600 1.35rem/1 var(--serif);color:var(--ink);position:relative}
+.tile .nm{font-size:.72rem;line-height:1.25;margin-top:3px;position:relative;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.tile>svg{position:absolute;top:8px;right:8px;width:20px;height:20px}
+.tile.seen{border-color:var(--accent-fill);background:var(--surface)}
+.tile.pic{background:var(--photo-bg);color:#fff;border-color:var(--accent-fill)}
+.tile.pic img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.tile.pic::after{content:"";position:absolute;inset:40% 0 0;background:linear-gradient(transparent,rgba(0,0,0,.78))}
+.tile.pic .des,.tile.pic .nm{color:#fff;z-index:1}
+.tile .ct{position:absolute;top:6px;left:6px;z-index:1;background:var(--accent-fill);color:var(--on-accent);font-size:.72rem;font-weight:700;border-radius:9px;min-width:18px;height:18px;padding:0 5px;display:grid;place-items:center}
+:root[data-night="1"] .tile.pic img,:root[data-night="1"] .ph img,:root[data-night="1"] #lightbox img{filter:grayscale(1);mix-blend-mode:multiply}
+:root[data-night="1"] .tile.pic .des,:root[data-night="1"] .tile.pic .nm{color:var(--ink)}
+.tile.low{opacity:.6;border-style:dashed;background:repeating-linear-gradient(135deg,transparent 0 7px,var(--line) 7px 8px)}
+.chart .band{fill:var(--line);opacity:.45}
+.chart .o.low{opacity:.4}
+.setform{max-width:460px}
+.setform h2{font:italic 400 1.5rem/1.2 var(--serif);margin:0 0 4px}
+.setform label{display:block;font-size:.85rem;font-weight:500;margin:16px 0 4px}
+.setform input[type=number]{width:140px;background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:9px 10px}
+.setform .check{display:flex;gap:10px;align-items:flex-start;font-size:1rem;font-weight:400}
+.setform .check input{margin-top:5px}
+.plan .sym{stroke:var(--accent-fill);stroke-width:2.2}
+.tile.plan{border-color:var(--accent-fill);border-style:solid}
+.tile .tag{position:absolute;top:6px;left:8px;font-size:.7rem;font-weight:700;color:var(--accent)}
+.progress .seg{margin-left:auto}
+.three{display:grid;grid-template-columns:repeat(3,1fr);gap:0 12px}
+@media (max-width:520px){.three{grid-template-columns:1fr 1fr}}
+form select{width:100%;background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:9px 10px}
+.files .cap{flex:1;min-width:0;padding:6px 8px}
+.files .fn{max-width:34%;margin-right:0}
+.photos figure{margin:0;width:112px}
+.photos figcaption{font-size:.75rem;color:var(--muted);line-height:1.3;margin-top:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.photos .cover .ph{outline:2px solid var(--accent-fill);outline-offset:1px}
+.lbbar{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;padding:8px 10px;background:var(--bg);color:var(--ink);font-size:.9rem}
+.lbbar span{margin-right:auto}
+.setform h2+.note{margin-top:0}
+.setform h2:not(:first-child){margin-top:34px}
+.setform input[type=text],.setform select{width:100%;background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:9px 10px}
+.addrow{display:grid;gap:8px;margin-top:10px}
+.addrow .btn{justify-self:start}
+.saved{list-style:none;margin:0;padding:0}
+.saved li{display:flex;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
+.saved li span{margin-right:auto}
+.saved small{display:block;color:var(--muted)}
+.stats h3{font:italic 400 1.25rem/1.2 var(--serif);margin:28px 0 10px}
+.months{display:grid;grid-template-columns:repeat(12,1fr);gap:4px;max-width:640px}
+.months div{display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:150px;font-size:.75rem;color:var(--muted)}
+.months i{display:block;width:100%;background:var(--accent-fill);min-height:1px;margin:3px 0}
+.months b{color:var(--ink);font-weight:500}
+.rank{list-style:none;margin:0;padding:0;max-width:460px}
+.rank li{display:flex;justify-content:space-between;gap:16px;padding:6px 0;border-top:1px solid var(--line)}
+.rank b{font-weight:500;font-variant-numeric:tabular-nums;white-space:nowrap}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:4px;font-size:.9rem;z-index:50;margin:0;max-width:calc(100vw - 24px)}
+form input[type=checkbox]{width:auto}
+.pickrow{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;margin-top:8px;font-size:.875rem}
+.pickrow>span{color:var(--muted);min-width:92px}
+form label.pick,.setform label.pick{display:inline-flex;gap:6px;align-items:center;border:1px solid var(--line);border-radius:4px;padding:4px 9px;margin:0;font-weight:400;font-size:.875rem;background:var(--surface)}
+.pick:has(:checked){border-color:var(--accent-fill)}
+.sugg{list-style:none;margin:4px 0 0;padding:0;border:1px solid var(--line);border-radius:4px;background:var(--surface);overflow:hidden}
+.sugg button{display:block;width:100%;text-align:left;background:none;border:0;padding:9px 10px;font-size:.9rem;color:var(--ink)}
+.sugg li+li button{border-top:1px solid var(--line)}
+.sugg button:hover,.sugg button:focus-visible{background:var(--bg)}
+.empty{border:1px dashed var(--line);padding:28px 18px;color:var(--muted);text-align:center}
+.note{color:var(--muted);font-size:.9rem;margin:0 0 14px}
+
+/* logbook + entries */
+.entry{border-top:1px solid var(--line);padding:16px 0}
+.entry h4{margin:0;font:600 1.05rem/1.3 var(--serif)}
+.entry h4 button{background:none;border:0;padding:0;font:inherit;color:var(--accent);text-decoration:underline;text-underline-offset:3px}
+.entry dl{display:grid;grid-template-columns:auto 1fr;gap:1px 12px;margin:6px 0 0;font-size:.875rem}
+.entry dt{color:var(--muted)} .entry dd{margin:0}
+.entry .notes{white-space:pre-wrap;margin:8px 0 0;max-width:68ch}
+.photos{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.ph{width:112px;height:112px;padding:0;border:1px solid var(--line);background:var(--photo-bg);overflow:hidden;border-radius:2px}
+.ph img{width:100%;height:100%;object-fit:cover;display:block}
+.acts{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px;font-size:.875rem}
+.acts .btn{padding:4px 10px}
+
+/* dialogs */
+dialog{border:1px solid var(--line);padding:0;background:var(--bg);color:var(--ink);width:min(720px,calc(100vw - 20px));max-height:calc(100dvh - 24px);border-radius:6px}
+#detail{width:min(860px,calc(100vw - 20px))}
+@media (max-width:640px){#detail{width:100vw;max-width:100vw;max-height:100dvh;height:100dvh;margin:0;border:0;border-radius:0}}
+.ihero{position:relative;aspect-ratio:21/9;max-height:340px;width:100%;background:var(--photo-bg);overflow:hidden;border:0;padding:0;display:block}
+.ihero img{width:100%;height:100%;object-fit:cover;display:block}
+.ihero.none{aspect-ratio:auto;height:150px;display:grid;place-items:center;color:#93A3BA;font-size:.9rem;background:radial-gradient(ellipse at 50% 60%,#1d2e4a,#070c16 70%)}
+.ihero.none svg{width:40px;height:40px;margin:0 auto 8px;display:block}
+.ihero.none .sym{stroke:#93A3BA;fill:none}
+.iclose{position:absolute;top:10px;right:10px;z-index:2;background:rgba(7,12,22,.72);color:#E3E9F2;border-color:transparent}
+.ihead{padding:18px 18px 0}
+.ihead .des{margin:0;color:var(--muted);font-size:.9rem}
+.ihead h3{font:italic 600 2.1rem/1.05 var(--serif);margin:2px 0 4px}
+.ihead .kind{margin:0;color:var(--muted)}
+.idesc{font:400 1.08rem/1.6 var(--serif);max-width:62ch;margin:14px 0 18px}
+.ihint{font-size:.8rem;color:var(--muted)}
+.icols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px 28px;align-items:start;margin-bottom:18px;padding-top:14px;border-top:1px solid var(--line)}
+@media (max-width:640px){.icols{grid-template-columns:1fr}}
+.tdata{margin:0}
+.tdata div{display:flex;align-items:baseline;gap:8px;padding:3px 0;font-size:.92rem}
+.tdata dt{color:var(--muted);flex:none}
+.tdata dd{margin:0;text-align:right;font-weight:500;font-variant-numeric:tabular-nums}
+.tdata div::after{content:"";order:1;flex:1;border-bottom:1px dotted var(--line);min-width:12px;transform:translateY(-4px)}
+.tdata dd{order:2}
+.domebox figure{margin:0}
+.domebox svg{width:100%;height:auto;display:block}
+.domebox figcaption{font-size:.8rem;color:var(--muted);margin-top:4px}
+.dome .ring{fill:none;stroke:var(--line);stroke-width:1}
+.dome .hz{fill:var(--surface);stroke:var(--muted);stroke-width:1.2}
+.dome .shell{fill:none;stroke:var(--muted);stroke-width:1.2}
+.dome .path{fill:none;stroke:var(--muted);stroke-width:1.6}
+.dome .below{fill:none;stroke:var(--line);stroke-width:1.2;stroke-dasharray:3 4}
+.dome .dark{fill:none;stroke:var(--accent-fill);stroke-width:3.4;stroke-linecap:round}
+.dome .pk{fill:var(--accent-fill)}
+.dome text{font:12px var(--sans);fill:var(--muted)}
+.dome .pkl{fill:var(--ink);font-weight:700}
+dialog::backdrop{background:rgba(4,9,18,.72)}
+.dhead{display:flex;align-items:flex-start;gap:12px;padding:18px 18px 0}
+.dhead h3{font:italic 600 1.9rem/1.05 var(--serif);margin:0}
+.dhead p{margin:4px 0 0;color:var(--muted)}
+.dhead .btn{margin-left:auto;flex:none}
+.dbody{padding:14px 18px 20px}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px 16px;margin:0 0 16px;padding:12px 0;border-block:1px solid var(--line)}
+.facts dt{font-size:.78rem;color:var(--muted)} .facts dd{margin:0;font-weight:500}
+form label{display:block;font-size:.85rem;font-weight:500;margin:12px 0 4px}
+form input,form textarea{width:100%;background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:9px 10px}
+form textarea{min-height:88px;resize:vertical}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
+@media (max-width:520px){.two{grid-template-columns:1fr}}
+.chips{list-style:none;display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 0;padding:0}
+.chips li{display:flex;align-items:center;gap:6px;border:1px solid var(--accent-fill);border-radius:4px;padding:3px 4px 3px 9px;font-size:.875rem;background:var(--surface)}
+.chips button{background:none;border:0;padding:0 5px;font-size:1.1rem;line-height:1;color:var(--muted)}
+.also{margin:6px 0 0;font-size:.875rem;color:var(--muted)}
+.also button{background:none;border:0;padding:0;color:var(--accent);text-decoration:underline;text-underline-offset:3px}
+.hint{font-size:.8rem;color:var(--muted);margin:4px 0 0}
+.files{list-style:none;margin:8px 0 0;padding:0;font-size:.875rem}
+.files li{display:flex;align-items:center;gap:8px;padding:4px 0}
+.files li span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-right:auto}
+.files img{width:36px;height:36px;object-fit:cover;flex:none}
+.err{color:var(--danger);font-size:.9rem;margin:12px 0 0}
+.foot{display:flex;gap:10px;justify-content:flex-end;margin-top:18px}
+#lightbox{width:auto;max-width:calc(100vw - 12px);background:var(--photo-bg);border:0}
+#lightbox img{display:block;max-width:calc(100vw - 12px);max-height:calc(100dvh - 90px);margin:0 auto}
+@media (prefers-reduced-motion:reduce){.bar i{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Observing log</h1>
+    <button class="btn" id="night" aria-pressed="false" title="Dim the screen to red to protect dark adaptation">Red light</button>
+    <button class="btn primary" id="logBtn" data-act="new" hidden>Log observation</button>
+    <div class="tabs" role="tablist">
+      <div class="menu">
+        <button role="tab" id="catBtn" aria-haspopup="true" aria-expanded="false">Catalogs</button>
+        <div class="pop" id="catPop" hidden></div>
+      </div>
+      <button role="tab" data-view="log">Logbook</button>
+      <button role="tab" data-view="stats">Stats</button>
+      <button role="tab" data-view="set">Settings</button>
+    </div>
+  </header>
+
+  <p class="note" id="status" hidden></p>
+
+  <section id="catView">
+    <div class="progress"><h2 id="headline"></h2><p id="sub"></p>
+      <div class="seg" id="modeSeg" role="group" aria-label="Count progress for"><button data-mode="any">Any</button><button data-mode="imaged">Imaged</button><button data-mode="visual">Visual</button></div></div>
+    <div class="bar"><i id="bar"></i></div>
+    <div class="chartbox"><svg class="chart" id="chart" viewBox="0 0 960 420" role="img"></svg></div>
+    <div class="types" id="types"></div>
+    <div class="tools">
+      <div class="seg" id="seg">
+        <button data-status="all">All</button><button data-status="seen">Observed</button><button data-status="todo">Not yet</button><button data-status="plan">Planned</button>
+      </div>
+      <button class="btn" id="tonightBtn" aria-pressed="false" title="Only objects that get near their highest point during darkness tonight">Up tonight</button>
+      <input id="q" type="search" placeholder="Search by number, name or constellation" aria-label="Search objects">
+      <select id="sort" aria-label="Sort objects">
+        <option value="num">By number</option><option value="con">By constellation</option>
+        <option value="ra">By right ascension</option><option value="mag">Brightest first</option><option value="tonight">Highest tonight</option>
+      </select>
+    </div>
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <section id="logView" hidden></section>
+  <section id="statView" class="stats" hidden></section>
+
+  <section id="setView" class="setform" hidden>
+    <h2>Observing site</h2>
+    <p class="note">Set your latitude to mark catalog objects that never rise high enough to observe.</p>
+    <label for="sLat">Latitude in degrees</label>
+    <input id="sLat" type="number" min="-90" max="90" step="0.1" inputmode="decimal" placeholder="e.g. 40.2">
+    <p class="hint">North is positive, south is negative. Leave empty to turn the filter off.</p>
+    <label for="sLon">Longitude in degrees</label>
+    <input id="sLon" type="number" min="-180" max="180" step="0.1" inputmode="decimal" placeholder="e.g. -76.3">
+    <p class="hint">East is positive, west is negative. Used for tonight's times. Leave empty to estimate it from your time zone.</p>
+    <label for="sAlt">Lowest usable altitude in degrees</label>
+    <input id="sAlt" type="number" min="0" max="60" step="1" inputmode="numeric">
+    <p class="hint">An object counts as out of reach if it never climbs above this. Use 0 for the true horizon, or more to allow for trees and haze.</p>
+    <label class="check" for="sHide"><input id="sHide" type="checkbox"><span>Hide out-of-reach objects from the chart and grid. Anything you have already observed always stays.</span></label>
+    <p class="hint" id="setMsg" role="status"></p>
+    <div id="gearSet" hidden>
+    <h2>Gear</h2>
+    <p class="note">Individual pieces of equipment. Pick any combination when you log an observation. Filters are suggested in the Filter field.</p>
+    <ul class="saved" id="gearList"></ul>
+    <div class="addrow"><select id="gType" aria-label="Gear type"></select><input type="text" id="gName" placeholder="Name, e.g. 8-inch SCT" aria-label="Gear name"><button class="btn" data-act="addGear">Add gear</button></div>
+    <h2>Rigs</h2>
+    <p class="note">A rig is a named set of your saved gear that you can select in one step.</p>
+    <ul class="saved" id="rigList"></ul>
+    <div class="addrow"><input type="text" id="rName" placeholder="Rig name, e.g. Widefield" aria-label="Rig name"><div id="rigPick"></div><button class="btn" data-act="addRig">Add rig</button></div>
+    <h2>Sites</h2>
+    <p class="note">Saved sites are suggested in the Site field and fill in their Bortle class.</p>
+    <ul class="saved" id="siteList"></ul>
+    <div class="addrow"><input type="text" id="sName" placeholder="Site name" aria-label="Site name"><select id="sBortle" aria-label="Bortle class"><option value="">Bortle class</option></select><button class="btn" data-act="addSite">Add site</button></div>
+    </div>
+    <div id="backupSet" hidden>
+    <h2>Backup</h2>
+    <p class="note" id="bkNote">Download every observation, setting and photo as one .zip file.</p>
+    <div class="acts" style="margin:0"><button class="btn" data-act="export">Export backup</button><span id="bkImport" hidden><input type="file" id="bkFile" accept=".zip,application/zip" hidden><button class="btn" data-act="import">Import backup</button></span></div>
+    <p class="hint" id="bkMsg" role="status"></p>
+    </div>
+  </section>
+</div>
+
+<script src="local.js"></script>
+<dialog id="detail"><div id="detailBody"></div></dialog>
+
+<dialog id="formDlg">
+  <div class="dhead"><h3 id="formTitle">Log observation</h3><button class="btn quiet" data-act="closeForm">Cancel</button></div>
+  <form class="dbody" id="form" novalidate>
+    <div class="two">
+      <div><label for="fTarget">Targets</label>
+        <input id="fTarget" autocomplete="off" autocapitalize="off" enterkeyhint="done" placeholder="M31, NGC 891, Jupiter">
+        <p class="hint">Separate several targets with commas. NGC and IC numbers are matched to Messier and Caldwell objects.</p>
+        <ul class="chips" id="chips"></ul></div>
+      <div><label for="fDate">Date</label><input id="fDate" type="date" required><p class="hint" id="fMoon"></p></div>
+    </div>
+    <div class="two">
+      <div><label for="fSite">Site</label><input id="fSite" autocomplete="off"></div>
+      <div><label for="fRig">Rig</label><select id="fRig"></select></div>
+    </div>
+    <div id="fGearWrap"><label id="fGearLab">Gear</label><div id="fGearPick" role="group" aria-labelledby="fGearLab"></div></div>
+    <label for="fGear">Other equipment</label><input id="fGear" autocomplete="off" placeholder="Anything not in your saved gear">
+    <div class="three">
+      <div><label for="fKind">Type</label><select id="fKind"><option value="imaged">Imaged</option><option value="visual">Visual</option></select></div>
+      <div><label for="fBortle">Bortle class</label><select id="fBortle"><option value=""></option></select></div>
+      <div><label for="fSqm">SQM reading</label><input id="fSqm" type="number" step="0.01" min="15" max="23" inputmode="decimal"></div>
+    </div>
+    <div class="three">
+      <div><label for="fSubs">Number of subs</label><input id="fSubs" type="number" min="0" step="1" inputmode="numeric"></div>
+      <div><label for="fLen">Sub length, seconds</label><input id="fLen" type="number" min="0" step="any" inputmode="decimal"></div>
+      <div><label for="fFilter">Filter</label><input id="fFilter" autocomplete="off"></div>
+    </div>
+    <p class="hint" id="fInteg"></p>
+    <label for="fExp">Other capture details</label><input id="fExp" placeholder="e.g. gain 100, offset 30, dithered">
+    <label for="fNotes">Notes</label><textarea id="fNotes" placeholder="Seeing, transparency, what you noticed"></textarea>
+    <label for="fFiles">Photos</label>
+    <input id="fFiles" type="file" accept="image/*" multiple>
+    <p class="hint">JPEG, PNG or WebP. Anything over 20 MB is saved as a high-quality JPEG. You can also paste a copied image into this form, or drag files onto it.</p>
+    <ul class="files" id="fileList"></ul>
+    <p class="err" id="formErr" role="alert" hidden></p>
+    <div class="foot"><button class="btn primary" id="saveBtn" type="submit">Save observation</button></div>
+  </form>
+</dialog>
+
+<dialog id="lightbox"><img alt="" id="lbImg"><div class="lbbar"><span id="lbCap"></span><button class="btn" id="lbCover" data-act="setCover"></button><button class="btn" data-act="closeLb">Close</button></div></dialog>
+<p id="toast" role="status" hidden></p>
+
+<script>
+"use strict";
+/* ---------- catalog data: id|designation|name|type|constellation|mag|RA h|Dec deg ---------- */
+const M_DATA=`1|NGC 1952|Crab Nebula|SNR|Tau|8.4|5.58|22.0
+2|NGC 7089||GC|Aqr|6.5|21.56|-0.8
+3|NGC 5272||GC|CVn|6.2|13.70|28.4
+4|NGC 6121||GC|Sco|5.6|16.39|-26.5
+5|NGC 5904||GC|Ser|5.6|15.31|2.1
+6|NGC 6405|Butterfly Cluster|OC|Sco|4.2|17.67|-32.2
+7|NGC 6475|Ptolemy Cluster|OC|Sco|3.3|17.90|-34.8
+8|NGC 6523|Lagoon Nebula|N|Sgr|6.0|18.06|-24.4
+9|NGC 6333||GC|Oph|7.7|17.32|-18.5
+10|NGC 6254||GC|Oph|6.6|16.95|-4.1
+11|NGC 6705|Wild Duck Cluster|OC|Sct|6.3|18.85|-6.3
+12|NGC 6218||GC|Oph|6.7|16.79|-1.9
+13|NGC 6205|Great Hercules Cluster|GC|Her|5.8|16.69|36.5
+14|NGC 6402||GC|Oph|7.6|17.63|-3.2
+15|NGC 7078||GC|Peg|6.2|21.50|12.2
+16|NGC 6611|Eagle Nebula|N|Ser|6.0|18.31|-13.8
+17|NGC 6618|Omega Nebula|N|Sgr|6.0|18.35|-16.2
+18|NGC 6613||OC|Sgr|7.5|18.33|-17.1
+19|NGC 6273||GC|Oph|6.8|17.04|-26.3
+20|NGC 6514|Trifid Nebula|N|Sgr|6.3|18.04|-23.0
+21|NGC 6531||OC|Sgr|6.5|18.08|-22.5
+22|NGC 6656||GC|Sgr|5.1|18.61|-23.9
+23|NGC 6494||OC|Sgr|6.9|17.95|-19.0
+24|IC 4715|Sagittarius Star Cloud|O|Sgr|4.6|18.28|-18.5
+25|IC 4725||OC|Sgr|4.6|18.53|-19.1
+26|NGC 6694||OC|Sct|8.0|18.75|-9.4
+27|NGC 6853|Dumbbell Nebula|PN|Vul|7.5|19.99|22.7
+28|NGC 6626||GC|Sgr|6.8|18.41|-24.9
+29|NGC 6913||OC|Cyg|7.1|20.40|38.5
+30|NGC 7099||GC|Cap|7.2|21.67|-23.2
+31|NGC 224|Andromeda Galaxy|G|And|3.4|0.71|41.3
+32|NGC 221||G|And|8.1|0.71|40.9
+33|NGC 598|Triangulum Galaxy|G|Tri|5.7|1.56|30.7
+34|NGC 1039||OC|Per|5.5|2.70|42.8
+35|NGC 2168||OC|Gem|5.3|6.15|24.3
+36|NGC 1960|Pinwheel Cluster|OC|Aur|6.3|5.60|34.1
+37|NGC 2099||OC|Aur|6.2|5.87|32.6
+38|NGC 1912|Starfish Cluster|OC|Aur|7.4|5.48|35.8
+39|NGC 7092||OC|Cyg|4.6|21.53|48.4
+40|Winnecke 4|Double star|O|UMa|8.4|12.37|58.1
+41|NGC 2287||OC|CMa|4.5|6.77|-20.7
+42|NGC 1976|Orion Nebula|N|Ori|4.0|5.59|-5.4
+43|NGC 1982|De Mairan's Nebula|N|Ori|9.0|5.59|-5.3
+44|NGC 2632|Beehive Cluster|OC|Cnc|3.7|8.67|19.7
+45|Mel 22|Pleiades|OC|Tau|1.6|3.79|24.1
+46|NGC 2437||OC|Pup|6.1|7.70|-14.8
+47|NGC 2422||OC|Pup|4.2|7.61|-14.5
+48|NGC 2548||OC|Hya|5.5|8.23|-5.8
+49|NGC 4472||G|Vir|8.4|12.50|8.0
+50|NGC 2323||OC|Mon|5.9|7.05|-8.3
+51|NGC 5194|Whirlpool Galaxy|G|CVn|8.4|13.50|47.2
+52|NGC 7654||OC|Cas|7.3|23.41|61.6
+53|NGC 5024||GC|Com|7.6|13.22|18.2
+54|NGC 6715||GC|Sgr|7.6|18.92|-30.5
+55|NGC 6809||GC|Sgr|6.3|19.67|-31.0
+56|NGC 6779||GC|Lyr|8.3|19.28|30.2
+57|NGC 6720|Ring Nebula|PN|Lyr|8.8|18.89|33.0
+58|NGC 4579||G|Vir|9.7|12.63|11.8
+59|NGC 4621||G|Vir|9.6|12.70|11.6
+60|NGC 4649||G|Vir|8.8|12.73|11.6
+61|NGC 4303||G|Vir|9.7|12.37|4.5
+62|NGC 6266||GC|Oph|6.5|17.02|-30.1
+63|NGC 5055|Sunflower Galaxy|G|CVn|8.6|13.26|42.0
+64|NGC 4826|Black Eye Galaxy|G|Com|8.5|12.95|21.7
+65|NGC 3623||G|Leo|9.3|11.32|13.1
+66|NGC 3627||G|Leo|8.9|11.34|13.0
+67|NGC 2682||OC|Cnc|6.1|8.86|11.8
+68|NGC 4590||GC|Hya|7.8|12.66|-26.7
+69|NGC 6637||GC|Sgr|7.6|18.52|-32.3
+70|NGC 6681||GC|Sgr|7.9|18.72|-32.3
+71|NGC 6838||GC|Sge|8.2|19.90|18.8
+72|NGC 6981||GC|Aqr|9.3|20.89|-12.5
+73|NGC 6994|Asterism|O|Aqr|9.0|20.98|-12.6
+74|NGC 628|Phantom Galaxy|G|Psc|9.4|1.61|15.8
+75|NGC 6864||GC|Sgr|8.5|20.10|-21.9
+76|NGC 650|Little Dumbbell Nebula|PN|Per|10.1|1.70|51.6
+77|NGC 1068|Cetus A|G|Cet|8.9|2.71|0.0
+78|NGC 2068||N|Ori|8.3|5.78|0.1
+79|NGC 1904||GC|Lep|7.7|5.40|-24.5
+80|NGC 6093||GC|Sco|7.3|16.28|-23.0
+81|NGC 3031|Bode's Galaxy|G|UMa|6.9|9.93|69.1
+82|NGC 3034|Cigar Galaxy|G|UMa|8.4|9.93|69.7
+83|NGC 5236|Southern Pinwheel|G|Hya|7.6|13.62|-29.9
+84|NGC 4374||G|Vir|9.1|12.42|12.9
+85|NGC 4382||G|Com|9.1|12.42|18.2
+86|NGC 4406||G|Vir|8.9|12.44|12.9
+87|NGC 4486|Virgo A|G|Vir|8.6|12.51|12.4
+88|NGC 4501||G|Com|9.6|12.53|14.4
+89|NGC 4552||G|Vir|9.8|12.59|12.6
+90|NGC 4569||G|Vir|9.5|12.61|13.2
+91|NGC 4548||G|Com|10.2|12.59|14.5
+92|NGC 6341||GC|Her|6.4|17.29|43.1
+93|NGC 2447||OC|Pup|6.0|7.74|-23.9
+94|NGC 4736||G|CVn|8.2|12.85|41.1
+95|NGC 3351||G|Leo|9.7|10.73|11.7
+96|NGC 3368||G|Leo|9.2|10.78|11.8
+97|NGC 3587|Owl Nebula|PN|UMa|9.9|11.25|55.0
+98|NGC 4192||G|Com|10.1|12.23|14.9
+99|NGC 4254||G|Com|9.9|12.31|14.4
+100|NGC 4321||G|Com|9.3|12.38|15.8
+101|NGC 5457|Pinwheel Galaxy|G|UMa|7.9|14.05|54.3
+102|NGC 5866|Spindle Galaxy|G|Dra|9.9|15.11|55.8
+103|NGC 581||OC|Cas|7.4|1.55|60.7
+104|NGC 4594|Sombrero Galaxy|G|Vir|8.0|12.67|-11.6
+105|NGC 3379||G|Leo|9.3|10.80|12.6
+106|NGC 4258||G|CVn|8.4|12.32|47.3
+107|NGC 6171||GC|Oph|7.9|16.54|-13.1
+108|NGC 3556|Surfboard Galaxy|G|UMa|10.0|11.19|55.7
+109|NGC 3992||G|UMa|9.8|11.96|53.4
+110|NGC 205||G|And|8.5|0.67|41.7`;
+const C_DATA=`1|NGC 188||OC|Cep|8.1|0.74|85.3
+2|NGC 40|Bow-Tie Nebula|PN|Cep|11.6|0.22|72.5
+3|NGC 4236||G|Dra|9.7|12.28|69.5
+4|NGC 7023|Iris Nebula|N|Cep|7.0|21.03|68.2
+5|IC 342||G|Cam|9.2|3.78|68.1
+6|NGC 6543|Cat's Eye Nebula|PN|Dra|8.8|17.98|66.6
+7|NGC 2403||G|Cam|8.4|7.61|65.6
+8|NGC 559||OC|Cas|9.5|1.49|63.3
+9|Sh2-155|Cave Nebula|N|Cep|7.7|22.95|62.6
+10|NGC 663||OC|Cas|7.1|1.77|61.2
+11|NGC 7635|Bubble Nebula|N|Cas|7.0|23.35|61.2
+12|NGC 6946|Fireworks Galaxy|G|Cep|8.9|20.58|60.2
+13|NGC 457|Owl Cluster|OC|Cas|6.4|1.32|58.3
+14|NGC 869 and 884|Double Cluster|OC|Per|4.3|2.33|57.1
+15|NGC 6826|Blinking Planetary|PN|Cyg|9.8|19.75|50.5
+16|NGC 7243||OC|Lac|6.4|22.25|49.9
+17|NGC 147||G|Cas|9.3|0.55|48.5
+18|NGC 185||G|Cas|9.2|0.65|48.3
+19|IC 5146|Cocoon Nebula|N|Cyg|7.2|21.89|47.3
+20|NGC 7000|North America Nebula|N|Cyg|4.0|20.98|44.3
+21|NGC 4449||G|CVn|9.4|12.47|44.1
+22|NGC 7662|Blue Snowball|PN|And|9.2|23.43|42.5
+23|NGC 891||G|And|9.9|2.38|42.3
+24|NGC 1275|Perseus A|G|Per|11.6|3.33|41.5
+25|NGC 2419||GC|Lyn|10.4|7.64|38.9
+26|NGC 4244||G|CVn|10.2|12.29|37.8
+27|NGC 6888|Crescent Nebula|N|Cyg|7.4|20.20|38.4
+28|NGC 752||OC|And|5.7|1.96|37.7
+29|NGC 5005||G|CVn|9.8|13.18|37.1
+30|NGC 7331||G|Peg|9.5|22.62|34.4
+31|IC 405|Flaming Star Nebula|N|Aur|6.0|5.27|34.3
+32|NGC 4631|Whale Galaxy|G|CVn|9.3|12.70|32.5
+33|NGC 6992|Eastern Veil Nebula|SNR|Cyg|7.0|20.94|31.7
+34|NGC 6960|Western Veil Nebula|SNR|Cyg|7.0|20.76|30.7
+35|NGC 4889||G|Com|11.4|13.00|28.0
+36|NGC 4559||G|Com|9.9|12.60|28.0
+37|NGC 6885||OC|Vul|5.7|20.20|26.5
+38|NGC 4565|Needle Galaxy|G|Com|9.6|12.61|26.0
+39|NGC 2392|Clown Face Nebula|PN|Gem|9.9|7.49|20.9
+40|NGC 3626||G|Leo|10.9|11.34|18.4
+41|Mel 25|Hyades|OC|Tau|0.5|4.45|16.0
+42|NGC 7006||GC|Del|10.6|21.03|16.2
+43|NGC 7814||G|Peg|10.5|0.05|16.1
+44|NGC 7479||G|Peg|11.0|23.08|12.3
+45|NGC 5248||G|Boo|10.2|13.63|8.9
+46|NGC 2261|Hubble's Variable Nebula|N|Mon|10.0|6.65|8.7
+47|NGC 6934||GC|Del|8.9|20.57|7.4
+48|NGC 2775||G|Cnc|10.3|9.17|7.0
+49|NGC 2237|Rosette Nebula|N|Mon|9.0|6.54|5.0
+50|NGC 2244||OC|Mon|4.8|6.54|4.9
+51|IC 1613||G|Cet|9.3|1.08|2.1
+52|NGC 4697||G|Vir|9.3|12.81|-5.8
+53|NGC 3115|Spindle Galaxy|G|Sex|9.2|10.09|-7.7
+54|NGC 2506||OC|Mon|7.6|8.00|-10.8
+55|NGC 7009|Saturn Nebula|PN|Aqr|8.3|21.07|-11.4
+56|NGC 246|Skull Nebula|PN|Cet|8.0|0.78|-11.9
+57|NGC 6822|Barnard's Galaxy|G|Sgr|9.3|19.75|-14.8
+58|NGC 2360||OC|CMa|7.2|7.30|-15.6
+59|NGC 3242|Ghost of Jupiter|PN|Hya|8.6|10.41|-18.6
+60|NGC 4038|Antennae Galaxies|G|Crv|11.3|12.03|-18.9
+61|NGC 4039|Antennae Galaxies|G|Crv|13.0|12.03|-18.9
+62|NGC 247||G|Cet|8.9|0.78|-20.8
+63|NGC 7293|Helix Nebula|PN|Aqr|7.3|22.49|-20.8
+64|NGC 2362|Tau Canis Majoris Cluster|OC|CMa|4.1|7.31|-25.0
+65|NGC 253|Sculptor Galaxy|G|Scl|7.1|0.79|-25.3
+66|NGC 5694||GC|Hya|10.2|14.66|-26.5
+67|NGC 1097||G|For|9.3|2.77|-30.3
+68|NGC 6729|R Coronae Australis Nebula|N|CrA|9.7|19.03|-37.0
+69|NGC 6302|Bug Nebula|PN|Sco|12.8|17.23|-37.1
+70|NGC 300||G|Scl|8.1|0.92|-37.7
+71|NGC 2477||OC|Pup|5.8|7.87|-38.5
+72|NGC 55||G|Scl|8.2|0.25|-39.2
+73|NGC 1851||GC|Col|7.3|5.23|-40.0
+74|NGC 3132|Eight-Burst Nebula|PN|Vel|8.2|10.13|-40.4
+75|NGC 6124||OC|Sco|5.8|16.43|-40.7
+76|NGC 6231||OC|Sco|2.6|16.90|-41.8
+77|NGC 5128|Centaurus A|G|Cen|7.0|13.42|-43.0
+78|NGC 6541||GC|CrA|6.6|18.13|-43.7
+79|NGC 3201||GC|Vel|6.7|10.29|-46.4
+80|NGC 5139|Omega Centauri|GC|Cen|3.6|13.45|-47.5
+81|NGC 6352||GC|Ara|8.1|17.43|-48.4
+82|NGC 6193||OC|Ara|5.2|16.69|-48.8
+83|NGC 4945||G|Cen|9.5|13.09|-49.5
+84|NGC 5286||GC|Cen|7.6|13.77|-51.4
+85|IC 2391|Omicron Velorum Cluster|OC|Vel|2.5|8.67|-53.1
+86|NGC 6397||GC|Ara|5.6|17.68|-53.7
+87|NGC 1261||GC|Hor|8.4|3.20|-55.2
+88|NGC 5823||OC|Cir|7.9|15.09|-55.6
+89|NGC 6087|S Normae Cluster|OC|Nor|5.4|16.31|-57.9
+90|NGC 2867||PN|Car|9.7|9.36|-58.3
+91|NGC 3532|Wishing Well Cluster|OC|Car|3.0|11.10|-58.7
+92|NGC 3372|Carina Nebula|N|Car|3.0|10.73|-59.9
+93|NGC 6752||GC|Pav|5.4|19.18|-60.0
+94|NGC 4755|Jewel Box|OC|Cru|4.2|12.89|-60.3
+95|NGC 6025||OC|TrA|5.1|16.06|-60.5
+96|NGC 2516||OC|Car|3.8|7.97|-60.9
+97|NGC 3766|Pearl Cluster|OC|Cen|5.3|11.60|-61.6
+98|NGC 4609||OC|Cru|6.9|12.70|-63.0
+99|Dark nebula|Coalsack Nebula|N|Cru||12.88|-63.0
+100|IC 2944|Lambda Centauri Nebula|N|Cen|4.5|11.60|-63.0
+101|NGC 6744||G|Pav|9.0|19.16|-63.9
+102|IC 2602|Southern Pleiades|OC|Car|1.9|10.72|-64.4
+103|NGC 2070|Tarantula Nebula|N|Dor|8.2|5.64|-69.1
+104|NGC 362||GC|Tuc|6.6|1.05|-70.8
+105|NGC 4833||GC|Mus|7.4|13.00|-70.9
+106|NGC 104|47 Tucanae|GC|Tuc|4.0|0.40|-72.1
+107|NGC 6101||GC|Aps|9.3|16.43|-72.2
+108|NGC 4372||GC|Mus|7.8|12.43|-72.7
+109|NGC 3195||PN|Cha|11.6|10.16|-80.9`;
+const TYPES={G:["Galaxy","Galaxies"],OC:["Open cluster","Open clusters"],GC:["Globular cluster","Globular clusters"],N:["Nebula","Nebulae"],PN:["Planetary nebula","Planetary nebulae"],SNR:["Supernova remnant","Supernova remnants"],O:["Other","Other"]};
+const CON={And:"Andromeda",Aqr:"Aquarius",Aps:"Apus",Ara:"Ara",Aur:"Auriga",Boo:"Boötes",Cam:"Camelopardalis",Cap:"Capricornus",Car:"Carina",Cas:"Cassiopeia",Cen:"Centaurus",Cep:"Cepheus",Cet:"Cetus",Cha:"Chamaeleon",Cir:"Circinus",CMa:"Canis Major",Cnc:"Cancer",Col:"Columba",Com:"Coma Berenices",CrA:"Corona Australis",Cru:"Crux",Crv:"Corvus",CVn:"Canes Venatici",Cyg:"Cygnus",Del:"Delphinus",Dor:"Dorado",Dra:"Draco",For:"Fornax",Gem:"Gemini",Her:"Hercules",Hor:"Horologium",Hya:"Hydra",Lac:"Lacerta",Leo:"Leo",Lep:"Lepus",Lyn:"Lynx",Lyr:"Lyra",Mon:"Monoceros",Mus:"Musca",Nor:"Norma",Oph:"Ophiuchus",Ori:"Orion",Pav:"Pavo",Peg:"Pegasus",Per:"Perseus",Psc:"Pisces",Pup:"Puppis",Scl:"Sculptor",Sco:"Scorpius",Sct:"Scutum",Ser:"Serpens",Sex:"Sextans",Sge:"Sagitta",Sgr:"Sagittarius",Tau:"Taurus",TrA:"Triangulum Australe",Tri:"Triangulum",Tuc:"Tucana",UMa:"Ursa Major",Vel:"Vela",Vir:"Virgo",Vul:"Vulpecula"};
+function parse(pfx,txt){return txt.split("\n").map(l=>{const p=l.split("|");return{key:pfx+p[0],n:+p[0],alt:p[1],name:p[2],type:p[3],con:p[4],mag:p[5]===""?null:+p[5],ra:+p[6],dec:+p[7]}})}
+const CATS={M:{name:"Messier",rows:parse("M",M_DATA)},C:{name:"Caldwell",rows:parse("C",C_DATA)}};
+const INFO_DATA=`M1|6500|6'×4'|The remnant of a supernova that Chinese astronomers recorded in 1054. At its centre a pulsar spins about 30 times a second and powers the glowing filaments.
+M2|37500|16'|One of the larger and richer globular clusters, holding roughly 150,000 stars in a tightly packed ball.
+M3|33900|18'|A bright globular cluster famous for its large population of variable stars, more than 200 of them.
+M4|7200|26'|One of the nearest globular clusters, loose enough that a bar of stars crosses its centre. It sits right beside Antares.
+M5|24500|23'|Among the finest globular clusters in northern skies and one of the oldest known, around 13 billion years.
+M6|1600|25'|An open cluster whose brighter stars outline the wings of a butterfly. Its brightest member is an orange giant.
+M7|980|80'|A large cluster near the tail of the Scorpion, visible to the naked eye and recorded by Ptolemy around AD 130.
+M8|4100|90'×40'|A large star-forming nebula split by a dark lane, with a young cluster on one side. It is visible to the naked eye from dark sites.
+M9|25800|12'|A small globular cluster close to the galactic centre, dimmed and reddened by dust in front of it.
+M10|14300|20'|A bright, fairly loose globular cluster in Ophiuchus and a near neighbour of M12 in the sky.
+M11|6200|14'|One of the richest and most compact open clusters, with nearly 3,000 stars. Its brightest stars form a V like a flight of ducks.
+M12|16000|16'|A loosely concentrated globular cluster in Ophiuchus, sometimes called the Gumball Globular.
+M13|22200|20'|The brightest globular cluster in northern skies, with several hundred thousand stars. It was the target of the 1974 Arecibo radio message.
+M14|30300|11'|A rich globular cluster in Ophiuchus that looks evenly bright, with few stars standing out from the glow.
+M15|33600|18'|A very dense globular cluster with a collapsed core, and one of the few known to contain a planetary nebula.
+M16|7000|35'×28'|A young star cluster inside a glowing nebula. Its dark columns of gas and dust include the Pillars of Creation.
+M17|5500|11'|A bright star-forming region, also called the Swan Nebula, and one of the most massive in our galaxy.
+M18|4900|9'|A small, sparse open cluster between the Omega Nebula and the Sagittarius Star Cloud.
+M19|28700|17'|One of the most flattened globular clusters known, clearly oval in shape, close to the galactic centre.
+M20|5200|28'|A mix of red emission, blue reflection and dark nebula, divided into three lobes by lanes of dust.
+M21|4250|13'|A young, compact open cluster just northeast of the Trifid Nebula.
+M22|10600|32'|One of the nearest and brightest globular clusters, and among the first ever discovered.
+M23|2150|27'|A rich, scattered open cluster of about 150 stars in Sagittarius.
+M24|10000|90'|Not a true cluster but a window through the dust onto a dense stretch of a Milky Way spiral arm.
+M25|2000|32'|A bright open cluster in Sagittarius that contains the pulsating Cepheid variable U Sagittarii.
+M26|5000|15'|A compact open cluster in Scutum with a noticeable gap in stars at its centre.
+M27|1360|8'×6'|The first planetary nebula ever discovered and one of the brightest, shaped like an apple core.
+M28|17900|11'|A compact globular cluster near the lid of the Sagittarius Teapot, home to a millisecond pulsar.
+M29|4000|7'|A small cluster in Cygnus whose brighter stars form a box, nicknamed the Cooling Tower.
+M30|27100|12'|A dense globular cluster with a collapsed core, best seen low in late summer evenings.
+M31|2500000|178'×63'|The nearest large galaxy to our own and the most distant object easily seen with the naked eye. It is on course to merge with the Milky Way in a few billion years.
+M32|2500000|8'×6'|A compact elliptical galaxy orbiting close to the core of the Andromeda Galaxy.
+M33|2730000|73'×45'|The third-largest galaxy in the Local Group, with giant star-forming regions such as NGC 604. It has low surface brightness and needs dark skies.
+M34|1500|35'|A bright open cluster of about 100 stars in Perseus.
+M35|2800|28'|A large, bright cluster in Gemini, with the much more distant cluster NGC 2158 right beside it.
+M36|4100|12'|A young cluster of bright blue stars in Auriga.
+M37|4500|24'|The richest of the three Auriga clusters, around 500 stars, with a reddish star near its centre.
+M38|4200|21'|An open cluster whose stars form a cross or starfish pattern, with the smaller cluster NGC 1907 nearby.
+M39|1000|32'|A large, loose cluster in Cygnus that looks best at low power.
+M40|510|0.8'|A double star that Messier logged while searching for a nebula reported by Hevelius.
+M41|2300|38'|A bright open cluster just south of Sirius, visible to the naked eye.
+M42|1344|85'×60'|The nearest region of massive star formation, lit by the Trapezium stars at its heart. It is visible to the naked eye as the middle star of Orion's sword.
+M43|1344|20'×15'|Part of the Orion Nebula complex, separated from M42 by a dark lane of dust.
+M44|577|95'|One of the nearest open clusters, known since antiquity, and best in binoculars.
+M45|444|110'|The brightest star cluster in the sky. Its blue glow is reflection from a dust cloud the cluster is passing through.
+M46|5000|27'|A rich cluster in Puppis with the planetary nebula NGC 2438 in front of it.
+M47|1600|30'|A bright, coarse cluster next to M46, visible to the naked eye under dark skies.
+M48|1500|54'|A large open cluster of about 80 stars in Hydra.
+M49|56000000|10'×8'|A giant elliptical galaxy and one of the brightest members of the Virgo Cluster.
+M50|3200|16'|A heart-shaped open cluster in Monoceros.
+M51|23000000|11'×7'|A classic face-on spiral interacting with its companion NGC 5195. It was the first galaxy seen to have spiral arms.
+M52|5000|13'|A rich open cluster in Cassiopeia, close to the Bubble Nebula in the sky.
+M53|58000|13'|One of the more distant globular clusters, lying near the north pole of the galaxy.
+M54|87400|12'|A globular cluster that belongs to the Sagittarius Dwarf Galaxy, making it the first extragalactic globular found.
+M55|17600|19'|A large, loose globular cluster that sits low in the summer sky for northern observers.
+M56|32900|9'|A small globular cluster in Lyra set in a rich Milky Way star field.
+M57|2300|1.4'×1'|A famous planetary nebula, a shell of gas thrown off by a dying star now shrinking to a white dwarf.
+M58|62000000|6'×5'|A barred spiral and one of the brightest galaxies in the Virgo Cluster.
+M59|60000000|5'×4'|An elliptical galaxy in the Virgo Cluster near M60.
+M60|57000000|7'×6'|A giant elliptical galaxy paired in the sky with the spiral NGC 4647.
+M61|52000000|6'|A face-on barred spiral in Virgo that has hosted an unusually large number of supernovae.
+M62|22200|15'|An irregularly shaped globular cluster close to the galactic centre.
+M63|29000000|13'×7'|A spiral with short, patchy arms, called the Sunflower Galaxy.
+M64|17000000|10'×5'|A spiral with a dark band of dust in front of its bright nucleus, giving it the black eye.
+M65|35000000|10'×3'|A spiral galaxy in the Leo Triplet with M66 and NGC 3628.
+M66|36000000|9'×4'|A spiral in the Leo Triplet, its arms distorted by gravitational interaction with its neighbours.
+M67|2700|30'|One of the oldest known open clusters, around 4 billion years old.
+M68|33600|11'|A globular cluster in Hydra, best seen low in spring evenings.
+M69|29700|10'|A compact globular cluster near the galactic centre in Sagittarius.
+M70|29300|8'|A small globular cluster near M69. Comet Hale–Bopp was discovered beside it in 1995.
+M71|13000|7'|A loose globular cluster in Sagitta, long debated as a dense open cluster.
+M72|55400|7'|One of the most distant globular clusters in Messier's catalog.
+M73|2500|3'|A group of four stars, now thought to be a chance alignment rather than a true cluster.
+M74|32000000|10'×9'|A nearly perfect face-on spiral with low surface brightness, one of the harder Messier objects.
+M75|67500|7'|A very concentrated, distant globular cluster in Sagittarius.
+M76|2500|2.7'×1.8'|A planetary nebula often counted among the faintest Messier objects.
+M77|47000000|7'×6'|A barred spiral with an active Seyfert nucleus.
+M78|1350|8'×6'|The brightest reflection nebula in the sky, part of the Orion molecular cloud.
+M79|41000|9'|A winter globular cluster in Lepus, possibly captured from a dwarf galaxy.
+M80|32600|10'|One of the densest globular clusters in the galaxy, between Antares and Beta Scorpii.
+M81|12000000|27'×14'|A bright grand-design spiral, the largest member of its group alongside M82.
+M82|12000000|11'×5'|A starburst galaxy blowing out red filaments of gas after a close encounter with M81.
+M83|15000000|13'×12'|A bright barred spiral and one of the nearest of its kind.
+M84|60000000|6'×5'|A lenticular galaxy near the core of the Virgo Cluster, at the start of Markarian's Chain.
+M85|60000000|7'×5'|A lenticular galaxy at the northern edge of the Virgo Cluster.
+M86|52000000|9'×6'|An elliptical or lenticular galaxy in Markarian's Chain, falling through the Virgo Cluster.
+M87|53500000|8'×7'|A giant elliptical galaxy with a jet from its central black hole, the first black hole ever imaged.
+M88|47000000|7'×4'|A multi-armed spiral in the Virgo Cluster.
+M89|50000000|5'|A nearly round elliptical galaxy in the Virgo Cluster.
+M90|60000000|10'×4'|A spiral in Virgo whose smooth arms have largely stopped forming stars.
+M91|63000000|5'×4'|A barred spiral that was misidentified for years because of an error in Messier's position.
+M92|26700|14'|A bright, very old globular cluster in Hercules, often overlooked next to M13.
+M93|3600|22'|A bright, wedge-shaped open cluster in Puppis.
+M94|16000000|11'×9'|A spiral with a bright inner ring of star formation around its nucleus.
+M95|33000000|7'×5'|A barred spiral in Leo with a ring of star formation around its bar.
+M96|31000000|8'×5'|A lopsided spiral and the brightest member of the M96 group in Leo.
+M97|2030|3.4'|A round planetary nebula with two dark patches that look like an owl's eyes.
+M98|44000000|10'×3'|A nearly edge-on spiral at the edge of the Virgo Cluster, one of the few galaxies moving towards us.
+M99|50000000|5'|A face-on spiral with one arm stretched by interaction.
+M100|55000000|7'×6'|A grand-design spiral and one of the brightest galaxies in the Virgo Cluster.
+M101|21000000|29'×27'|A large face-on spiral with low surface brightness that rewards dark skies.
+M102|50000000|6'×3'|An edge-on lenticular galaxy. Which object Messier actually meant by M102 has long been disputed.
+M103|9000|6'|A small, rich, arrow-shaped cluster in Cassiopeia.
+M104|31000000|9'×4'|An edge-on spiral with a prominent dust lane and a huge glowing bulge.
+M105|32000000|5'|An elliptical galaxy in the Leo I group.
+M106|24000000|19'×8'|A spiral with an active nucleus whose water masers gave one of the most precise galaxy distances.
+M107|20900|13'|A loose globular cluster in Ophiuchus crossed by dark lanes.
+M108|46000000|9'×2'|A nearly edge-on spiral close to the Owl Nebula in the sky.
+M109|83000000|8'×5'|A barred spiral near Phecda in the bowl of the Big Dipper.
+M110|2700000|22'×13'|A dwarf elliptical galaxy orbiting the Andromeda Galaxy.
+C1|5000|15'|One of the oldest open clusters known, about 7 billion years old, lying near the north celestial pole.
+C2|3500|0.6'|A small planetary nebula with a bright central star, shaped like a bow tie.
+C3|11000000|22'×7'|A large, faint barred spiral seen nearly edge-on.
+C4|1300|18'|A blue reflection nebula lit by a young star and surrounded by dark dust.
+C5|11000000|21'|A large face-on spiral hidden behind Milky Way dust. Without it, it would be one of the brightest galaxies in the sky.
+C6|3300|0.3'|A planetary nebula with intricate nested shells, lying near the north pole of the ecliptic.
+C7|10000000|22'×12'|A bright spiral full of star-forming regions, an outlying member of the M81 group.
+C8|3700|4'|A small, rich open cluster in Cassiopeia.
+C9|2400|50'×30'|A faint emission nebula with a dark-edged opening like the mouth of a cave.
+C10|6800|16'|A rich cluster in Cassiopeia, part of the same stellar association as M103.
+C11|7100|15'×8'|A shell of gas blown out by the wind of a hot, massive star.
+C12|22000000|11'×10'|A face-on spiral on the border of Cepheus and Cygnus that has produced about ten supernovae in a century.
+C13|7900|13'|An open cluster whose two bright stars look like eyes, also called the E.T. Cluster.
+C14|7500|60'|Two rich young clusters side by side, visible to the naked eye between Perseus and Cassiopeia.
+C15|4200|0.4'|A planetary nebula that seems to vanish when you look straight at its bright central star.
+C16|2800|21'|A loose open cluster in Lacerta.
+C17|2500000|13'×8'|A dwarf spheroidal galaxy orbiting the Andromeda Galaxy.
+C18|2000000|12'×10'|A dwarf galaxy orbiting Andromeda that still shows signs of recent star formation.
+C19|3300|12'|An emission and reflection nebula at the end of a long dark lane of dust, Barnard 168.
+C20|2600|120'×100'|A large emission nebula shaped like the continent, next to the bright star Deneb.
+C21|12500000|6'×4'|An irregular starburst galaxy similar to the Large Magellanic Cloud.
+C22|5600|0.6'|A bright planetary nebula with a distinct blue-green colour.
+C23|30000000|13'×3'|An edge-on spiral with a sharp dust lane, thought to resemble our own galaxy seen side-on.
+C24|240000000|2'|A giant galaxy at the centre of the Perseus Cluster, with tangled filaments and a strong radio source.
+C25|300000|4'|The Intergalactic Wanderer, one of the most distant globular clusters belonging to our galaxy.
+C26|14000000|16'×2'|A thin, edge-on spiral known as the Silver Needle.
+C27|5000|18'×12'|A shell of gas blown by the Wolf–Rayet star WR 136.
+C28|1300|50'|A large, old open cluster near the border of Andromeda and Triangulum.
+C29|60000000|6'×3'|A bright spiral galaxy with an active nucleus.
+C30|40000000|10'×4'|A spiral often called a twin of our galaxy, with Stephan's Quintet close by in the sky.
+C31|1500|30'×19'|A nebula lit by AE Aurigae, a runaway star passing through it.
+C32|25000000|15'×3'|An edge-on spiral distorted by its small companion NGC 4627.
+C33|2400|60'×8'|The brightest part of the Cygnus Loop, a supernova remnant thought to be 10,000 to 20,000 years old.
+C34|2400|70'×6'|Part of the Cygnus Loop that runs past the star 52 Cygni, known as the Witch's Broom.
+C35|300000000|3'|A supergiant elliptical, the brightest galaxy in the Coma Cluster.
+C36|30000000|11'×5'|A patchy spiral galaxy in Coma Berenices.
+C37|2000|20'|An open cluster in Vulpecula around the star 20 Vulpeculae.
+C38|40000000|16'×2'|Perhaps the best-known edge-on spiral, with a dust lane and a bulging centre.
+C39|6500|0.8'|A planetary nebula whose outer halo looks like a face in a fur-lined hood, also called the Eskimo Nebula.
+C40|86000000|3'×2'|A lenticular galaxy in Leo whose gas rotates in the opposite direction to its stars.
+C41|153|330'|The nearest open cluster, forming the face of Taurus. Aldebaran is a foreground star, not a member.
+C42|135000|3'|A very distant globular cluster in Delphinus.
+C43|40000000|6'×2'|An edge-on spiral with a large bulge, sometimes called the Little Sombrero.
+C44|105000000|4'×3'|A barred spiral with one lopsided arm.
+C45|50000000|6'×4'|A grand-design spiral with rings of star formation.
+C46|2500|2'×1'|A fan-shaped nebula lit by R Monocerotis, whose shadows shift over weeks.
+C47|50000|6'|A globular cluster in Delphinus.
+C48|67000000|4'×3'|A spiral with a smooth central bulge and tightly wound, dusty arms.
+C49|5200|80'×60'|A large nebula shaped like a rose, surrounding the young cluster NGC 2244.
+C50|5200|24'|A young cluster whose winds have hollowed out the centre of the Rosette Nebula.
+C51|2400000|16'×15'|A faint dwarf irregular galaxy in the Local Group.
+C52|40000000|6'×4'|A bright elliptical galaxy in Virgo.
+C53|32000000|7'×3'|An edge-on lenticular galaxy in Sextans.
+C54|10000|7'|An old, rich open cluster in Monoceros.
+C55|4800|0.5'|A planetary nebula with faint extensions that look like the rings of Saturn.
+C56|1600|4'|A large, faint planetary nebula whose central white dwarf has a companion star.
+C57|1600000|15'×13'|A dwarf irregular galaxy in the Local Group.
+C58|3700|13'|A rich open cluster near Gamma Canis Majoris, discovered by Caroline Herschel.
+C59|4500|0.7'|A bright planetary nebula about the apparent size of Jupiter.
+C60|45000000|5'×3'|One of a pair of colliding galaxies with two long tidal tails, the Antennae.
+C61|45000000|3'|The second galaxy of the colliding Antennae pair.
+C62|11000000|20'×7'|A large dwarf spiral in the Sculptor Group with a gap in its disc on one side.
+C63|650|25'|One of the nearest planetary nebulae, about half the width of the full Moon.
+C64|5000|8'|A young cluster dominated by the bright star Tau Canis Majoris.
+C65|11400000|27'×7'|A bright starburst spiral and one of the most prominent galaxies in the southern sky.
+C66|113000|4'|A remote globular cluster in Hydra, possibly captured from another galaxy.
+C67|45000000|9'×6'|A barred spiral with an active nucleus and a ring of star formation.
+C68|420|1'|A variable reflection nebula in one of the nearest star-forming regions.
+C69|3400|1.5'|A bipolar planetary nebula with one of the hottest known central stars.
+C70|6000000|22'×16'|A face-on spiral in the Sculptor Group.
+C71|4000|27'|A very rich open cluster of around 300 stars.
+C72|6500000|32'×6'|An edge-on barred spiral in the Sculptor Group.
+C73|39500|11'|A dense globular cluster in Columba.
+C74|2500|1.5'|A planetary nebula with two central stars, one of the first targets imaged by the James Webb Space Telescope.
+C75|1800|29'|A large open cluster in Scorpius.
+C76|5200|15'|A bright cluster of hot young stars at the heart of a stellar association in Scorpius.
+C77|12000000|26'×20'|A peculiar galaxy with a dark dust lane and powerful radio jets, the aftermath of a merger.
+C78|22800|13'|A bright globular cluster in Corona Australis.
+C79|16300|18'|A loose globular cluster that orbits the galaxy in the opposite direction to most.
+C80|17000|36'|The largest globular cluster in our galaxy, possibly the core of a disrupted dwarf galaxy.
+C81|18600|7'|A loose globular cluster in Ara.
+C82|3800|15'|A young open cluster that lights up the nearby nebula NGC 6188.
+C83|13000000|20'×4'|An edge-on spiral near Centaurus A with an active nucleus.
+C84|36000|9'|A globular cluster in Centaurus.
+C85|500|50'|A bright, nearby open cluster around Omicron Velorum.
+C86|7800|31'|One of the two nearest globular clusters to us.
+C87|53500|7'|A distant globular cluster in Horologium.
+C88|3500|10'|An open cluster on the border of Circinus and Lupus.
+C89|3000|12'|An open cluster containing the Cepheid variable S Normae.
+C90|5500|0.2'|A small, bright planetary nebula in Carina.
+C91|1600|55'|A bright open cluster in Carina, visible to the naked eye.
+C92|7500|120'|A huge nebula larger and brighter than the Orion Nebula, home to the unstable giant star Eta Carinae.
+C93|13000|20'|A bright globular cluster in Pavo.
+C94|6400|10'|A bright cluster of contrasting blue and orange stars next to Beta Crucis.
+C95|2700|12'|An open cluster in Triangulum Australe.
+C96|1300|30'|A bright open cluster in Carina, visible to the naked eye.
+C97|5800|12'|An open cluster rich in hot young stars.
+C98|4000|5'|A small open cluster that appears against the edge of the Coalsack.
+C99|600|400'×300'|The most prominent dark nebula in the sky, a cloud of dust next to the Southern Cross.
+C100|6000|75'×40'|An emission nebula studded with dark globules, also called the Running Chicken Nebula.
+C101|30000000|20'×13'|A large spiral whose structure is thought to resemble our own galaxy.
+C102|490|50'|A bright cluster around Theta Carinae, visible to the naked eye.
+C103|160000|40'×25'|The most active star-forming region in the Local Group, inside the Large Magellanic Cloud.
+C104|28000|13'|A globular cluster that appears beside the Small Magellanic Cloud.
+C105|21000|13'|A globular cluster in Musca dimmed by foreground dust.
+C106|14700|31'|The second-brightest globular cluster in the sky, appearing beside the Small Magellanic Cloud.
+C107|50000|11'|A faint globular cluster in Apus.
+C108|18900|19'|A loose globular cluster at the edge of a long dark nebula in Musca.
+C109|5500|0.6'|The southernmost object in the Caldwell catalog, a small planetary nebula in Chamaeleon.`;
+const INFO={};for(const l of INFO_DATA.split("\n")){const p=l.split("|");INFO[p[0]]={ly:+p[1],size:p[2],desc:p[3]}}
+function fmtLy(n){if(!n)return"";if(n>=1e6){const m=n/1e6;return(m>=100?Math.round(m):+m.toFixed(m>=10?0:1))+" million ly"}return n.toLocaleString()+" ly"}
+const BYKEY={};for(const c in CATS)for(const o of CATS[c].rows)BYKEY[o.key]=o;
+
+const ALIAS={},NAMES={};
+for(const o of Object.values(BYKEY)){
+  const m=o.alt.match(/^(NGC|IC)\s*(\d+)(?:\s+and\s+(\d+))?/i);
+  if(m){ALIAS[m[1].toUpperCase()+m[2]]=o.key;if(m[3])ALIAS[m[1].toUpperCase()+m[3]]=o.key}
+  else if(o.alt!=="Dark nebula")ALIAS[o.alt.toUpperCase().replace(/[\s\-]+/g,"")]=o.key;
+  if(o.name){const n=o.name.toLowerCase();NAMES[n]=n in NAMES?null:o.key}
+}
+const tName=t=>{const b=BYKEY[t.key];return b?b.key+(b.name?" "+b.name:"")+(/^(NGC|IC) \d/.test(b.alt)?" ("+b.alt+")":""):t.label||t.key.replace(/^X:/,"")};
+const MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],RAD=Math.PI/180,SYN=29.530588853;
+const jd=t=>t/86400000+2440587.5;
+const kindOf=o=>o.kind==="visual"?"visual":"imaged";
+function fmtDur(sec){const m=Math.round(sec/60),h=Math.floor(m/60);return h?h+" h"+(m%60?" "+m%60+" min":""):m+" min"}
+function fmtTime(t){return new Date(t).toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"})}
+function moon(ds){const p=ds.split("-");if(p.length!==3)return"";const age=(((jd(new Date(+p[0],p[1]-1,+p[2],22).getTime())-2451550.1)%SYN)+SYN)%SYN,lit=Math.round(50*(1-Math.cos(2*Math.PI*age/SYN)));
+  const names=["New moon","Waxing crescent","First quarter","Waxing gibbous","Full moon","Waning gibbous","Last quarter","Waning crescent"];return names[Math.floor((age/SYN*8+.5))%8]+", "+lit+"% lit"}
+function bestMonths(o){const m=new Date(2001,2,35+Math.round(((o.ra+12)%24)/24*365.25)).getMonth();return MON[(m+11)%12]+" to "+MON[(m+1)%12]}
+function sunPos(d){const g=(357.528+.9856003*d)*RAD,l=(280.46+.9856474*d+1.915*Math.sin(g)+.02*Math.sin(2*g))*RAD,e=23.439*RAD;return{ra:(Math.atan2(Math.cos(e)*Math.sin(l),Math.cos(l))/RAD/15+24)%24,dec:Math.asin(Math.sin(e)*Math.sin(l))/RAD}}
+function altOf(ra,dec,lst,lat){return Math.asin(Math.sin(lat*RAD)*Math.sin(dec*RAD)+Math.cos(lat*RAD)*Math.cos(dec*RAD)*Math.cos((lst-ra)*15*RAD))/RAD}
+function defLon(){const y=new Date().getFullYear();return-Math.max(new Date(y,0,1).getTimezoneOffset(),new Date(y,6,1).getTimezoneOffset())/4}
+let NIGHT=null;
+function night(){
+  if(S.set.lat==null)return null;
+  const lon=S.set.lon==null?defLon():S.set.lon,base=new Date(Date.now()-12*3600e3);base.setHours(12,0,0,0);
+  const id=[S.set.lat,lon,S.set.minAlt,base.getTime()].join();if(NIGHT&&NIGHT.id===id)return NIGHT;
+  const all=[];for(let i=0;i<=144;i++){const t=base.getTime()+i*600e3,d=jd(t)-2451545,lst=(((18.697374558+24.06570982441908*d+lon/15)%24)+24)%24,sp=sunPos(d);all.push({t,lst,sun:altOf(sp.ra,sp.dec,lst,S.set.lat)})}
+  let dark=all.filter(x=>x.sun<-18);if(!dark.length)dark=all.filter(x=>x.sun<-12);
+  return NIGHT={id,dark,cache:{}};
+}
+function tonight(o){
+  const n=night();if(!n)return null;if(n.cache[o.key])return n.cache[o.key];
+  let best=-90,at=0;for(const x of n.dark){const a=altOf(o.ra,o.dec,x.lst,S.set.lat);if(a>best){best=a;at=x.t}}
+  return n.cache[o.key]={alt:best,t:at,dark:n.dark.length>0,good:n.dark.length>0&&best>=Math.max(S.set.minAlt,10)&&best>=.75*maxAlt(o)};
+}
+let toastT=0;function toast(m){const t=$("toast");t.textContent=m;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>{t.hidden=true},5000)}
+const wq={};function putDoc(name,data){if(!db||!S.canWrite)return;wq[name]=(wq[name]||Promise.resolve()).then(()=>db.doc("settings/"+name).set(data)).catch(e=>toast(explain(e)))}
+const GT=["Telescope","Camera","Mount","Reducer or flattener","Barlow","Eyepiece","Filter","Guiding","Other"];
+const rigItems=r=>r.items||[r.scope,r.camera].filter(Boolean);
+function pickHTML(sel,attr){
+  const known=new Set(S.gear.map(g=>g.name)),rows=GT.filter(t=>t!=="Filter").map(t=>[t,S.gear.filter(g=>g.type===t).map(g=>g.name)]);
+  const extra=[...sel].filter(n=>!known.has(n));if(extra.length)rows.push(["Not in saved gear",extra]);
+  return rows.filter(r=>r[1].length).map(r=>`<div class="pickrow"><span>${r[0]}</span>${r[1].map(n=>`<label class="pick"><input type="checkbox" ${attr}="${esc(n)}"${sel.has(n)?" checked":""}>${esc(n)}</label>`).join("")}</div>`).join("");
+}
+const RP=new Set();
+const SUG={};
+function suggestFor(inp){
+  const id=inp.id,multi=id==="fTarget",raw=inp.value,part=(multi?raw.split(/[,;]/).pop():raw).trim().toLowerCase();
+  let ul=document.getElementById("sg-"+id);
+  if(!ul){ul=document.createElement("ul");ul.id="sg-"+id;ul.className="sugg";ul.setAttribute("role","listbox");inp.insertAdjacentElement("afterend",ul)}
+  const list=SUG[id]||[];let hits=[];
+  if(part){const w=part.replace(/\s+/g,"");
+    hits=list.filter(x=>{const l=x.toLowerCase();return l.startsWith(part)||l.replace(/\s+/g,"").startsWith(w)||l.includes(" "+part)});
+    if(multi)hits.sort((a,b)=>{const ka=a.split(" ")[0].toLowerCase()===w?0:1,kb=b.split(" ")[0].toLowerCase()===w?0:1;return ka-kb||a.length-b.length});
+    if(!multi)hits=hits.filter(x=>x.toLowerCase()!==part);hits=hits.slice(0,5)}
+  ul.hidden=!hits.length;
+  ul.innerHTML=hits.map(x=>`<li><button type="button" data-sg="${esc(id)}" data-v="${esc(x)}">${esc(x)}</button></li>`).join("");
+}
+function hideSuggest(){document.querySelectorAll(".sugg").forEach(u=>{u.hidden=true})}
+/* ---------- state ---------- */
+const S={view:"M",status:"all",type:"",q:"",sort:"num",obs:[],loaded:false,dbState:"wait",canWrite:false,detail:null,set:{lat:null,lon:null,minAlt:0,hide:false},mode:"any",tonight:false,plan:{},covers:{},rigs:[],sites:[],gear:[]};
+const maxAlt=o=>90-Math.abs(S.set.lat-o.dec);
+const isLow=o=>S.set.lat!=null&&maxAlt(o)<S.set.minAlt;
+const latLabel=()=>Math.abs(S.set.lat).toFixed(1)+"° "+(S.set.lat<0?"S":"N");
+function applySet(j){if(!j)return;const l=j.lat,a=+j.minAlt,n=j.lon;S.set={lon:typeof n==="number"&&isFinite(n)?Math.max(-180,Math.min(180,n)):null,lat:typeof l==="number"&&isFinite(l)?Math.max(-90,Math.min(90,l)):null,minAlt:isFinite(a)?Math.max(0,Math.min(60,a)):0,hide:!!j.hide}}
+function syncSet(){const act=document.activeElement;if(act!==$("sLat"))$("sLat").value=S.set.lat==null?"":S.set.lat;if(act!==$("sAlt"))$("sAlt").value=S.set.minAlt;if(act!==$("sLon"))$("sLon").value=S.set.lon==null?"":S.set.lon;
+  $("gearSet").hidden=!S.canWrite;$("backupSet").hidden=!S.canWrite;$("bkImport").hidden=!PLAT.app;
+  if(PLAT.app)$("bkNote").textContent="Export saves every observation, setting and photo as one .zip file. Import adds observations from a backup, including one exported from the Claude version, and skips any already here.";
+  $("rigList").innerHTML=S.rigs.map((r,i)=>`<li><span>${esc(r.name)}<small>${esc(rigItems(r).join(", "))}</small></span><button class="btn quiet" data-act="delRig" data-i="${i}">Remove</button></li>`).join("");
+  $("gearList").innerHTML=GT.map(t=>S.gear.map((g,i)=>g.type===t?`<li><span>${esc(g.name)}<small>${t}</small></span><button class="btn quiet" data-act="delGear" data-i="${i}">Remove</button></li>`:"").join("")).join("");
+  $("rigPick").innerHTML=pickHTML(RP,"data-rg")||'<p class="hint">Add gear above, then tick the pieces that make up this rig.</p>';
+  $("siteList").innerHTML=S.sites.map((r,i)=>`<li><span>${esc(r.name)}<small>${r.bortle?"Bortle "+r.bortle:""}</small></span><button class="btn quiet" data-act="delSite" data-i="${i}">Remove</button></li>`).join("");$("sHide").checked=S.set.hide}
+async function saveSet(){
+  const lv=$("sLat").value.trim(),l=parseFloat(lv);
+  if(lv!==""&&!(l>=-90&&l<=90)){$("setMsg").textContent="Latitude must be between −90 and 90.";return}
+  const nv=$("sLon").value.trim(),n=parseFloat(nv);
+  if(nv!==""&&!(n>=-180&&n<=180)){$("setMsg").textContent="Longitude must be between −180 and 180.";return}
+  applySet({lon:nv===""?null:n,lat:lv===""?null:l,minAlt:parseFloat($("sAlt").value)||0,hide:$("sHide").checked});
+  try{localStorage.setItem("obsSettings",JSON.stringify(S.set))}catch(e){}
+  let msg="Saved.";
+  if(db&&S.canWrite){try{await db.doc("settings/main").set(Object.assign({},S.set))}catch(e){msg="Saved on this device only. It couldn't be synced to your other devices."}}
+  else msg="Saved on this device.";
+  $("setMsg").textContent=msg;render();
+}
+let db=null,assets=null;
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const blob=id=>window.APP_BLOB?window.APP_BLOB(id):"/_blob/"+encodeURIComponent(id);
+function fmtDate(d){const p=String(d||"").split("-");if(p.length!==3)return d||"Undated";return new Date(+p[0],p[1]-1,+p[2]).toLocaleDateString(undefined,{day:"numeric",month:"short",year:"numeric"})}
+function fmtRA(h){const hh=Math.floor(h),m=Math.round((h-hh)*60);return String(hh).padStart(2,"0")+"h "+String(m).padStart(2,"0")+"m"}
+function fmtDec(d){return(d<0?"−":"+")+Math.abs(d).toFixed(1)+"°"}
+function grouped(all){const g={};for(const o of S.obs){if(!all&&S.mode!=="any"&&kindOf(o)!==S.mode)continue;for(const t of o.targets)(g[t.key]=g[t.key]||[]).push(o)}for(const k in g)g[k].sort((a,b)=>(b.date||"").localeCompare(a.date||"")||(b.created||0)-(a.created||0));return g}
+function coverOf(key,list){let first=null;for(const o of list||[])for(const p of o.photos||[]){if(p.id===S.covers[key])return p;first=first||p}return first}
+function labelOf(key,list){const o=BYKEY[key];if(o)return o.key;const t=list&&list[0]&&list[0].targets.find(t=>t.key===key);return(t&&t.label)||key.replace(/^X:/,"")}
+
+/* ---------- symbols (star-atlas conventions) ---------- */
+function sym(t){
+  switch(t){
+    case"G":return'<ellipse class="sym" rx="6.5" ry="3.4" transform="rotate(-30)"/>';
+    case"OC":return'<circle class="sym" r="5.2" stroke-dasharray="2.4 2"/>';
+    case"GC":return'<g class="sym"><circle r="5.2"/><path class="x" d="M-5.2 0H5.2M0-5.2V5.2" fill="none"/></g>';
+    case"N":return'<rect class="sym" x="-4.6" y="-4.6" width="9.2" height="9.2"/>';
+    case"SNR":return'<rect class="sym" x="-4.2" y="-4.2" width="8.4" height="8.4" transform="rotate(45)"/>';
+    case"PN":return'<g class="sym"><circle r="3.6"/><path d="M-7 0h-3.4M7 0h3.4M0-7v-3.4M0 7v3.4" transform="scale(.72)" fill="none"/></g>';
+    default:return'<path class="sym" d="M0-5.5L5.2 4H-5.2Z"/>';
+  }
+}
+const icon=(t,seen)=>`<svg viewBox="-10 -10 20 20" class="${seen?"seen":""}" aria-hidden="true">${sym(t)}</svg>`;
+
+/* ---------- render ---------- */
+function render(){
+  document.querySelectorAll(".tabs>[data-view]").forEach(b=>b.setAttribute("aria-selected",b.dataset.view===S.view));
+  $("catBtn").setAttribute("aria-selected",!!CATS[S.view]);
+  $("catBtn").textContent=CATS[S.view]?"Catalogs: "+CATS[S.view].name:"Catalogs";
+  $("catPop").innerHTML=Object.keys(CATS).map(k=>`<button data-view="${k}" aria-current="${S.view===k}">${CATS[k].name}<small>${CATS[k].rows.length}</small></button>`).join("");
+  $("logBtn").hidden=!S.canWrite;
+  const st=$("status");
+  const msg=S.dbState==="none"?"Your saved observations aren't available in this view. Open the page in Claude while signed in to see and add to your log.":S.dbState==="error"?"The log couldn't be loaded. Reload the page to try again.":"";
+  st.hidden=!msg;st.textContent=msg;
+  $("catView").hidden=!CATS[S.view];$("logView").hidden=S.view!=="log";$("setView").hidden=S.view!=="set";$("statView").hidden=S.view!=="stats";
+  if(S.view==="log")renderLog();else if(S.view==="set")syncSet();else if(S.view==="stats")renderStats();else renderCat();
+  if(S.detail&&$("detail").open)renderDetail();
+}
+function renderCat(){
+  const cat=CATS[S.view],g=grouped(),all=cat.rows;
+  const out=o=>isLow(o)&&!g[o.key],nLow=all.filter(out).length,goal=all.length-nLow;
+  const rows=S.set.hide?all.filter(o=>!out(o)):all;
+  const seen=all.filter(o=>g[o.key]).length;
+  $("headline").textContent=`${seen} of ${goal} ${nLow?"reachable ":""}${cat.name} objects ${S.mode==="imaged"?"imaged":S.mode==="visual"?"observed visually":"observed"}`;
+  let sub=S.dbState==="wait"?"Loading your log…":seen===goal?"Catalog complete.":seen?`${goal-seen} to go.`:"Filled markers appear here as you log observations.";
+  if(nLow)sub+=` ${nLow} never rise${S.set.minAlt?" above "+S.set.minAlt+"°":""} from ${latLabel()}${S.set.hide?" and are hidden":""}.`;
+  $("sub").textContent=sub;
+  $("bar").style.width=(goal?100*seen/goal:0)+"%";
+  /* chart */
+  const L=36,T=10,PW=914,PH=384,x=ra=>L+(24-ra)/24*PW,y=d=>T+(90-d)/180*PH;
+  let s="";
+  for(let h=0;h<=24;h+=2){s+=`<line class="grid" x1="${x(h)}" y1="${T}" x2="${x(h)}" y2="${T+PH}"/>`;if(h<24)s+=`<text x="${x(h)}" y="${T+PH+17}" text-anchor="middle">${h}h</text>`}
+  for(let d=-90;d<=90;d+=30){s+=`<line class="grid" x1="${L}" y1="${y(d)}" x2="${L+PW}" y2="${y(d)}"/><text x="${L-6}" y="${y(d)+4}" text-anchor="end">${d>0?"+":""}${d}°</text>`}
+  if(S.set.lat!=null){const span=90-S.set.minAlt,lo=S.set.lat-span,hi=S.set.lat+span;
+    if(lo>-90)s+=`<rect class="band" x="${L}" y="${y(lo)}" width="${PW}" height="${y(-90)-y(lo)}"/><text class="lab" x="${L+8}" y="${T+PH-6}">out of reach from ${latLabel()}</text>`;
+    if(hi<90)s+=`<rect class="band" x="${L}" y="${T}" width="${PW}" height="${y(hi)-T}"/><text class="lab" x="${L+8}" y="${T+14}">out of reach from ${latLabel()}</text>`}
+  let p="";for(let h=0;h<=24;h+=.25)p+=(h?"L":"M")+x(h).toFixed(1)+" "+y(23.44*Math.sin(h*Math.PI/12)).toFixed(1);
+  s+=`<path class="ecl" d="${p}"/><text class="lab" x="${x(6)}" y="${y(23.44)-7}" text-anchor="middle">ecliptic</text>`;
+  const order=rows.slice().sort((a,b)=>(g[a.key]?1:0)-(g[b.key]?1:0));
+  for(const o of order){const tn=S.tonight?tonight(o):null,f=(S.type&&o.type!==S.type)||(S.tonight&&!(tn&&tn.good));
+    s+=`<g class="o${g[o.key]?" seen":S.plan[o.key]?" plan":""}${out(o)?" low":""}" data-act="open" data-key="${o.key}" transform="translate(${x(o.ra).toFixed(1)} ${y(o.dec).toFixed(1)})"${f?' opacity=".18"':""}><title>${esc(o.key+(o.name?" "+o.name:""))}</title><circle r="9" fill="transparent"/>${sym(o.type)}</g>`}
+  $("chart").innerHTML=s;
+  $("chart").setAttribute("aria-label",`Sky chart of the ${cat.name} catalog by right ascension and declination. ${seen} of ${rows.length} observed.`);
+  /* type legend / filter */
+  let t="";for(const k in TYPES){const all=rows.filter(o=>o.type===k);if(!all.length)continue;const n=all.filter(o=>g[o.key]).length;
+    t+=`<button data-type="${k}" aria-pressed="${S.type===k}">${icon(k,n>0)}<span>${TYPES[k][1]}</span><b>${n}/${all.length}</b></button>`}
+  $("types").innerHTML=t;
+  document.querySelectorAll("#seg button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.status===S.status));
+  document.querySelectorAll("#modeSeg button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.mode===S.mode));
+  $("tonightBtn").setAttribute("aria-pressed",S.tonight);
+  /* tiles */
+  const q=S.q.trim().toLowerCase();
+  let list=rows.filter(o=>{
+    if(S.type&&o.type!==S.type)return false;
+    if(S.status==="seen"&&!g[o.key])return false;
+    if(S.status==="todo"&&g[o.key])return false;
+    if(S.status==="plan"&&!(S.plan[o.key]&&!g[o.key]))return false;
+    if(S.tonight){const tn=tonight(o);if(!tn||!tn.good)return false}
+    if(q){const hay=(o.key+" "+o.key[0]+" "+o.n+" "+o.name+" "+o.alt+" "+o.con+" "+(CON[o.con]||"")+" "+TYPES[o.type][0]).toLowerCase();if(!hay.includes(q))return false}
+    return true});
+  const ta=o=>{const t=tonight(o);return t?t.alt:-99};
+  const cmp={tonight:(a,b)=>ta(b)-ta(a),num:(a,b)=>a.n-b.n,con:(a,b)=>(CON[a.con]||"").localeCompare(CON[b.con]||"")||a.n-b.n,ra:(a,b)=>a.ra-b.ra,mag:(a,b)=>(a.mag==null?99:a.mag)-(b.mag==null?99:b.mag)}[S.sort];
+  list.sort(cmp);
+  $("grid").innerHTML=list.length?list.map(o=>{const l=g[o.key],c=coverOf(o.key,l),pl=S.plan[o.key]&&!l;
+    return`<button class="tile${l?" seen":""}${c?" pic":""}${out(o)?" low":""}${pl?" plan":""}" data-act="open" data-key="${o.key}" aria-label="${esc(o.key+(o.name?", "+o.name:"")+", "+TYPES[o.type][0]+(l?", observed":out(o)?", out of reach from your latitude":pl?", planned":", not yet observed"))}">${c?`<img loading="lazy" alt="" src="${blob(c.thumb||c.id)}">`:icon(o.type,!!l)}${pl?'<span class="tag">Planned</span>':""}${l&&l.length>1?`<span class="ct">${l.length}</span>`:""}<span class="des">${o.key}</span><span class="nm">${esc(o.name||CON[o.con]||"")}</span></button>`}).join("")
+    :`<p class="empty" style="grid-column:1/-1">No objects match these filters.</p>`;
+}
+function entryHTML(o,withTarget){
+  const lr=o.rig?null:S.rigs.find(r=>r.name===o.gear),its=o.items&&o.items.length?o.items:lr?rigItems(lr):[],integ=(o.subs||0)*(o.subLen||0);
+  const sky=[o.bortle?"Bortle "+o.bortle:"",o.sqm?"SQM "+o.sqm:""].filter(Boolean).join(", ");
+  const rows=[["Type",kindOf(o)==="visual"?"Visual":"Imaged"],["Site",o.site],["Rig",o.rig||(lr?lr.name:"")],["Equipment",its.concat(lr||!o.gear?[]:[o.gear]).join(", ")],["Subs",integ?`${o.subs} × ${o.subLen} s, ${fmtDur(integ)} total`:""],["Filter",o.filter],["Capture",o.exposure],["Sky",sky],["Moon",o.date?moon(o.date):""]].filter(r=>r[1]);
+  const tBtn=t=>`<button data-act="open" data-key="${esc(t.key)}">${esc(tName(t))}</button>`;
+  const title=withTarget?o.targets.map(tBtn).join(", ")+", "+esc(fmtDate(o.date)):esc(fmtDate(o.date));
+  const others=withTarget?[]:o.targets.filter(t=>t.key!==S.detail);
+  const also=others.length?`<p class="also">Same frame as ${others.map(tBtn).join(", ")}</p>`:"";
+  const cov=withTarget?null:coverOf(S.detail,grouped(true)[S.detail]);
+  return`<article class="entry"><h4>${title}</h4>${also}<dl>${rows.map(r=>`<dt>${r[0]}</dt><dd>${esc(r[1])}</dd>`).join("")}</dl>${
+    o.photos&&o.photos.length?`<div class="photos">${o.photos.map((p,i)=>`<figure class="${cov&&cov.id===p.id?"cover":""}"><button class="ph" data-act="zoom" data-oid="${esc(o.id)}" data-i="${i}" aria-label="View photo full size${cov&&cov.id===p.id?", cover photo":""}"><img loading="lazy" alt="" src="${blob(p.thumb||p.id)}"></button>${p.cap?`<figcaption>${esc(p.cap)}</figcaption>`:""}</figure>`).join("")}</div>`:""}${
+    o.notes?`<p class="notes">${esc(o.notes)}</p>`:""}${
+    S.canWrite?`<div class="acts" data-obs="${esc(o.id)}"><button class="btn quiet" data-act="edit">Edit</button><button class="btn quiet danger" data-act="askDelete">Delete</button></div>`:""}</article>`;
+}
+function renderStats(){
+  const el=$("statView"),ob=S.obs;
+  if(!ob.length){el.innerHTML=`<p class="empty">${S.dbState==="wait"?"Loading your log…":"Stats appear once you have logged an observation."}</p>`;return}
+  const nights=new Set(ob.map(o=>o.date).filter(Boolean)),objs=new Set();let photos=0,integ=0,vis=0;
+  const add=(m,k,v)=>{if(k&&v)m[k]=(m[k]||0)+v},top=m=>Object.entries(m).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const rigs={},sites={},tg={},filt={},gearT={};
+  for(const o of ob){const it=(o.subs||0)*(o.subLen||0);o.targets.forEach(t=>{objs.add(t.key);add(tg,tName(t),1)});photos+=(o.photos||[]).length;integ+=it;if(kindOf(o)==="visual")vis++;const isRig=S.rigs.some(r=>r.name===o.gear);add(rigs,o.rig||(isRig?o.gear:""),1);(o.items||[]).forEach(n=>add(gearT,n,1));if(!isRig)add(gearT,o.gear,1);add(sites,o.site,1);add(filt,o.filter,it)}
+  const now=new Date(),months=[];
+  for(let i=11;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1),k=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");months.push({lab:MON[d.getMonth()],n:[...nights].filter(x=>x.startsWith(k)).length})}
+  const mx=Math.max(1,...months.map(m=>m.n));
+  const rank=(title,rows,fmt)=>rows.length?`<h3>${title}</h3><ol class="rank">${rows.map(r=>`<li><span>${esc(r[0])}</span><b>${fmt?fmt(r[1]):r[1]}</b></li>`).join("")}</ol>`:"";
+  el.innerHTML=`<dl class="facts"><div><dt>Nights out</dt><dd>${nights.size}</dd></div><div><dt>Observations</dt><dd>${ob.length-vis} imaged, ${vis} visual</dd></div><div><dt>Different targets</dt><dd>${objs.size}</dd></div><div><dt>Photos</dt><dd>${photos}</dd></div><div><dt>Total integration</dt><dd>${integ?fmtDur(integ):"None logged"}</dd></div></dl>
+  <h3>Nights out per month</h3><div class="months">${months.map(m=>`<div title="${m.lab}: ${m.n}"><b>${m.n||""}</b><i style="height:${Math.round(100*m.n/mx)}%"></i>${m.lab}</div>`).join("")}</div>
+  ${rank("Most-used rigs",top(rigs))}${rank("Most-used gear",top(gearT))}${rank("Sites",top(sites))}${rank("Most observed targets",top(tg))}${rank("Integration by filter",top(filt),fmtDur)}`;
+}
+function renderLog(){
+  const list=S.obs.slice().sort((a,b)=>(b.date||"").localeCompare(a.date||"")||(b.created||0)-(a.created||0));
+  const photos=list.reduce((n,o)=>n+(o.photos?o.photos.length:0),0);
+  $("logView").innerHTML=`<div class="progress"><h2>${list.length} observation${list.length===1?"":"s"}, ${photos} photo${photos===1?"":"s"}</h2></div>`+
+    (list.length?list.map(o=>entryHTML(o,true)).join(""):`<p class="empty">${S.dbState==="wait"?"Loading your log…":"Nothing logged yet. "+(S.canWrite?"Use Log observation to add your first night, with photos.":"")}</p>`);
+}
+function dome(o){
+  const lat=S.set.lat;if(lat==null)return"";
+  const F=(lat>=0?180:0)*RAD,t=24*RAD,sF=Math.sin(F),cF=Math.cos(F),W=320,cx=160,R=124,cy=40+R;
+  const P=(alt,az)=>{const a=alt*RAD,z=az*RAD,x=Math.sin(z)*Math.cos(a),y=Math.cos(z)*Math.cos(a),h=Math.sin(a);return[cx+R*(x*cF-y*sF),cy-R*((x*sF+y*cF)*Math.sin(t)+h*Math.cos(t))]};
+  const pt=p=>p[0].toFixed(1)+" "+p[1].toFixed(1);
+  const altaz=H=>{const h=H*15*RAD,d=o.dec*RAD,f=lat*RAD,alt=Math.asin(Math.sin(f)*Math.sin(d)+Math.cos(f)*Math.cos(d)*Math.cos(h));
+    const az=Math.atan2(-Math.cos(d)*Math.sin(h),Math.sin(d)*Math.cos(f)-Math.cos(d)*Math.cos(h)*Math.sin(f));return[alt/RAD,(az/RAD+360)%360]};
+  const segs=(pts,above)=>{const out=[];let cur=[];for(const p of pts){if((p.alt>=0)===above)cur.push(p.xy);else{if(cur.length>1)out.push(cur);cur=[]}}if(cur.length>1)out.push(cur);return out};
+  const line=(arr,cls)=>arr.map(a=>`<path class="${cls}" d="M${a.map(pt).join("L")}"/>`).join("");
+  let g=`<ellipse class="hz" cx="${cx}" cy="${cy}" rx="${R}" ry="${(R*Math.sin(t)).toFixed(1)}"/>`;
+  for(const h of[30,60])g+=`<ellipse class="ring" cx="${cx}" cy="${(cy-R*Math.sin(h*RAD)*Math.cos(t)).toFixed(1)}" rx="${(R*Math.cos(h*RAD)).toFixed(1)}" ry="${(R*Math.cos(h*RAD)*Math.sin(t)).toFixed(1)}"/>`;
+  const mer=[];for(let a=0;a<=180;a+=3)mer.push(a<=90?P(a,0):P(180-a,180));g+=`<path class="ring" d="M${mer.map(pt).join("L")}"/>`;
+  g+=`<path class="shell" d="M${cx-R} ${cy}A${R} ${R} 0 0 1 ${cx+R} ${cy}"/>`;
+  const pts=[];for(let H=-12;H<=12.001;H+=.1){const[a,z]=altaz(H);pts.push({alt:a,xy:P(a,z)})}
+  g+=line(segs(pts,false),"below")+line(segs(pts,true),"path");
+  const n=night(),dk=[];
+  if(n){let cur=[];for(const x of n.dark){const[a,z]=altaz(x.lst-o.ra);if(a>0)cur.push(P(a,z));else{if(cur.length>1)dk.push(cur);cur=[]}}if(cur.length>1)dk.push(cur);g+=line(dk,"dark")}
+  const top=90-Math.abs(lat-o.dec);
+  if(top>0){const[a,z]=altaz(0),p=P(a,z);g+=`<circle class="pk" cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="4.5"/><text class="pkl" x="${(p[0]+8).toFixed(1)}" y="${(p[1]-7).toFixed(1)}">${Math.round(top)}°</text>`}
+  for(const[l,az]of[["N",0],["E",90],["S",180],["W",270]]){const p=P(0,az),dx=p[0]-cx,dy=p[1]-cy,q=Math.abs(dx)>R/2?[p[0]+Math.sign(dx)*14,p[1]+4]:dy<0?[p[0]+12,p[1]-6]:[p[0],p[1]+18];g+=`<text x="${q[0].toFixed(1)}" y="${q[1].toFixed(1)}" text-anchor="middle">${l}</text>`}
+  g+=`<circle cx="${cx}" cy="${cy}" r="2.4" fill="currentColor" style="color:var(--muted)"/><text x="${cx}" y="${cy+18}" text-anchor="middle">${latLabel()}</text>`;
+  const cap=top<=0?"Never rises from your latitude.":dk.length?"Its daily path across your sky. The bright stretch is when it's up during darkness tonight.":"Its daily path across your sky. It isn't up during darkness tonight.";
+  return`<figure><svg class="dome" viewBox="0 0 ${W} ${(cy+R*Math.sin(t)+26).toFixed(0)}" role="img" aria-label="Sky dome showing ${esc(o.key)} rising to ${Math.max(0,Math.round(top))} degrees">${g}</svg><figcaption>${cap}</figcaption></figure>`;
+}
+function renderDetail(){
+  const key=S.detail,o=BYKEY[key],list=grouped(true)[key]||[],tn=o?tonight(o):null,inf=o?INFO[key]:null,cov=coverOf(key,list);
+  let h=`<div class="ihero${cov?"":" none"}">${cov?`<img alt="" src="${blob(cov.id)}">`:`<div>${o?`<svg viewBox="-10 -10 20 20" aria-hidden="true">${sym(o.type)}</svg>`:""}${list.length?"No photos on these observations":"No photo yet"}</div>`}<button class="btn iclose" data-act="closeDetail">Close</button></div>`;
+  h+=`<div class="ihead"><p class="des">${esc(o?o.key+(o.alt?" ("+o.alt+")":""):labelOf(key,list))}</p><h3>${esc(o?(o.name||o.key):labelOf(key,list))}</h3><p class="kind">${o?esc(TYPES[o.type][0]+" in "+(CON[o.con]||o.con)):"Outside the catalogs"}</p></div><div class="dbody">`;
+  if(o){
+    if(inf)h+=`<p class="idesc">${esc(inf.desc)}</p>`;
+    const rows=[["Type",TYPES[o.type][0]],["Constellation",CON[o.con]||o.con],["Distance",inf?fmtLy(inf.ly):""],["Right ascension",fmtRA(o.ra)],["Declination",fmtDec(o.dec)],["Apparent size",inf?inf.size:""],["Magnitude",o.mag==null?"":o.mag.toFixed(1)],["Also listed as",o.alt],["Best months",bestMonths(o)],
+      S.set.lat==null?null:["Highest from "+latLabel(),maxAlt(o)<=0?"Never rises":Math.round(maxAlt(o))+"°"+(isLow(o)?", below your limit":"")],
+      tn?["Tonight",!tn.dark?"No darkness tonight":tn.alt<=0?"Not up in darkness":Math.round(tn.alt)+"° at "+fmtTime(tn.t)]:null].filter(r=>r&&r[1]);
+    h+=`<div class="icols"><dl class="tdata">${rows.map(r=>`<div><dt>${r[0]}</dt><dd>${esc(r[1])}</dd></div>`).join("")}</dl><div class="domebox">${S.set.lat==null?`<p class="ihint">Set your latitude in Settings to see this object's path across your sky.</p>`:dome(o)}</div></div>`;
+  }
+  if(S.canWrite)h+=`<div class="acts" style="margin:0"><button class="btn primary" data-act="new" data-key="${esc(key)}">Log observation of ${esc(labelOf(key,list))}</button>${o?`<button class="btn" data-act="plan" data-key="${esc(key)}" aria-pressed="${!!S.plan[key]}">${S.plan[key]?"Remove from plan":"Add to plan"}</button>`:""}</div>`;
+  h+=list.length?list.map(e=>entryHTML(e,false)).join(""):`<p class="empty" style="margin-top:14px">Not observed yet.</p>`;
+  $("detailBody").innerHTML=h+"</div>";
+}
+
+/* ---------- backup ---------- */
+const PLAT=window.APP_PLAT||{
+  app:false,
+  zipUrl:"https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js",
+  getBlob:id=>fetch(blob(id)).then(r=>r.ok?r.blob():null).catch(()=>null),
+  async saveFile(name,data){const dl=window.claude&&window.claude.use?await window.claude.use("downloads").catch(()=>null):null;if(!dl)throw{code:"unavailable"};await dl.save({filename:name,data})}
+};
+async function loadZip(){
+  if(window.JSZip)return window.JSZip;
+  await new Promise((ok,no)=>{const sc=document.createElement("script");sc.src=PLAT.zipUrl;sc.onload=ok;sc.onerror=()=>no({code:"zip_load"});document.head.appendChild(sc)});
+  return window.JSZip;
+}
+function bkMsg(m){$("bkMsg").textContent=m}
+function bkBusy(on){document.querySelectorAll('[data-act="export"],[data-act="import"]').forEach(b=>{b.disabled=on})}
+async function exportBackup(){
+  bkBusy(true);bkMsg("Preparing backup…");
+  try{
+    const Z=await loadZip(),z=new Z(),ids=new Set();
+    for(const o of S.obs)for(const p of o.photos||[]){ids.add(p.id);if(p.thumb)ids.add(p.thumb)}
+    z.file("data.json",JSON.stringify({app:"observing-log",version:1,exported:new Date().toISOString(),
+      observations:S.obs,settings:{main:S.set,gear:{rigs:S.rigs,sites:S.sites,items:S.gear},plan:{keys:Object.keys(S.plan)},covers:{list:Object.keys(S.covers).map(k=>({k,id:S.covers[k]}))}}},null,1));
+    let i=0,miss=0;
+    for(const id of ids){bkMsg(`Packing photo ${++i} of ${ids.size}…`);const b=await PLAT.getBlob(id);if(b)z.file("photos/"+id,b);else miss++}
+    bkMsg("Compressing…");
+    const out=await z.generateAsync({type:"blob",compression:"STORE"});
+    const d=new Date(),name=`observing-log-backup-${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}.zip`;
+    await PLAT.saveFile(name,out);
+    bkMsg(`Saved ${name}: ${S.obs.length} observation${S.obs.length===1?"":"s"}, ${ids.size-miss} photo files${miss?`. ${miss} photo files couldn't be read and were left out`:""}.`);
+  }catch(e){
+    const c=e&&e.code;
+    bkMsg(c==="declined"?"Export cancelled.":c==="zip_load"?"The backup tool couldn't load. Check your connection and try again.":c==="too_large"?"The backup is too large to save here. Try exporting from a computer.":c==="unavailable"||c==="not_granted"?"Saving files isn't available in this view. Open the page in a browser and try again.":"The backup couldn't be created. Try again.");
+  }finally{bkBusy(false)}
+}
+async function sniff(b){const h=new Uint8Array(await b.slice(0,12).arrayBuffer());
+  const t=h[0]===0x89&&h[1]===0x50?"image/png":h[0]===0xFF&&h[1]===0xD8?"image/jpeg":h[0]===0x47&&h[1]===0x49?"image/gif":h[8]===0x57&&h[9]===0x45?"image/webp":"application/octet-stream";
+  return new Blob([b],{type:t})}
+async function importBackup(file){
+  bkBusy(true);bkMsg("Reading backup…");
+  try{
+    const Z=await loadZip(),z=await Z.loadAsync(file),jf=z.file("data.json");
+    if(!jf)throw{code:"not_backup"};
+    const j=JSON.parse(await jf.async("string"));if(j.app!=="observing-log")throw{code:"not_backup"};
+    let added=0,skipped=0,n=0;const obs=j.observations||[];
+    for(const o of obs){
+      bkMsg(`Importing observation ${++n} of ${obs.length}…`);
+      if(!o||!o.id||S.obs.some(x=>x.id===o.id)){skipped++;continue}
+      for(const p of o.photos||[])for(const id of[p.id,p.thumb])if(id&&!PLAT.hasBlob(id)){const f=z.file("photos/"+id);if(f)await PLAT.putBlob(id,await sniff(await f.async("blob")))}
+      const body=Object.assign({},o);delete body.id;
+      await db.collection("observations").doc(o.id).set(body);added++;
+    }
+    const st=j.settings||{};
+    if(st.main&&S.set.lat==null){applySet(st.main);try{localStorage.setItem("obsSettings",JSON.stringify(S.set))}catch(e){}await db.doc("settings/main").set(Object.assign({},S.set))}
+    const uni=(a,b)=>{const m=new Map();for(const x of(a||[]).concat(b||[]))if(x&&x.name&&!m.has(x.name))m.set(x.name,x);return[...m.values()]};
+    if(st.gear){S.rigs=uni(S.rigs,st.gear.rigs);S.sites=uni(S.sites,st.gear.sites);S.gear=uni(S.gear,st.gear.items);await db.doc("settings/gear").set({rigs:S.rigs,sites:S.sites,items:S.gear})}
+    if(st.plan){for(const k of st.plan.keys||[])S.plan[k]=1;await db.doc("settings/plan").set({keys:Object.keys(S.plan)})}
+    if(st.covers){for(const c of st.covers.list||[])if(!S.covers[c.k])S.covers[c.k]=c.id;await db.doc("settings/covers").set({list:Object.keys(S.covers).map(k=>({k,id:S.covers[k]}))})}
+    bkMsg(`Imported ${added} observation${added===1?"":"s"}${skipped?`, skipped ${skipped} already in your log`:""}.`);
+  }catch(e){
+    const c=e&&e.code;
+    bkMsg(c==="not_backup"?"That file isn't an Observing log backup.":c==="zip_load"?"The backup tool couldn't load. Try again.":c==="quota_exceeded"?"Your phone is out of storage for this app. Free some space and import again; observations already imported are kept.":"The backup couldn't be read. Make sure it's the .zip file from Export backup.");
+  }finally{bkBusy(false)}
+}
+/* ---------- form ---------- */
+const F={editing:null,items:new Set(),keep:[],files:[],caps:[],targets:[],busy:false};let LB=null;
+function parseTarget(str){
+  const s=str.trim().replace(/\s+/g," "),m=s.match(/^(messier|caldwell|m|c)\s*(\d{1,3})(?![\d\/])/i);
+  if(m){const k=m[1][0].toUpperCase()+(+m[2]);if(BYKEY[k])return{key:k,label:k}}
+  const n=s.toUpperCase().replace(/^SHARPLESS\s*(2\s*-)?\s*/,"SH2").replace(/[\s\-]+/g,""),c=n.match(/^(NGC|IC)0*(\d+)/);
+  const hit=c?ALIAS[c[1]+c[2]]:ALIAS[n]||NAMES[s.toLowerCase()];
+  if(hit)return{key:hit,label:hit};
+  if(c)return{key:"X:"+c[1].toLowerCase()+" "+c[2],label:c[1]+" "+c[2]};
+  return{key:"X:"+s.toLowerCase(),label:s};
+}
+function commitTargets(){
+  for(const part of $("fTarget").value.split(/[,;\n]+/)){if(!part.trim())continue;const t=parseTarget(part);if(!F.targets.some(x=>x.key===t.key))F.targets.push(t)}
+  $("fTarget").value="";chips();const u=document.getElementById("sg-fTarget");if(u)u.hidden=true;
+}
+function chips(){$("chips").innerHTML=F.targets.map((t,i)=>`<li>${esc(tName(t))}<button type="button" data-act="dropTarget" data-i="${i}" aria-label="Remove ${esc(tName(t))}">×</button></li>`).join("")}
+function openForm(key,obs){
+  F.editing=obs||null;F.keep=obs&&obs.photos?obs.photos.map(p=>Object.assign({},p)):[];F.files=[];F.caps=[];F.busy=false;
+  F.items=new Set(obs&&obs.items||[]);const rg=obs&&obs.rig||"";
+  $("fRig").innerHTML='<option value="">No saved rig</option>'+[...new Set(S.rigs.map(r=>r.name).concat(rg||[]))].map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join("");
+  $("fRig").value=rg;gearPick();
+  $("formTitle").textContent=obs?"Edit observation":"Log observation";
+  F.targets=obs?obs.targets.map(t=>({key:t.key,label:t.label})):key?[{key,label:labelOf(key,grouped(true)[key])}]:[];
+  $("fTarget").value="";chips();
+  const d=new Date(),v=(id,x)=>{$(id).value=x==null?"":x};
+  v("fDate",obs?obs.date:d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"));
+  v("fKind",obs?kindOf(obs):"imaged");v("fSite",obs&&obs.site);v("fGear",obs&&obs.gear);v("fSubs",obs&&obs.subs);v("fLen",obs&&obs.subLen);v("fFilter",obs&&obs.filter);v("fBortle",obs&&obs.bortle);v("fSqm",obs&&obs.sqm);v("fExp",obs&&obs.exposure);v("fNotes",obs&&obs.notes);v("fFiles","");
+  const opts=(saved,f)=>[...new Set(saved.concat(S.obs.map(o=>o[f])).filter(Boolean))];
+  SUG.fSite=opts(S.sites.map(x=>x.name),"site");SUG.fGear=opts([],"gear");SUG.fFilter=opts(S.gear.filter(g=>g.type==="Filter").map(g=>g.name),"filter");
+  setErr("");setBusy(false);fileList();formHints();hideSuggest();
+  $("formDlg").showModal();
+}
+function gearPick(){const h=pickHTML(F.items,"data-gear");$("fGearPick").innerHTML=h;$("fGearWrap").hidden=!h}
+function rigMatch(){const key=a=>a.slice().sort().join("|"),cur=key([...F.items]),r=F.items.size&&S.rigs.find(r=>key(rigItems(r))===cur);$("fRig").value=r?r.name:""}
+function formHints(){
+  const d=$("fDate").value;$("fMoon").textContent=d?"Moon: "+moon(d):"";
+  const n=+$("fSubs").value,l=+$("fLen").value;$("fInteg").textContent=n>0&&l>0?"Total integration: "+fmtDur(n*l):"";
+}
+function fileList(){
+  $("fileList").innerHTML=F.keep.map((p,i)=>`<li><img alt="" src="${blob(p.thumb||p.id)}"><input class="cap" data-cap="k${i}" value="${esc(p.cap||"")}" placeholder="Caption" aria-label="Caption for saved photo ${i+1}"><button type="button" class="btn quiet" data-act="dropKeep" data-i="${i}">Remove</button></li>`).join("")+
+    F.files.map((f,i)=>`<li><span class="fn" title="${esc(f.name)}">${esc(f.name)}</span><input class="cap" data-cap="f${i}" value="${esc(F.caps[i]||"")}" placeholder="Caption" aria-label="Caption for ${esc(f.name)}"><button type="button" class="btn quiet" data-act="dropFile" data-i="${i}">Remove</button></li>`).join("");
+}
+function setErr(m){$("formErr").hidden=!m;$("formErr").textContent=m}
+function setBusy(b,label){F.busy=b;$("saveBtn").disabled=b;$("saveBtn").textContent=label||(b?"Saving…":"Save observation")}
+function scale(bmp,max,q){const r=Math.min(1,max/Math.max(bmp.width,bmp.height)),c=document.createElement("canvas");c.width=Math.max(1,Math.round(bmp.width*r));c.height=Math.max(1,Math.round(bmp.height*r));c.getContext("2d").drawImage(bmp,0,0,c.width,c.height);return new Promise((ok,no)=>c.toBlob(b=>b?ok(b):no(new Error("encode")),"image/jpeg",q))}
+async function prep(file){
+  let bmp;try{bmp=await createImageBitmap(file)}catch(e){throw{code:"unreadable",file:file.name}}
+  const thumb=await scale(bmp,640,.82);
+  const ok=["image/png","image/jpeg","image/webp","image/gif"].includes(file.type)&&file.size<=20*1048576;
+  const main=ok?file:await scale(bmp,5000,.92);
+  if(bmp.close)bmp.close();
+  return{main,thumb};
+}
+async function up(b,type){
+  try{return await assets.upload(b,{type})}
+  catch(e){if(e&&e.code==="store_unavailable"){await new Promise(r=>setTimeout(r,900));return assets.upload(b,{type})}throw e}
+}
+function explain(e){
+  const c=e&&e.code;
+  if(c==="unreadable")return`${e.file} couldn't be read as an image. Export it as JPEG or PNG and add it again.`;
+  if(c==="too_large")return"That photo is over the 20 MB limit. Export a smaller copy and add it again.";
+  if(c==="unsupported_type")return"That file type isn't supported. Use JPEG, PNG or WebP.";
+  if(c==="quota_or_state"||c==="quota_exceeded")return"Storage for this log is full. Delete some photos or observations, then save again.";
+  if(c==="rate_limited"||c==="resource_exhausted")return"Too many uploads at once. Wait a moment, then save again.";
+  if(c==="upstream_auth")return"Your session expired. Reload the page, sign in and save again.";
+  if(c==="not_granted"||c==="revoked"||c==="invalid_argument")return"You don't have permission to change this log.";
+  return"The observation wasn't saved. Check your connection and save again.";
+}
+async function save(ev){
+  ev.preventDefault();if(F.busy)return;
+  commitTargets();const date=$("fDate").value;
+  if(!F.targets.length){setErr("Enter at least one target, such as M31 or a name.");$("fTarget").focus();return}
+  if(!date){setErr("Choose the date of the observation.");$("fDate").focus();return}
+  if(!db||!assets){setErr("You don't have permission to change this log.");return}
+  setErr("");setBusy(true);
+  const added=[];
+  try{
+    for(let i=0;i<F.files.length;i++){
+      setBusy(true,`Uploading photo ${i+1} of ${F.files.length}…`);
+      const{main,thumb}=await prep(F.files[i]);
+      const m=await up(main,main.type),th=await up(thumb,"image/jpeg");
+      added.push(Object.assign({id:m.id,thumb:th.id},F.caps[i]&&F.caps[i].trim()?{cap:F.caps[i].trim()}:{}));
+    }
+    setBusy(true);
+    const body={targets:F.targets.slice(),date,kind:$("fKind").value,site:$("fSite").value.trim(),gear:$("fGear").value.trim(),rig:$("fRig").value,items:[...F.items],subs:num("fSubs"),subLen:num("fLen"),filter:$("fFilter").value.trim(),bortle:num("fBortle"),sqm:num("fSqm"),exposure:$("fExp").value.trim(),notes:$("fNotes").value.trim(),photos:F.keep.map(p=>Object.assign({id:p.id,thumb:p.thumb||""},p.cap&&p.cap.trim()?{cap:p.cap.trim()}:{})).concat(added),created:F.editing?F.editing.created||Date.now():Date.now()};
+    if(F.editing){
+      const old=F.editing.photos||[];
+      await db.collection("observations").doc(F.editing.id).set(body);
+      for(const p of old)if(!F.keep.some(k=>k.id===p.id))await dropPhoto(p);
+    }else await db.collection("observations").add(body);
+    $("formDlg").close();
+    if($("detail").open){if(!F.targets.some(t=>t.key===S.detail))S.detail=F.targets[0].key;renderDetail()}
+  }catch(e){
+    for(const p of added)await dropPhoto(p);
+    setErr(explain(e));setBusy(false);
+  }
+}
+function num(id){const x=parseFloat($(id).value);return x>0?x:null}
+function lbBtn(){const b=$("lbCover"),k=S.detail;b.hidden=!(k&&S.canWrite&&$("detail").open&&LB);if(b.hidden)return;const l=grouped(true)[k],cur=coverOf(k,l),is=cur&&cur.id===LB.id;b.disabled=!!is;b.textContent=is?"Cover photo":"Use as cover for "+labelOf(k,l)}
+function saveGear(){putDoc("gear",{rigs:S.rigs,sites:S.sites,items:S.gear});render()}
+async function dropPhoto(p){if(!assets)return;for(const id of[p.id,p.thumb])if(id){try{await assets.delete(id)}catch(e){}}}
+async function removeObs(id,box){
+  const o=S.obs.find(x=>x.id===id);if(!o||!db)return;
+  box.innerHTML="<span>Deleting…</span>";
+  try{await db.collection("observations").doc(id).delete();for(const p of o.photos||[])await dropPhoto(p)}
+  catch(e){box.innerHTML=`<span class="err" style="margin:0">${esc(explain(e))}</span>`}
+}
+
+/* ---------- events ---------- */
+function catMenu(open){$("catPop").hidden=!open;$("catBtn").setAttribute("aria-expanded",open)}
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("catPop").hidden){catMenu(false);$("catBtn").focus()}});
+document.addEventListener("click",ev=>{
+  if(ev.target.closest("#catBtn")){catMenu($("catPop").hidden);return}
+  catMenu(false);
+  const tab=ev.target.closest("[data-view]");if(tab){S.view=tab.dataset.view;S.type="";render();return}
+  const ty=ev.target.closest("[data-type]");if(ty){S.type=S.type===ty.dataset.type?"":ty.dataset.type;renderCat();return}
+  const md=ev.target.closest("[data-mode]");if(md){S.mode=md.dataset.mode;renderCat();return}
+  if(ev.target.closest("#tonightBtn")){if(S.set.lat==null){S.view="set";render();$("setMsg").textContent="Set your latitude to use Up tonight.";$("sLat").focus()}else{S.tonight=!S.tonight;renderCat()}return}
+  const sg=ev.target.closest("[data-status]");if(sg){S.status=sg.dataset.status;renderCat();return}
+  const a=ev.target.closest("[data-act]");if(!a)return;
+  const act=a.dataset.act,box=a.closest("[data-obs]"),oid=box&&box.dataset.obs;
+  if(act==="open"){S.detail=a.dataset.key;renderDetail();if(!$("detail").open)$("detail").showModal()}
+  else if(act==="closeDetail")$("detail").close();
+  else if(act==="new")openForm(a.dataset.key||"");
+  else if(act==="closeForm"){if(!F.busy)$("formDlg").close()}
+  else if(act==="edit"){const o=S.obs.find(x=>x.id===oid);if(o)openForm("",o)}
+  else if(act==="askDelete")box.innerHTML=`<span>Delete this observation and its photos?</span><button class="btn danger" data-act="doDelete">Delete</button><button class="btn quiet" data-act="keep">Keep</button>`;
+  else if(act==="keep")render();
+  else if(act==="doDelete")removeObs(oid,box);
+  else if(act==="zoom"){const o=S.obs.find(x=>x.id===a.dataset.oid),p=o&&o.photos&&o.photos[+a.dataset.i];if(!p)return;LB=p;$("lbImg").src=blob(p.id);$("lbCap").textContent=p.cap||"";lbBtn();$("lightbox").showModal()}
+  else if(act==="closeLb")$("lightbox").close();
+  else if(act==="setCover"){if(!S.detail||!LB)return;S.covers[S.detail]=LB.id;putDoc("covers",{list:Object.keys(S.covers).map(k=>({k,id:S.covers[k]}))});render();lbBtn()}
+  else if(act==="plan"){const k=a.dataset.key;if(S.plan[k])delete S.plan[k];else S.plan[k]=1;putDoc("plan",{keys:Object.keys(S.plan)});render()}
+  else if(act==="addRig"){const n=$("rName").value.trim();if(!n){$("rName").focus();return}if(!RP.size){toast("Tick at least one piece of gear for this rig.");return}S.rigs=S.rigs.filter(r=>r.name!==n).concat({name:n,items:[...RP]});RP.clear();$("rName").value="";saveGear()}
+  else if(act==="addGear"){const n=$("gName").value.trim();if(!n){$("gName").focus();return}S.gear=S.gear.filter(g=>g.name!==n).concat({type:$("gType").value,name:n});$("gName").value="";saveGear()}
+  else if(act==="delGear"){const g=S.gear[+a.dataset.i];S.gear=S.gear.filter(x=>x!==g);if(g)RP.delete(g.name);saveGear()}
+  else if(act==="delRig"){S.rigs=S.rigs.filter((r,i)=>i!==+a.dataset.i);saveGear()}
+  else if(act==="export")exportBackup();
+  else if(act==="import")$("bkFile").click();
+  else if(act==="addSite"){const n=$("sName").value.trim();if(!n){$("sName").focus();return}S.sites=S.sites.filter(r=>r.name!==n).concat({name:n,bortle:+$("sBortle").value||null});$("sName").value="";$("sBortle").value="";saveGear()}
+  else if(act==="delSite"){S.sites=S.sites.filter((r,i)=>i!==+a.dataset.i);saveGear()}
+  else if(act==="dropTarget"){F.targets.splice(+a.dataset.i,1);chips()}
+  else if(act==="dropKeep"){F.keep.splice(+a.dataset.i,1);fileList()}
+  else if(act==="dropFile"){F.files.splice(+a.dataset.i,1);F.caps.splice(+a.dataset.i,1);fileList()}
+});
+$("lightbox").addEventListener("click",e=>{if(e.target===$("lightbox")||e.target===$("lbImg"))$("lightbox").close()});
+$("fileList").addEventListener("input",e=>{const c=e.target.dataset.cap;if(!c)return;if(c[0]==="k")F.keep[+c.slice(1)].cap=e.target.value;else F.caps[+c.slice(1)]=e.target.value});
+$("gType").innerHTML=GT.map(t=>`<option>${t}</option>`).join("");
+$("rigPick").addEventListener("change",e=>{const n=e.target.dataset.rg;if(n==null)return;if(e.target.checked)RP.add(n);else RP.delete(n)});
+$("fGearPick").addEventListener("change",e=>{const n=e.target.dataset.gear;if(n==null)return;if(e.target.checked)F.items.add(n);else F.items.delete(n);rigMatch()});
+$("fRig").addEventListener("change",()=>{const r=S.rigs.find(r=>r.name===$("fRig").value);F.items=new Set(r?rigItems(r):[]);gearPick()});
+["fDate","fSubs","fLen"].forEach(id=>$(id).addEventListener("input",formHints));
+$("fSite").addEventListener("change",()=>{const st=S.sites.find(x=>x.name===$("fSite").value.trim());if(st&&st.bortle&&!$("fBortle").value)$("fBortle").value=st.bortle});
+for(const id of["fBortle","sBortle"])for(let i=1;i<=9;i++){const op=document.createElement("option");op.value=i;op.textContent=id==="sBortle"?"Bortle "+i:i;$(id).appendChild(op)}
+$("detail").addEventListener("click",e=>{if(e.target===$("detail"))$("detail").close()});
+$("detail").addEventListener("close",()=>{S.detail=null});
+$("formDlg").addEventListener("cancel",e=>{if(F.busy)e.preventDefault()});
+$("form").addEventListener("submit",save);
+$("bkFile").addEventListener("change",e=>{const f=e.target.files[0];e.target.value="";if(f)importBackup(f)});
+for(const id of["fTarget","fSite","fGear","fFilter"]){$(id).addEventListener("input",e=>suggestFor(e.target));$(id).addEventListener("blur",()=>setTimeout(()=>{const u=document.getElementById("sg-"+id);if(u&&!u.contains(document.activeElement))u.hidden=true},200))}
+$("form").addEventListener("pointerdown",e=>{if(e.target.closest("[data-sg]"))e.preventDefault()});
+$("form").addEventListener("click",e=>{const b=e.target.closest("[data-sg]");if(!b)return;const inp=$(b.dataset.sg),v=b.dataset.v;
+  if(inp.id==="fTarget"){const parts=inp.value.split(/[,;]/);parts[parts.length-1]=v;inp.value=parts.join(",");commitTargets()}
+  else{inp.value=v;inp.dispatchEvent(new Event("change"))}
+  document.getElementById("sg-"+inp.id).hidden=true;inp.focus()});
+$("fTarget").addEventListener("keydown",e=>{if((e.key==="Enter"||e.key===",")&&$("fTarget").value.trim()){e.preventDefault();commitTargets()}});
+$("fTarget").addEventListener("change",commitTargets);
+function addFiles(list){const imgs=[...list].filter(x=>x&&/^image\//.test(x.type));if(!imgs.length)return false;F.files.push(...imgs);fileList();return true}
+$("fFiles").addEventListener("change",e=>{addFiles(e.target.files);e.target.value=""});
+$("formDlg").addEventListener("paste",e=>{if(e.clipboardData&&addFiles(e.clipboardData.files))e.preventDefault()});
+$("formDlg").addEventListener("dragover",e=>e.preventDefault());
+$("formDlg").addEventListener("drop",e=>{e.preventDefault();if(e.dataTransfer)addFiles(e.dataTransfer.files)});
+$("q").addEventListener("input",e=>{S.q=e.target.value;renderCat()});
+$("sort").addEventListener("change",e=>{S.sort=e.target.value;renderCat()});
+["sLat","sLon","sAlt","sHide"].forEach(id=>$(id).addEventListener("change",saveSet));
+function setNight(on){if(on)document.documentElement.setAttribute("data-night","1");else document.documentElement.removeAttribute("data-night");$("night").setAttribute("aria-pressed",on);try{localStorage.setItem("night",on?"1":"")}catch(e){}}
+$("night").addEventListener("click",()=>setNight(!document.documentElement.hasAttribute("data-night")));
+try{if(localStorage.getItem("night")==="1")setNight(true)}catch(e){}
+
+/* ---------- boot ---------- */
+SUG.fTarget=Object.values(BYKEY).map(o=>o.key+(o.name?" "+o.name:""));
+try{applySet(JSON.parse(localStorage.getItem("obsSettings")||"null"))}catch(e){}
+render();
+(async()=>{
+  const use=n=>window.APP_USE?window.APP_USE(n):window.claude&&window.claude.use?window.claude.use(n).catch(()=>null):Promise.resolve(null);
+  [db,assets]=await Promise.all([use("db"),use("assets")]);
+  if(!db){S.dbState="none";render();return}
+  S.canWrite=!!assets;S.dbState="wait";render();
+  db.collection("settings").onSnapshot(sn=>{
+    for(const d of sn.docs){const v=d.data()||{};
+      if(d.id==="main"){if(!d.metadata.hasPendingWrites)applySet(v)}
+      else if(d.id==="gear"){S.rigs=(v.rigs||[]).map(x=>Object.assign({},x));S.sites=(v.sites||[]).map(x=>Object.assign({},x));S.gear=(v.items||[]).map(x=>Object.assign({},x))}
+      else if(d.id==="plan"){S.plan={};for(const k of v.keys||[])S.plan[k]=1}
+      else if(d.id==="covers"){S.covers={};for(const c of v.list||[])S.covers[c.k]=c.id}}
+    render()},()=>{});
+  db.collection("observations").onSnapshot(snap=>{
+    S.obs=snap.docs.map(d=>{const o=Object.assign({},d.data(),{id:d.id});if(!Array.isArray(o.targets)||!o.targets.length)o.targets=[{key:o.target||"X:unknown",label:o.label||o.target||"Unknown"}];return o});S.dbState="ok";render();
+  },()=>{S.dbState="error";render()});
+})();
+</script>
+<script>if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
+</body>
+</html>
