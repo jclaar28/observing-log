@@ -162,6 +162,12 @@ form label.pick,.setform label.pick{display:inline-flex;gap:6px;align-items:cent
 .sugg li+li button{border-top:1px solid var(--line)}
 .sugg button:hover,.sugg button:focus-visible{background:var(--bg)}
 .chart .dots{fill:none;stroke-linecap:round}
+.mdisk{fill:var(--surface);stroke:var(--muted);stroke-width:1.2}
+.mnight{fill:rgb(4,9,18);opacity:.62}
+.chartbox svg.moon{min-width:0;max-width:440px;margin:0 auto}
+.hlring{fill:none;stroke:var(--accent-fill);stroke-width:2.2}
+.mmap svg{width:100%;max-width:360px;height:auto;display:block}
+.mmap text,.chart text{font:12px var(--sans);fill:var(--muted)}
 .chart .dots.u{stroke:var(--muted);stroke-width:2.6;opacity:.5}
 .chart .dots.f{stroke:var(--muted);stroke-width:2;opacity:.1}
 .chart .dots.p{stroke:var(--accent-fill);stroke-width:3.2;opacity:.55}
@@ -345,6 +351,7 @@ form textarea{min-height:88px;resize:vertical}
     <p class="hint" id="bkMsg" role="status"></p>
     </div>
     <h2>Catalog data</h2>
+    <p class="note">Planet and Moon positions are calculated with <a href="https://github.com/cosinekitty/astronomy" target="_blank" rel="noopener">Astronomy Engine</a> by Don Cross (MIT licence). Lunar feature positions are approximate.</p>
     <p class="note">NGC and IC data come from <a href="https://github.com/mattiaverga/OpenNGC" target="_blank" rel="noopener">OpenNGC</a> by Mattia Verga, licensed <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a>. Messier and Caldwell descriptions, distances and sizes are approximate.</p>
   </section>
 </div>
@@ -403,6 +410,7 @@ form textarea{min-height:88px;resize:vertical}
 <dialog id="lightbox"><img alt="" id="lbImg"><div class="lbbar"><span id="lbCap"></span><button class="btn" id="lbCover" data-act="setCover"></button><button class="btn" data-act="closeLb">Close</button></div></dialog>
 <p id="toast" role="status" hidden></p>
 
+<script src="astronomy.js"></script>
 <script src="ngc.js"></script>
 <script src="ic.js"></script>
 <script src="names.js"></script>
@@ -628,8 +636,8 @@ const C_DATA=`1|NGC 188||OC|Cep|8.1|0.74|85.3
 107|NGC 6101||GC|Aps|9.3|16.43|-72.2
 108|NGC 4372||GC|Mus|7.8|12.43|-72.7
 109|NGC 3195||PN|Cha|11.6|10.16|-80.9`;
-const TYPES={G:["Galaxy","Galaxies"],OC:["Open cluster","Open clusters"],GC:["Globular cluster","Globular clusters"],N:["Nebula","Nebulae"],PN:["Planetary nebula","Planetary nebulae"],SNR:["Supernova remnant","Supernova remnants"],O:["Other","Other"]};
-const CON={Ant:"Antlia",Aql:"Aquila",Ari:"Aries",CMi:"Canis Minor",Cae:"Caelum",CrB:"Corona Borealis",Crt:"Crater",Equ:"Equuleus",Eri:"Eridanus",Gru:"Grus",Hyi:"Hydrus",Ind:"Indus",LMi:"Leo Minor",Lib:"Libra",Lup:"Lupus",Men:"Mensa",Mic:"Microscopium",Oct:"Octans",Phe:"Phoenix",Pic:"Pictor",PsA:"Piscis Austrinus",Pyx:"Pyxis",Ret:"Reticulum",Se1:"Serpens Caput",Se2:"Serpens Cauda",Tel:"Telescopium",UMi:"Ursa Minor",Vol:"Volans",And:"Andromeda",Aqr:"Aquarius",Aps:"Apus",Ara:"Ara",Aur:"Auriga",Boo:"Boötes",Cam:"Camelopardalis",Cap:"Capricornus",Car:"Carina",Cas:"Cassiopeia",Cen:"Centaurus",Cep:"Cepheus",Cet:"Cetus",Cha:"Chamaeleon",Cir:"Circinus",CMa:"Canis Major",Cnc:"Cancer",Col:"Columba",Com:"Coma Berenices",CrA:"Corona Australis",Cru:"Crux",Crv:"Corvus",CVn:"Canes Venatici",Cyg:"Cygnus",Del:"Delphinus",Dor:"Dorado",Dra:"Draco",For:"Fornax",Gem:"Gemini",Her:"Hercules",Hor:"Horologium",Hya:"Hydra",Lac:"Lacerta",Leo:"Leo",Lep:"Lepus",Lyn:"Lynx",Lyr:"Lyra",Mon:"Monoceros",Mus:"Musca",Nor:"Norma",Oph:"Ophiuchus",Ori:"Orion",Pav:"Pavo",Peg:"Pegasus",Per:"Perseus",Psc:"Pisces",Pup:"Puppis",Scl:"Sculptor",Sco:"Scorpius",Sct:"Scutum",Ser:"Serpens",Sex:"Sextans",Sge:"Sagitta",Sgr:"Sagittarius",Tau:"Taurus",TrA:"Triangulum Australe",Tri:"Triangulum",Tuc:"Tucana",UMa:"Ursa Major",Vel:"Vela",Vir:"Virgo",Vul:"Vulpecula"};
+const TYPES={G:["Galaxy","Galaxies"],OC:["Open cluster","Open clusters"],GC:["Globular cluster","Globular clusters"],N:["Nebula","Nebulae"],PN:["Planetary nebula","Planetary nebulae"],SNR:["Supernova remnant","Supernova remnants"],SS:["Solar system object","Solar system"],MA:["Mare","Maria"],CR:["Crater","Craters"],MT:["Mountain","Mountains"],RI:["Rille or valley","Rilles and valleys"],LS:["Landing site","Landing sites"],O:["Other","Other"]};
+const CON={Ser:"Serpens",Ant:"Antlia",Aql:"Aquila",Ari:"Aries",CMi:"Canis Minor",Cae:"Caelum",CrB:"Corona Borealis",Crt:"Crater",Equ:"Equuleus",Eri:"Eridanus",Gru:"Grus",Hyi:"Hydrus",Ind:"Indus",LMi:"Leo Minor",Lib:"Libra",Lup:"Lupus",Men:"Mensa",Mic:"Microscopium",Oct:"Octans",Phe:"Phoenix",Pic:"Pictor",PsA:"Piscis Austrinus",Pyx:"Pyxis",Ret:"Reticulum",Se1:"Serpens Caput",Se2:"Serpens Cauda",Tel:"Telescopium",UMi:"Ursa Minor",Vol:"Volans",And:"Andromeda",Aqr:"Aquarius",Aps:"Apus",Ara:"Ara",Aur:"Auriga",Boo:"Boötes",Cam:"Camelopardalis",Cap:"Capricornus",Car:"Carina",Cas:"Cassiopeia",Cen:"Centaurus",Cep:"Cepheus",Cet:"Cetus",Cha:"Chamaeleon",Cir:"Circinus",CMa:"Canis Major",Cnc:"Cancer",Col:"Columba",Com:"Coma Berenices",CrA:"Corona Australis",Cru:"Crux",Crv:"Corvus",CVn:"Canes Venatici",Cyg:"Cygnus",Del:"Delphinus",Dor:"Dorado",Dra:"Draco",For:"Fornax",Gem:"Gemini",Her:"Hercules",Hor:"Horologium",Hya:"Hydra",Lac:"Lacerta",Leo:"Leo",Lep:"Lepus",Lyn:"Lynx",Lyr:"Lyra",Mon:"Monoceros",Mus:"Musca",Nor:"Norma",Oph:"Ophiuchus",Ori:"Orion",Pav:"Pavo",Peg:"Pegasus",Per:"Perseus",Psc:"Pisces",Pup:"Puppis",Scl:"Sculptor",Sco:"Scorpius",Sct:"Scutum",Ser:"Serpens",Sex:"Sextans",Sge:"Sagitta",Sgr:"Sagittarius",Tau:"Taurus",TrA:"Triangulum Australe",Tri:"Triangulum",Tuc:"Tucana",UMa:"Ursa Major",Vel:"Vela",Vir:"Virgo",Vul:"Vulpecula"};
 function parse(pfx,txt){return txt.split("\n").map(l=>{const p=l.split("|");return{key:pfx+p[0],n:+p[0],alt:p[1],name:p[2],type:p[3],con:p[4],mag:p[5]===""?null:+p[5],ra:+p[6],dec:+p[7]}})}
 const CATS={M:{name:"Messier",rows:parse("M",M_DATA)},C:{name:"Caldwell",rows:parse("C",C_DATA)}};
 const NTYPE={G:["G","Galaxy"],GPair:["G","Galaxy pair"],GTrpl:["G","Galaxy triplet"],GGroup:["G","Galaxy group"],OCl:["OC","Open cluster"],"*Ass":["OC","Stellar association"],GCl:["GC","Globular cluster"],PN:["PN","Planetary nebula"],HII:["N","HII region"],EmN:["N","Emission nebula"],Neb:["N","Nebula"],RfN:["N","Reflection nebula"],"Cl+N":["N","Cluster with nebula"],DrkN:["N","Dark nebula"],SNR:["SNR","Supernova remnant"],"*":["O","Star"],"**":["O","Double star"],Nova:["O","Nova"],Other:["O","Other"]};
@@ -638,6 +646,103 @@ function buildCat(data,pre,name){const rows=[];for(const l of data.split("\n")){
   return{name,rows,big:true}}
 if(window.NGC_DATA)CATS.N=buildCat(window.NGC_DATA,"NGC","NGC");
 if(window.IC_DATA)CATS.I=buildCat(window.IC_DATA,"IC","IC");
+const SS_DATA=`Sun|Star|Sun|32'|Our star. Never point a telescope, binoculars or camera at it without a certified solar filter covering the front of the instrument, because eye damage is instant and permanent.
+Moon|Moon|Moon|29'–34'|Earth's companion, rich in detail at any magnification. Craters and mountains show best near the terminator, the line between day and night.
+Mercury|Planet|Mercury|5"–13"|The innermost planet, seen low in twilight around its greatest elongations. A telescope shows its phase.
+Venus|Planet|Venus|10"–66"|The brightest planet, wrapped in featureless cloud and showing phases like the Moon.
+Mars|Planet|Mars|4"–25"|The red planet. Surface markings and the polar caps show best around opposition, which comes every 26 months.
+Jupiter|Planet|Jupiter|30"–50"|The largest planet, with cloud belts, the Great Red Spot and four bright moons that change position every night.
+Saturn|Planet|Saturn|15"–21"|The ringed planet. The rings' tilt changes over a 15-year cycle; they were edge-on in 2025 and are slowly opening again.
+Uranus|Planet|Uranus|3.4"–3.7"|A small blue-green disc at the edge of naked-eye visibility.
+Neptune|Planet|Neptune|2.2"–2.4"|A tiny blue disc that needs a telescope. Its moon Triton is within reach of larger instruments.
+Pluto|Dwarf planet|Pluto||A faint point around magnitude 14 to 15, identified by comparing the star field over several nights.
+Io|Moon of Jupiter|Jupiter||The innermost Galilean moon and the most volcanic body in the solar system. Its shadow transits are easy to see on Jupiter's disc.
+Europa|Moon of Jupiter|Jupiter||An icy Galilean moon with an ocean under its crust.
+Ganymede|Moon of Jupiter|Jupiter||The largest moon in the solar system, bigger than the planet Mercury.
+Callisto|Moon of Jupiter|Jupiter||The outermost Galilean moon, dark and heavily cratered.
+Titan|Moon of Saturn|Saturn||Saturn's largest moon, easy in a small telescope at about magnitude 8.5.`;
+const LUNAR_DATA=`Mare Tranquillitatis|MA|8.5|31.4|873|Sea of Tranquility|The dark plain where Apollo 11 landed in 1969, easy to see with the naked eye on the eastern half of the Moon.
+Mare Serenitatis|MA|28.0|17.5|674|Sea of Serenity|A round lava plain ringed by mountains, with a lighter rim and wrinkle ridges that stand out near the terminator.
+Mare Crisium|MA|17.0|59.1|556|Sea of Crises|An isolated oval sea near the eastern limb, one of the first features visible after new moon.
+Mare Imbrium|MA|32.8|-15.6|1146|Sea of Showers|The largest impact basin on the near side, bordered by the Apennine, Caucasus and Alps mountain ranges.
+Oceanus Procellarum|MA|18.4|-57.4|2568|Ocean of Storms|The largest dark plain on the Moon, covering much of the western near side.
+Mare Nubium|MA|-21.3|-16.6|715|Sea of Clouds|A broad southern sea that holds the Straight Wall and the crater Bullialdus.
+Mare Fecunditatis|MA|-7.8|51.3|840|Sea of Fertility|An eastern sea home to the twin craters Messier and Messier A, with their comet-like rays.
+Mare Nectaris|MA|-15.2|35.5|340|Sea of Nectar|A small, well-defined sea bordered by the great crater chain of Theophilus, Cyrillus and Catharina.
+Mare Frigoris|MA|56.0|1.4|1596|Sea of Cold|A long, narrow sea stretching across the far north of the near side.
+Mare Humorum|MA|-24.4|-38.6|389|Sea of Moisture|A round sea in the southwest, with the flooded crater Gassendi on its northern shore.
+Mare Vaporum|MA|13.3|3.6|245|Sea of Vapors|A small sea near the centre of the disc, beside the Hyginus and Ariadaeus rilles.
+Sinus Iridum|MA|44.1|-31.5|236|Bay of Rainbows|A semicircular bay on Mare Imbrium. Near day 10 its mountain rim catches sunlight first, forming the Golden Handle.
+Mare Cognitum|MA|-10.5|-23.1|376|Known Sea|The sea where Apollo 12 and the Ranger 7 probe landed.
+Sinus Medii|MA|2.4|1.7|335|Bay of the Centre|A small dark bay at the very centre of the near side.
+Copernicus|CR|9.6|-20.1|93||The Monarch of the Moon: a young crater with terraced walls, central peaks and a bright ray system.
+Tycho|CR|-43.3|-11.2|85||A young crater whose bright rays stretch across much of the near side, most striking near full moon.
+Kepler|CR|8.1|-38.0|31||A bright crater on Oceanus Procellarum with its own ray system.
+Aristarchus|CR|23.7|-47.5|40||The brightest large feature on the Moon, visible even in earthshine.
+Plato|CR|51.6|-9.4|101||A dark, lava-flooded crater on the northern edge of Mare Imbrium. Tiny craterlets on its floor are a test of seeing.
+Clavius|CR|-58.6|-14.7|231||One of the largest craters on the near side, with an arc of smaller craters across its floor.
+Ptolemaeus|CR|-9.2|-1.8|154||A large, flat-floored walled plain near the centre of the disc, first in a chain with Alphonsus and Arzachel.
+Alphonsus|CR|-13.4|-3.2|108||A walled plain with a central peak and dark-halo spots on its floor. Ranger 9 crashed here in 1965.
+Arzachel|CR|-18.2|-1.9|97||A sharp crater with terraced walls and an off-centre peak, the southern member of the Ptolemaeus chain.
+Theophilus|CR|-11.4|26.3|99||A deep crater with a large central mountain group on the edge of Mare Nectaris.
+Cyrillus|CR|-13.2|24.0|98||An older, worn crater partly overlapped by Theophilus.
+Catharina|CR|-18.1|23.6|99||The oldest and most eroded of the Theophilus chain.
+Eratosthenes|CR|14.5|-11.3|58||A deep crater at the end of the Apennine Mountains, striking near the terminator.
+Archimedes|CR|29.7|-4.0|81||A large lava-flooded crater on Mare Imbrium with a smooth, flat floor.
+Aristoteles|CR|50.2|17.4|88||A large crater with terraced walls on the southern edge of Mare Frigoris.
+Eudoxus|CR|44.3|16.3|67||A deep crater just south of Aristoteles, a fine pair near first quarter.
+Posidonius|CR|31.9|29.9|95||A flooded crater on the edge of Mare Serenitatis with rilles across its floor.
+Langrenus|CR|-8.9|61.1|132||A large crater near the eastern limb with bright terraced walls and central peaks.
+Petavius|CR|-25.3|60.4|184||A large crater with a domed floor split by a prominent rille.
+Gassendi|CR|-17.6|-40.1|110||A flooded crater on the edge of Mare Humorum with a web of fine rilles on its floor.
+Grimaldi|CR|-5.2|-68.6|173||One of the darkest areas on the Moon, a lava-filled basin near the western limb.
+Schickard|CR|-44.4|-54.6|206||A huge, low-walled plain in the southwest with patchy dark and light floor.
+Bailly|CR|-66.5|-69.1|300||The largest crater on the near side, very foreshortened near the southwest limb.
+Longomontanus|CR|-49.6|-21.7|145||A large walled plain in the crowded southern highlands near Clavius.
+Maginus|CR|-50.0|-6.2|194||A large, battered crater that nearly vanishes at full moon.
+Walter|CR|-33.1|0.7|132||A large walled plain in the southern highlands near the Lunar X.
+Albategnius|CR|-11.2|4.1|129||A large walled plain near the centre of the disc with a central peak.
+Hipparchus|CR|-5.5|5.2|138||A heavily eroded walled plain beside Albategnius, best near the terminator.
+Proclus|CR|16.1|46.8|28||A small, very bright crater west of Mare Crisium with an asymmetric ray system.
+Endymion|CR|53.6|56.5|123||A dark-floored crater near the northeast limb.
+Atlas|CR|46.7|44.4|87||A crater with a cracked floor in the northeast, paired with Hercules.
+Pitatus|CR|-29.9|-13.5|106||A flooded crater on the south shore of Mare Nubium.
+Wargentin|CR|-49.6|-60.2|84||A rare crater filled to the brim with lava, so it looks like a raised plateau.
+Schiller|CR|-51.8|-39.0|180||A long, footprint-shaped crater in the southwest.
+Bullialdus|CR|-20.7|-22.2|61||A fresh, well-formed crater in Mare Nubium with terraced walls and central peaks.
+Piccolomini|CR|-29.7|32.2|88||A crater at the southern end of the Altai Scarp.
+Fracastorius|CR|-21.5|33.2|112||A crater on the south shore of Mare Nectaris whose northern wall has been flooded away.
+Montes Apenninus|MT|18.9|-3.7|600|Apennine Mountains|The finest mountain range on the Moon, forming the southeastern rim of the Imbrium basin.
+Montes Alpes|MT|46.4|-0.8|281|Alps|A mountain range on the northeast rim of Mare Imbrium, cut by the Alpine Valley.
+Montes Caucasus|MT|37.5|9.9|445|Caucasus Mountains|A range between Mare Imbrium and Mare Serenitatis.
+Montes Jura|MT|47.1|-34.0|422|Jura Mountains|The mountain arc around Sinus Iridum that forms the Golden Handle.
+Mons Piton|MT|40.6|-1.1|25||An isolated mountain in Mare Imbrium that casts a long shadow near first quarter.
+Mons Pico|MT|45.8|-8.9|25||A lone mountain south of Plato, striking near the terminator.
+Montes Carpatus|MT|14.5|-24.4|361|Carpathian Mountains|A range on the southern edge of Mare Imbrium, north of Copernicus.
+Mons Rumker|MT|40.8|-58.1|70||A cluster of volcanic domes in Oceanus Procellarum, visible only at low sun.
+Vallis Alpes|RI|48.5|3.2|166|Alpine Valley|A straight valley slicing through the Alps, with a fine rille on its floor that tests steady seeing.
+Vallis Schroteri|RI|26.2|-50.8|168|Schroter's Valley|The largest sinuous valley on the Moon, winding from near Aristarchus.
+Rupes Recta|RI|-22.1|-7.8|110|Straight Wall|A fault scarp in Mare Nubium that shows as a dark line after first quarter and a bright one before last quarter.
+Rima Hyginus|RI|7.7|7.8|220|Hyginus Rille|A rille with a bend at the small crater Hyginus, lined with tiny pits.
+Rima Ariadaeus|RI|6.4|14.0|220|Ariadaeus Rille|A long, straight rille near the centre of the disc.
+Rimae Hippalus|RI|-24.8|-29.2|240|Hippalus Rilles|Curving rilles that follow the edge of Mare Humorum.
+Lunar X|O|-25.2|1.5|50|Werner X|A brief X of light formed by crater rims, visible for a few hours around first quarter.
+Reiner Gamma|O|7.5|-59.0|70||A bright swirl on Oceanus Procellarum with no raised relief, linked to a magnetic anomaly.
+Apollo 11|LS|0.67|23.47|0||The first crewed landing, in Mare Tranquillitatis on 20 July 1969.
+Apollo 12|LS|-3.01|-23.42|0||The second crewed landing, in Oceanus Procellarum beside the Surveyor 3 probe, November 1969.
+Apollo 14|LS|-3.65|-17.47|0||The 1971 landing in the Fra Mauro highlands.
+Apollo 15|LS|26.13|3.63|0||The 1971 landing beside Hadley Rille at the foot of the Apennine Mountains, the first with a lunar rover.
+Apollo 16|LS|-8.97|15.50|0||The 1972 landing in the Descartes highlands.
+Apollo 17|LS|20.19|30.77|0||The last crewed landing, in the Taurus-Littrow valley in December 1972.`;
+const LT={MA:"Mare",CR:"Crater",MT:"Mountain",RI:"Rille or valley",LS:"Landing site",O:"Lunar feature"};
+if(window.Astronomy)CATS.S={name:"Solar system",unit:"solar system objects",ss:true,rows:SS_DATA.split("\n").map((l,i)=>{const p=l.split("|");return{key:"SS_"+p[0],n:i+1,lab:p[0],name:"",type:"SS",tlong:p[1],body:p[2],sizeTxt:p[3],desc:p[4],ss:true,con:"",mag:null,ra:0,dec:0}})};
+CATS.L={name:"Moon",unit:"lunar features",lunar:true,rows:LUNAR_DATA.split("\n").map((l,i)=>{const p=l.split("|");return{key:"LUN_"+p[0].replace(/\s+/g,"_"),n:i+1,lab:p[0],name:"",type:p[1],tlong:LT[p[1]],lat:+p[2],lon:+p[3],km:+p[4],eng:p[5],desc:p[6],lunar:true,mag:null,con:""}})};
+function ssTime(){const d=new Date(Date.now()-12*3600e3);d.setHours(24,0,0,0);return d}
+function ssUpdate(){if(!CATS.S)return;const t=ssTime();for(const o of CATS.S.rows){try{const v=Astronomy.GeoVector(o.body,t,true),eq=Astronomy.EquatorFromVector(v);
+  o.ra=eq.ra;o.dec=eq.dec;o.dist=v.Length();o.con=Astronomy.Constellation(eq.ra,eq.dec).symbol;o.hay=null;
+  if(o.body===o.lab){const il=Astronomy.Illumination(o.body,t);o.mag=il.mag;o.phase=o.body==="Sun"?null:il.phase_fraction}
+  o.elong=o.body==="Sun"?null:Astronomy.Elongation(o.body,t)}catch(e){o.elong=o.elong||null}}}
+ssUpdate();
 const INFO_DATA=`M1|6500|6'×4'|The remnant of a supernova that Chinese astronomers recorded in 1054. At its centre a pulsar spins about 30 times a second and powers the glowing filaments.
 M2|37500|16'|One of the larger and richer globular clusters, holding roughly 150,000 stars in a tightly packed ball.
 M3|33900|18'|A bright globular cluster famous for its large population of variable stars, more than 200 of them.
@@ -873,6 +978,7 @@ const link=(a,b)=>{if(!BYKEY[a]||!BYKEY[b]||a===b)return;for(const[x,y]of[[a,b],
 const BIG=[CATS.N,CATS.I].filter(Boolean);
 for(const cat of BIG)for(const o of cat.rows){if(o.alt)link(o.key,o.alt);if(o.name){const n=o.name.toLowerCase();if(!(n in NAMES))NAMES[n]=o.key;else if(NAMES[n]&&!/^[MC]\d/.test(NAMES[n]))NAMES[n]=null}}
 for(const k in ALIAS){const m=k.match(/^(NGC|IC)(\d+)$/);if(m)link(m[1]+m[2],ALIAS[k])}
+for(const o of CATS.C.rows){const m=o.alt.match(/^NGC\s*\d+\s+and\s+(\d+)/);if(m&&BYKEY["NGC"+m[1]])delete ALIAS["NGC"+m[1]]}
 for(const[pre,d]of[["NGC",window.NGC_DUPS],["IC",window.IC_DUPS]])for(const l of(d||"").split("\n")){const p=l.split("|");if(p[1])NDUP[pre+p[0]]=p[1]}
 for(const cat of BIG)for(const o of cat.rows){const c=(EQ[o.key]||[]).filter(k=>/^C\d/.test(k));if(c.length)o.alt=[o.alt].concat(c).filter(Boolean).join(", ")}
 const dn=o=>o.lab||o.key;
@@ -900,7 +1006,20 @@ function night(){
   let dark=all.filter(x=>x.sun<-18);if(!dark.length)dark=all.filter(x=>x.sun<-12);
   return NIGHT={id,dark,cache:{}};
 }
+let LUNT=null;
+function lunarSun(){const d=new Date();d.setHours(22,0,0,0);if(Date.now()>d.getTime()+8*3600e3)d.setDate(d.getDate()+1);const id=d.getTime();if(LUNT&&LUNT.id===id)return LUNT;
+  let ph=null,fr=null;try{ph=Astronomy.MoonPhase(d);fr=Astronomy.Illumination("Moon",d).phase_fraction}catch(e){ph=((((jd(d.getTime())-2451550.1)%SYN)+SYN)%SYN)/SYN*360}
+  const c=((270+ph)%360+360)%360,sl=((90-c+540)%360)-180;return LUNT={id,ph,fr,c,s:sl}}
+const sunEl=(o,sl)=>Math.asin(Math.cos(o.lat*RAD)*Math.cos((o.lon-sl)*RAD))/RAD;
+function moonSVG(rows,opt){const W=opt.w||960,H=opt.h||420,cx=W/2,cy=H/2,r=Math.min(W,H)/2-24,L=lunarSun(),sl=L.s,lonT=sl>0?sl-90:sl+90,P=(la,lo)=>[cx+r*Math.cos(la*RAD)*Math.sin(lo*RAD),cy-r*Math.sin(la*RAD)];
+  let h=`<circle class="mdisk" cx="${cx}" cy="${cy}" r="${r}"/>`,t=[];for(let la=90;la>=-90;la-=5)t.push(P(la,lonT));
+  h+=`<path class="mnight" d="M${t.map(p=>p[0].toFixed(1)+" "+p[1].toFixed(1)).join("L")}A${r} ${r} 0 0 ${sl>0?1:0} ${cx} ${cy-r}Z"/>`;
+  for(const o of rows){const p=P(o.lat,o.lon),lit=sunEl(o,sl)>0,f=opt.filt&&opt.filt(o);
+    h+=`<g class="o${opt.g&&opt.g[o.key]?" seen":S.plan[o.key]?" plan":""}" data-act="open" data-key="${o.key}" transform="translate(${p[0].toFixed(1)} ${p[1].toFixed(1)})"${f?' opacity=".18"':lit||opt.hl===o.key?"":' opacity=".55"'}><title>${esc(o.lab)}</title><circle r="9" fill="transparent"/>${opt.hl===o.key?'<circle class="hlring" r="10"/>':""}${sym(o.type)}</g>`}
+  for(const[l,x,y]of[["N",cx,cy-r-8],["S",cx,cy+r+18],["E",cx+r+12,cy+4],["W",cx-r-12,cy+4]])h+=`<text x="${x}" y="${y}" text-anchor="middle">${l}</text>`;
+  return h}
 function tonight(o){
+  if(o.lunar){const e=sunEl(o,lunarSun().s);return{lunar:true,alt:e,good:e>0&&e<12,dark:true}}
   const n=night();if(!n)return null;if(n.cache[o.key])return n.cache[o.key];
   let best=-90,at=0;for(const x of n.dark){const a=altOf(o.ra,o.dec,x.lst,S.set.lat);if(a>best){best=a;at=x.t}}
   return n.cache[o.key]={alt:best,t:at,dark:n.dark.length>0,good:n.dark.length>0&&best>=Math.max(S.set.minAlt,10)&&best>=.75*maxAlt(o)};
@@ -934,6 +1053,10 @@ const CURATED=[
  items:"M57,M27,M97,M76,C6,C22,C55,C63,C39,C59,C15,C2,NGC 6369,NGC 6905,NGC 6818,NGC 6537,NGC 1535,IC 418,NGC 6210,NGC 7008,NGC 6781,NGC 6572,NGC 2440,C74,C69,C56"},
 {id:"globulars",name:"Globular cluster tour",desc:"Ancient spheres of hundreds of thousands of stars. Best at medium to high power, where the edges break into individual stars.",
  items:"M13,M92,M3,M5,M15,M2,M22,M4,M10,M12,M14,M9,M19,M62,M53,M80,M28,M54,M55,M56,M68,M69,M70,M71,M72,M75,M79,M107,M30,C25,C80,C106,C86,C93"},
+{id:"herschel400",name:"Herschel 400",desc:"The Astronomical League's selection of 400 of William Herschel's discoveries, a classic next step after the Messier catalog. Many need a 6-inch or larger telescope. NGC 2371 and 2372 are two halves of one nebula, so they count as one object here.",
+ items:"NGC 40,NGC 129,NGC 136,NGC 157,NGC 185,NGC 205,NGC 225,NGC 246,NGC 247,NGC 253,NGC 278,NGC 288,NGC 381,NGC 404,NGC 436,NGC 457,NGC 488,NGC 524,NGC 559,NGC 584,NGC 596,NGC 598,NGC 613,NGC 615,NGC 637,NGC 651,NGC 654,NGC 659,NGC 663,NGC 720,NGC 752,NGC 772,NGC 779,NGC 869,NGC 884,NGC 891,NGC 908,NGC 936,NGC 1022,NGC 1023,NGC 1027,NGC 1052,NGC 1055,NGC 1084,NGC 1245,NGC 1342,NGC 1407,NGC 1444,NGC 1501,NGC 1502,NGC 1513,NGC 1528,NGC 1535,NGC 1545,NGC 1647,NGC 1664,NGC 1788,NGC 1817,NGC 1857,NGC 1907,NGC 1931,NGC 1961,NGC 1964,NGC 1980,NGC 1999,NGC 2022,NGC 2024,NGC 2126,NGC 2129,NGC 2158,NGC 2169,NGC 2185,NGC 2186,NGC 2194,NGC 2204,NGC 2215,NGC 2232,NGC 2244,NGC 2251,NGC 2264,NGC 2266,NGC 2281,NGC 2286,NGC 2301,NGC 2304,NGC 2311,NGC 2324,NGC 2335,NGC 2343,NGC 2353,NGC 2354,NGC 2355,NGC 2360,NGC 2362,NGC 2371,NGC 2372,NGC 2392,NGC 2395,NGC 2403,NGC 2419,NGC 2420,NGC 2421,NGC 2422,NGC 2423,NGC 2438,NGC 2440,NGC 2479,NGC 2482,NGC 2489,NGC 2506,NGC 2509,NGC 2527,NGC 2539,NGC 2548,NGC 2567,NGC 2571,NGC 2613,NGC 2627,NGC 2655,NGC 2681,NGC 2683,NGC 2742,NGC 2768,NGC 2775,NGC 2782,NGC 2787,NGC 2811,NGC 2841,NGC 2859,NGC 2903,NGC 2950,NGC 2964,NGC 2974,NGC 2976,NGC 2985,NGC 3034,NGC 3077,NGC 3079,NGC 3115,NGC 3147,NGC 3166,NGC 3169,NGC 3184,NGC 3190,NGC 3193,NGC 3198,NGC 3226,NGC 3227,NGC 3242,NGC 3245,NGC 3277,NGC 3294,NGC 3310,NGC 3344,NGC 3377,NGC 3379,NGC 3384,NGC 3395,NGC 3412,NGC 3414,NGC 3432,NGC 3486,NGC 3489,NGC 3504,NGC 3521,NGC 3556,NGC 3593,NGC 3607,NGC 3608,NGC 3610,NGC 3613,NGC 3619,NGC 3621,NGC 3626,NGC 3628,NGC 3631,NGC 3640,NGC 3655,NGC 3665,NGC 3675,NGC 3686,NGC 3726,NGC 3729,NGC 3810,NGC 3813,NGC 3877,NGC 3893,NGC 3898,NGC 3900,NGC 3912,NGC 3938,NGC 3941,NGC 3945,NGC 3949,NGC 3953,NGC 3962,NGC 3982,NGC 3992,NGC 3998,NGC 4026,NGC 4027,NGC 4030,NGC 4036,NGC 4038,NGC 4041,NGC 4051,NGC 4085,NGC 4088,NGC 4102,NGC 4111,NGC 4143,NGC 4147,NGC 4150,NGC 4151,NGC 4179,NGC 4203,NGC 4214,NGC 4216,NGC 4245,NGC 4251,NGC 4258,NGC 4261,NGC 4273,NGC 4274,NGC 4278,NGC 4281,NGC 4293,NGC 4303,NGC 4314,NGC 4346,NGC 4350,NGC 4361,NGC 4365,NGC 4371,NGC 4394,NGC 4414,NGC 4419,NGC 4429,NGC 4435,NGC 4438,NGC 4442,NGC 4448,NGC 4449,NGC 4450,NGC 4459,NGC 4473,NGC 4477,NGC 4478,NGC 4485,NGC 4490,NGC 4494,NGC 4526,NGC 4527,NGC 4535,NGC 4536,NGC 4546,NGC 4548,NGC 4550,NGC 4559,NGC 4565,NGC 4570,NGC 4594,NGC 4596,NGC 4618,NGC 4631,NGC 4636,NGC 4643,NGC 4654,NGC 4656,NGC 4660,NGC 4665,NGC 4666,NGC 4689,NGC 4697,NGC 4698,NGC 4699,NGC 4725,NGC 4753,NGC 4754,NGC 4762,NGC 4781,NGC 4800,NGC 4845,NGC 4856,NGC 4866,NGC 4900,NGC 4958,NGC 4995,NGC 5005,NGC 5033,NGC 5054,NGC 5195,NGC 5248,NGC 5273,NGC 5322,NGC 5363,NGC 5364,NGC 5466,NGC 5473,NGC 5474,NGC 5557,NGC 5566,NGC 5576,NGC 5631,NGC 5634,NGC 5676,NGC 5689,NGC 5694,NGC 5746,NGC 5846,NGC 5866,NGC 5897,NGC 5907,NGC 5982,NGC 6118,NGC 6144,NGC 6171,NGC 6207,NGC 6217,NGC 6229,NGC 6235,NGC 6284,NGC 6287,NGC 6293,NGC 6304,NGC 6316,NGC 6342,NGC 6355,NGC 6356,NGC 6369,NGC 6401,NGC 6426,NGC 6440,NGC 6445,NGC 6451,NGC 6514,NGC 6517,NGC 6520,NGC 6522,NGC 6528,NGC 6540,NGC 6543,NGC 6544,NGC 6553,NGC 6568,NGC 6569,NGC 6583,NGC 6624,NGC 6629,NGC 6633,NGC 6638,NGC 6642,NGC 6645,NGC 6664,NGC 6712,NGC 6755,NGC 6756,NGC 6781,NGC 6802,NGC 6818,NGC 6823,NGC 6826,NGC 6830,NGC 6834,NGC 6866,NGC 6882,NGC 6885,NGC 6905,NGC 6910,NGC 6934,NGC 6939,NGC 6940,NGC 6946,NGC 7000,NGC 7006,NGC 7008,NGC 7009,NGC 7044,NGC 7062,NGC 7086,NGC 7128,NGC 7142,NGC 7160,NGC 7209,NGC 7217,NGC 7243,NGC 7296,NGC 7331,NGC 7380,NGC 7448,NGC 7479,NGC 7510,NGC 7606,NGC 7662,NGC 7686,NGC 7723,NGC 7727,NGC 7789,NGC 7790,NGC 7814"},
+{id:"marathon",name:"Messier marathon order",desc:"All 110 Messier objects in the usual order for seeing them in one night around the March new moon, starting in the western twilight and finishing at dawn. Works best from about 25° to 35° north.",
+ items:"M77,M74,M33,M31,M32,M110,M52,M103,M76,M34,M45,M79,M42,M43,M78,M1,M35,M37,M36,M38,M41,M93,M47,M46,M50,M48,M44,M67,M95,M96,M105,M65,M66,M81,M82,M97,M108,M109,M40,M106,M94,M63,M51,M101,M102,M53,M64,M3,M98,M99,M100,M85,M84,M86,M87,M89,M90,M88,M91,M58,M59,M60,M49,M61,M104,M68,M83,M5,M13,M92,M57,M56,M29,M39,M27,M71,M107,M12,M10,M14,M9,M4,M80,M19,M62,M6,M7,M11,M26,M16,M17,M18,M24,M25,M23,M21,M20,M8,M28,M22,M69,M70,M54,M55,M75,M15,M2,M72,M73,M30"},
 {id:"southern",name:"Southern sky showpieces",desc:"Highlights of the far southern sky, best from the southern hemisphere or low latitudes.",
  items:"C80,C106,C92,C103,C94,C99,C77,C102,C91,C97,C100,C65,C72,C70,C86,C93,C101,C104,C105,C108,C76,C69,C74"}
 ];
@@ -1007,6 +1130,12 @@ function sym(t){
     case"N":return'<rect class="sym" x="-4.6" y="-4.6" width="9.2" height="9.2"/>';
     case"SNR":return'<rect class="sym" x="-4.2" y="-4.2" width="8.4" height="8.4" transform="rotate(45)"/>';
     case"PN":return'<g class="sym"><circle r="3.6"/><path d="M-7 0h-3.4M7 0h3.4M0-7v-3.4M0 7v3.4" transform="scale(.72)" fill="none"/></g>';
+    case"SS":return'<g class="sym"><circle r="4.4"/><path class="x" d="M-7.5 1.8L7.5-1.8" fill="none"/></g>';
+    case"MA":return'<path class="sym" d="M-6.5 0C-6.5-4-1.5-5 2-4S7.5-.5 5.5 3S-2 6.5-6.5 0Z"/>';
+    case"CR":return'<g class="sym"><circle r="5.4"/><circle r="2.2"/></g>';
+    case"MT":return'<path class="sym" d="M-6.5 4.5L-2-4.5 1 1 3-2 6.5 4.5Z"/>';
+    case"RI":return'<path class="sym" d="M-6.5 3C-3.5-5 0 6 3 0S6.5-3 6.5-3" fill="none"/>';
+    case"LS":return'<g class="sym"><path d="M-3 6V-6L5.5-3-3 0" /></g>';
     default:return'<path class="sym" d="M0-5.5L5.2 4H-5.2Z"/>';
   }
 }
@@ -1046,13 +1175,18 @@ function renderCat(){
   const out=o=>isLow(o)&&!g[o.key],nLow=all.filter(out).length,goal=all.length-nLow;
   const rows=S.set.hide?all.filter(o=>!out(o)):all;
   const seen=all.filter(o=>g[o.key]).length;
-  $("headline").textContent=`${seen.toLocaleString()} of ${goal.toLocaleString()} ${nLow?"reachable ":""}${cat.kind?"objects":cat.name+" objects"} ${S.mode==="imaged"?"imaged":S.mode==="visual"?"observed visually":"observed"}`;
+  $("headline").textContent=`${seen.toLocaleString()} of ${goal.toLocaleString()} ${nLow?"reachable ":""}${cat.unit||(cat.kind?"objects":cat.name+" objects")} ${S.mode==="imaged"?"imaged":S.mode==="visual"?"observed visually":"observed"}`;
   let sub=S.dbState==="wait"?"Loading your log…":seen===goal?"Catalog complete.":seen?`${(goal-seen).toLocaleString()} to go.`:"Filled markers appear here as you log observations.";
   if(nLow)sub+=` ${nLow.toLocaleString()} never rise${S.set.minAlt?" above "+S.set.minAlt+"°":""} from ${latLabel()}${S.set.hide?" and are hidden":""}.`;
   if(!all.length){$("headline").textContent="No objects yet";sub=cat.kind==="my"?"Add objects with the box above, or use Add to list on any object's page.":""}
   $("sub").textContent=sub;
   $("bar").style.width=(goal?100*seen/goal:0)+"%";
   /* chart */
+  $("chart").classList.toggle("moon",!!cat.lunar);$("chart").setAttribute("viewBox",cat.lunar?"0 0 440 440":"0 0 960 420");
+  if(cat.lunar){S.pts=null;$("chart").classList.remove("big");
+    $("chart").innerHTML=moonSVG(rows,{w:440,h:440,g,filt:o=>(S.type&&o.type!==S.type)||(S.tonight&&!tonight(o).good)});
+    $("chart").setAttribute("aria-label",`Map of the Moon's near side showing tonight's lighting. ${seen} of ${rows.length} features observed.`);
+  }else{
   const L=36,T=10,PW=914,PH=384,x=ra=>L+(24-ra)/24*PW,y=d=>T+(90-d)/180*PH;
   let s="";
   for(let h=0;h<=24;h+=2){s+=`<line class="grid" x1="${x(h)}" y1="${T}" x2="${x(h)}" y2="${T+PH}"/>`;if(h<24)s+=`<text x="${x(h)}" y="${T+PH+17}" text-anchor="middle">${h}h</text>`}
@@ -1073,6 +1207,7 @@ function renderCat(){
     s+=`<g class="o${g[o.key]?" seen":S.plan[o.key]?" plan":""}${out(o)?" low":""}" data-act="open" data-key="${o.key}" transform="translate(${x(o.ra).toFixed(1)} ${y(o.dec).toFixed(1)})"${f?' opacity=".18"':""}><title>${esc(o.key+(o.name?" "+o.name:""))}</title><circle r="9" fill="transparent"/>${sym(o.type)}</g>`}}
   $("chart").innerHTML=s;
   $("chart").setAttribute("aria-label",`Sky chart of the ${cat.name} catalog by right ascension and declination. ${seen} of ${rows.length} observed.`);
+  }
   /* type legend / filter */
   let t="";for(const k in TYPES){const all=rows.filter(o=>o.type===k);if(!all.length)continue;const n=all.filter(o=>g[o.key]).length;
     t+=`<button data-type="${k}" aria-pressed="${S.type===k}">${icon(k,n>0)}<span>${TYPES[k][1]}</span><b>${n}/${all.length}</b></button>`}
@@ -1096,7 +1231,7 @@ function renderCat(){
   const sig=[S.view,S.type,S.status,S.q,S.sort,S.tonight,S.mode,S.set.hide].join("|");if(sig!==S.sig){S.sig=sig;S.lim=150}
   const extra=list.length-S.lim;
   $("grid").innerHTML=list.length?list.slice(0,S.lim).map(o=>{const l=g[o.key],c=coverOf(o.key,l),pl=S.plan[o.key]&&!l;
-    return`<button class="tile${l?" seen":""}${c?" pic":""}${out(o)?" low":""}${pl?" plan":""}" data-act="open" data-key="${o.key}" aria-label="${esc(dn(o)+(o.name?", "+o.name:"")+", "+(o.tlong||TYPES[o.type][0])+(l?", observed":out(o)?", out of reach from your latitude":pl?", planned":", not yet observed"))}">${c?`<img loading="lazy" alt="" src="${blob(c.thumb||c.id)}">`:icon(o.type,!!l)}${pl?'<span class="tag">Planned</span>':""}${l&&l.length>1?`<span class="ct">${l.length}</span>`:""}<span class="des${dn(o).length>5?" long":""}">${esc(dn(o))}</span><span class="nm">${esc(o.name||CON[o.con]||"")}</span></button>`}).join("")+(extra>0?`<button class="btn more" data-act="more">Show ${Math.min(300,extra).toLocaleString()} more of ${extra.toLocaleString()}</button>`:"")
+    return`<button class="tile${l?" seen":""}${c?" pic":""}${out(o)?" low":""}${pl?" plan":""}" data-act="open" data-key="${o.key}" aria-label="${esc(dn(o)+(o.name?", "+o.name:"")+", "+(o.tlong||TYPES[o.type][0])+(l?", observed":out(o)?", out of reach from your latitude":pl?", planned":", not yet observed"))}">${c?`<img loading="lazy" alt="" src="${blob(c.thumb||c.id)}">`:icon(o.type,!!l)}${pl?'<span class="tag">Planned</span>':""}${l&&l.length>1?`<span class="ct">${l.length}</span>`:""}<span class="des${dn(o).length>5?" long":""}">${esc(dn(o))}</span><span class="nm">${esc(o.name||CON[o.con]||o.tlong||"")}</span></button>`}).join("")+(extra>0?`<button class="btn more" data-act="more">Show ${Math.min(300,extra).toLocaleString()} more of ${extra.toLocaleString()}</button>`:"")
     :`<p class="empty" style="grid-column:1/-1">No objects match these filters.</p>`;
 }
 function entryHTML(o,withTarget){
@@ -1161,10 +1296,16 @@ function dome(o){
 function renderDetail(){
   const key=S.detail,o=BYKEY[key],xl=o?"":labelOf(key,grouped(true)[key]),xn=o?"":(ALTN[key]||[])[0]||"",xa=o?[]:(ALTN[key]||[]).slice(1),list=grouped(true)[key]||[],tn=o?tonight(o):null,inf=o?INFO[key]||INFO[(EQ[key]||[]).find(k=>INFO[k])]:null,cov=coverOf(key,list);
   let h=`<div class="ihero${cov?"":" none"}">${cov?`<img alt="" src="${blob(cov.id)}">`:`<div>${o?`<svg viewBox="-10 -10 20 20" aria-hidden="true">${sym(o.type)}</svg>`:""}${list.length?"No photos on these observations":"No photo yet"}</div>`}<button class="btn iclose" data-act="closeDetail">Close</button></div>`;
-  h+=`<div class="ihead"><p class="des">${esc(o?dn(o)+(o.alt?" ("+o.alt+")":""):xl.replace(xn?" "+xn:"",""))}</p><h3>${esc(o?(o.name||dn(o)):xn||xl)}</h3><p class="kind">${o?esc((o.tlong||TYPES[o.type][0])+" in "+(CON[o.con]||o.con)):esc("Not in the app's catalogs yet"+(xa.length?". Also called "+xa.join(", "):""))}</p></div><div class="dbody">`;
-  if(o){
-    if(inf)h+=`<p class="idesc">${esc(inf.desc)}</p>`;
-    const rows=[["Type",o.tlong||TYPES[o.type][0]],["Constellation",CON[o.con]||o.con],["Distance",inf?fmtLy(inf.ly):""],["Right ascension",fmtRA(o.ra)],["Declination",fmtDec(o.dec)],["Apparent size",inf?inf.size:o.size||""],["Magnitude",o.mag==null?"":o.mag.toFixed(1)+(o.magB?" (blue)":"")],["Also listed as",o.alt],["On curated lists",CURATED.filter(c=>keysOf(key).some(k=>CUR[c.id].order.has(k))).map(c=>c.name).join(", ")],["Also called",[key].concat(EQ[key]||[]).flatMap(k=>ALTN[k]||[]).filter((x,i,a)=>nn(x)!==nn(o.name||"")&&a.findIndex(y=>nn(y)===nn(x))===i).join(", ")],["Best months",bestMonths(o)],
+  h+=`<div class="ihead"><p class="des">${esc(o?(o.ss?"Solar system":o.lunar?"On the Moon":dn(o)+(o.alt?" ("+o.alt+")":"")):xl.replace(xn?" "+xn:"",""))}</p><h3>${esc(o?(o.name||dn(o)):xn||xl)}</h3><p class="kind">${o?esc(o.lunar?o.tlong+(o.eng?", also called "+o.eng:""):(o.tlong||TYPES[o.type][0])+" in "+(CON[o.con]||o.con)+(o.ss?" tonight":"")):esc("Not in the app's catalogs yet"+(xa.length?". Also called "+xa.join(", "):""))}</p></div><div class="dbody">`;
+  if(o&&o.lunar){const L=lunarSun(),e=sunEl(o,L.s),md=x=>Math.max(1,Math.round(((x%360+360)%360)/360*SYN));
+    h+=`<p class="idesc">${esc(o.desc)}</p>`;
+    const rows=[["Type",o.tlong],["Location",`${Math.abs(o.lat).toFixed(1)}° ${o.lat<0?"S":"N"}, ${Math.abs(o.lon).toFixed(1)}° ${o.lon<0?"W":"E"}`],["Size",o.km?o.km.toLocaleString()+" km":""],
+      ["Best viewing",`About day ${md(90-o.lon+8)} after new moon, and again about day ${md(270-o.lon-8)}`],["Tonight",e<=0?"In darkness":e<12?"Near the terminator, with long shadows":"In full sunlight"],["Moon tonight",L.fr!=null?Math.round(L.fr*100)+"% lit":""],
+      ["On curated lists",CURATED.filter(c=>CUR[c.id].order.has(key)).map(c=>c.name).join(", ")]].filter(r=>r[1]);
+    h+=`<div class="icols"><dl class="tdata">${rows.map(r=>`<div><dt>${r[0]}</dt><dd>${esc(r[1])}</dd></div>`).join("")}</dl><div class="domebox mmap"><figure><svg viewBox="0 0 360 360" role="img" aria-label="Map of the Moon with ${esc(o.lab)} marked">${moonSVG(CATS.L.rows,{w:360,h:360,hl:o.key,g:grouped()})}</svg><figcaption>Tonight's lighting on the Moon. The ringed marker is ${esc(o.lab)}.</figcaption></figure></div></div>`;
+  }else if(o){
+    const dsc=inf?inf.desc:o.desc;if(dsc)h+=`<p class="idesc">${esc(dsc)}</p>`;
+    const rows=[["Type",o.tlong||TYPES[o.type][0]],["Constellation",CON[o.con]||o.con],["Distance",o.ss?(o.dist?(o.body==="Moon"&&o.lab==="Moon"?Math.round(o.dist*149597870.7).toLocaleString()+" km":o.dist.toFixed(2)+" AU"):""):inf?fmtLy(inf.ly):""],["Right ascension",fmtRA(o.ra)],["Declination",fmtDec(o.dec)],["Apparent size",o.ss?o.sizeTxt:inf?inf.size:o.size||""],["From the Sun",o.ss&&o.elong?Math.round(o.elong.elongation)+"°, in the "+o.elong.visibility+" sky":""],["Phase",o.ss&&o.phase!=null&&/Moon|Mercury|Venus|Mars/.test(o.lab)?Math.round(o.phase*100)+"% lit":""],["Magnitude",o.mag==null?"":o.mag.toFixed(1)+(o.magB?" (blue)":"")],["Also listed as",o.alt],["On curated lists",CURATED.filter(c=>keysOf(key).some(k=>CUR[c.id].order.has(k))).map(c=>c.name).join(", ")],["Also called",[key].concat(EQ[key]||[]).flatMap(k=>ALTN[k]||[]).filter((x,i,a)=>nn(x)!==nn(o.name||"")&&a.findIndex(y=>nn(y)===nn(x))===i).join(", ")],["Best months",o.ss?"":bestMonths(o)],
       S.set.lat==null?null:["Highest from "+latLabel(),maxAlt(o)<=0?"Never rises":Math.round(maxAlt(o))+"°"+(isLow(o)?", below your limit":"")],
       tn?["Tonight",!tn.dark?"No darkness tonight":tn.alt<=0?"Not up in darkness":Math.round(tn.alt)+"° at "+fmtTime(tn.t)]:null].filter(r=>r&&r[1]);
     h+=`<div class="icols"><dl class="tdata">${rows.map(r=>`<div><dt>${r[0]}</dt><dd>${esc(r[1])}</dd></div>`).join("")}</dl><div class="domebox">${S.set.lat==null?`<p class="ihint">Set your latitude in Settings to see this object's path across your sky.</p>`:dome(o)}</div></div>`;
@@ -1461,6 +1602,7 @@ try{if(localStorage.getItem("night")==="1")setNight(true)}catch(e){}
 
 /* ---------- boot ---------- */
 for(const k in NAMES)if(NAMES[k])NM[nn(k)]=[{key:NAMES[k],label:NAMES[k]}];
+for(const c of[CATS.S,CATS.L])if(c)for(const o of c.rows){NM[nn(o.lab)]=[{key:o.key,label:o.lab}];if(o.eng){NM[nn(o.eng)]=[{key:o.key,label:o.lab}];addAlt(o.key,o.eng)}}
 for(const o of Object.values(BYKEY))if(o.name)addAlt(o.key,o.name);
 let curatedName=true;const named=new Set(),replaced=[];
 for(const l of(window.NAMES_DATA||"").split("\n")){if(l==="--openngc--"){curatedName=false;continue}const i=l.lastIndexOf("|");if(i<1)continue;const name=l.slice(0,i),ds=l.slice(i+1).split(",");
@@ -1487,7 +1629,7 @@ render();
     render()},()=>{});
   db.collection("lists").onSnapshot(sn=>{S.lists=sn.docs.map(d=>Object.assign({},d.data(),{id:d.id})).sort((a,b)=>(a.created||0)-(b.created||0));S.lhSig="";render()},()=>{});
   db.collection("observations").onSnapshot(snap=>{
-    S.obs=snap.docs.map(d=>{const o=Object.assign({},d.data(),{id:d.id});if(!Array.isArray(o.targets)||!o.targets.length)o.targets=[{key:o.target||"X:unknown",label:o.label||o.target||"Unknown"}];o.targets=o.targets.map(t=>{const m=/^X:(ngc|ic) (\d+)$/.exec(t.key||"");if(m){const r=parseTarget(m[1]+" "+m[2]);if(!r.key.startsWith("X:"))return r}return t});return o});S.dbState="ok";render();
+    S.obs=snap.docs.map(d=>{const o=Object.assign({},d.data(),{id:d.id});if(!Array.isArray(o.targets)||!o.targets.length)o.targets=[{key:o.target||"X:unknown",label:o.label||o.target||"Unknown"}];o.targets=o.targets.map(t=>{if(!/^X:/.test(t.key||""))return t;const m=/^X:(ngc|ic) (\d+)$/.exec(t.key);const r=parseTarget(m?m[1]+" "+m[2]:(t.label||t.key.slice(2)));return BYKEY[r.key]?r:t});return o});S.dbState="ok";render();
   },()=>{S.dbState="error";render()});
 })();
 </script>
