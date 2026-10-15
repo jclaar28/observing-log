@@ -191,6 +191,83 @@ form label.pick,.setform label.pick{display:inline-flex;gap:6px;align-items:cent
 @media (max-width:520px){.tabs button{padding:8px 9px}#catBtn{max-width:40vw}}
 .inlists{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:10px;font-size:.875rem}
 .inlists select{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:5px 8px;font-size:.875rem}
+.tabs{overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{flex:none}
+.tabs .pop{position:fixed;top:auto;left:auto}
+.sessbar{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between;margin:-10px 0 18px;padding:10px 12px;border:1px solid var(--accent-fill);border-radius:4px;background:var(--surface);font-size:.92rem}
+.linkish{background:none;border:0;padding:0;color:var(--accent);text-decoration:underline;text-underline-offset:3px;font:inherit}
+.plan h2{font:italic 600 1.6rem/1.15 var(--serif);margin:0 0 10px}
+.plan .skyh{margin-top:28px}
+.phead{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between;margin-bottom:12px}
+.phead h2{margin:0}
+.phead input[type=date]{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:7px 10px}
+.nights{display:grid;grid-template-columns:repeat(7,minmax(84px,1fr));gap:6px;overflow-x:auto;margin-bottom:14px}
+.nights button{display:flex;flex-direction:column;gap:2px;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:8px;font-size:.78rem;color:var(--muted)}
+.nights button b{color:var(--ink);font-size:.9rem;font-weight:500}
+.nights button[aria-pressed="true"]{border-color:var(--accent-fill)}
+.plan .tools{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;margin:12px 0}
+.plan .tools select{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:7px 10px;max-width:100%}
+.plan .check{display:flex;gap:8px;align-items:center;font-size:.9rem}
+#pChart .pdark{fill:var(--bg);opacity:.9}
+#pChart .pnaut{fill:var(--bg);opacity:.55}
+#pChart .pcivil{fill:var(--bg);opacity:.25}
+#pChart{background:var(--surface)}
+#pChart .pline{fill:none;stroke:var(--ink);stroke-width:1.7;opacity:.75}
+#pChart .pmoon{fill:none;stroke:var(--muted);stroke-width:1.4;stroke-dasharray:5 4}
+#pChart .plim{stroke:var(--accent-fill);stroke-dasharray:3 4;opacity:.6}
+#pChart .pnow{stroke:var(--accent-fill);stroke-width:1.5}
+#pChart text{font:12px var(--sans);fill:var(--muted)}
+#pChart .plab{fill:var(--ink);font-size:11px}
+.prow{display:grid;grid-template-columns:minmax(150px,1.3fr) 1fr 1.4fr 1fr auto;gap:2px 14px;align-items:baseline;padding:9px 0;border-top:1px solid var(--line);font-size:.88rem}
+.prow .pname{background:none;border:0;padding:0;text-align:left;font:600 1rem var(--serif);color:var(--accent)}
+.prow .pname small{font:400 .8rem var(--sans);color:var(--muted)}
+.prow .pmeta{color:var(--muted)}
+.prow .warn{color:var(--danger)}
+.prow.seen .pname{color:var(--ink)}
+.prow .btn{padding:3px 8px;font-size:.8rem}
+@media (max-width:720px){.prow{grid-template-columns:1fr auto}.prow>span{grid-column:1}.prow .btn{grid-row:1;grid-column:2}}
+:root{--sky-bg:#0a1322;--sky-star:#eef3fb;--sky-line:#4d6a93}
+:root[data-night="1"]{--sky-bg:#120101;--sky-star:#ff6b57;--sky-line:#5c1810}
+.skybox svg{display:block;width:100%;max-width:640px;margin:0 auto}
+.skybg{fill:var(--sky-bg);stroke:var(--line)}
+.skyring{fill:none;stroke:var(--sky-line);stroke-dasharray:2 5;opacity:.6}
+.skyground{fill:#1f2a1c;opacity:.85}
+:root[data-night="1"] .skyground{fill:#2a0505}
+.skyline{fill:none;stroke:var(--sky-line);stroke-width:1}
+.skystar{fill:var(--sky-star)}
+.skycon{font:italic 11px var(--serif);fill:var(--sky-line)}
+.skyname{font:10px var(--sans);fill:var(--sky-star);opacity:.7}
+.skycard{font:600 14px var(--sans);fill:var(--muted)}
+#skySvg .o .sym{stroke:var(--accent-fill)}
+#skySvg .skyobj{font:11px var(--sans);fill:var(--accent)}
+.splan circle{fill:#f6d77a;stroke:var(--sky-bg)}
+.splan text{font:600 12px var(--sans);fill:#f6d77a}
+:root[data-night="1"] .splan circle,:root[data-night="1"] .splan text{fill:var(--accent)}
+.hzwrap{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center}
+.hzgrid{display:grid;grid-template-columns:repeat(4,72px);gap:8px}
+.hzc{display:flex;flex-direction:column;gap:2px;margin:0!important;font-size:.8rem}
+.hzc input{width:72px!important}
+#hzPrev{width:150px;height:150px}
+#hzPrev .hzsky{fill:var(--surface);stroke:var(--muted)}
+#hzPrev .hzg{fill:var(--accent-fill);opacity:.35}
+#hzPrev text{font:10px var(--sans);fill:var(--muted)}
+.gspecs{display:flex;flex-wrap:wrap;gap:8px}
+.gspecs input{flex:1 1 140px;min-width:0;background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:9px 10px}
+.framing{margin:0 0 18px;padding-top:14px;border-top:1px solid var(--line)}
+.framing h4{font:italic 600 1.2rem var(--serif);margin:0 0 8px}
+.ftools{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;font-size:.9rem}
+.ftools select{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:5px 8px}
+.fframe{position:relative;margin:10px 0 0;max-width:480px;aspect-ratio:1;background:var(--photo-bg)}
+.fframe img,.fframe svg{position:absolute;inset:0;width:100%;height:100%}
+.fframe .fr{fill:none;stroke:#ffd34d;stroke-width:.5}
+.fframe .fobj{fill:none;stroke:#9fd3ff;stroke-width:.4;stroke-dasharray:1.5 1.2}
+.plan .check input{flex:none;width:auto}
+.plan .tools input[type=range]{flex:1 1 200px;padding:0}
+.fframe .noimgmsg{display:none}
+.fframe.noimg .noimgmsg{display:grid;place-items:center;position:absolute;inset:0;color:#93A3BA;font-size:.85rem;padding:20px;text-align:center}
+.fframe.noimg img{display:none}
+.autonote{color:var(--ink)}
 .empty{border:1px dashed var(--line);padding:28px 18px;color:var(--muted);text-align:center}
 .note{color:var(--muted);font-size:.9rem;margin:0 0 14px}
 
@@ -241,6 +318,7 @@ dialog{border:1px solid var(--line);padding:0;background:var(--bg);color:var(--i
 .dome .below{fill:none;stroke:var(--line);stroke-width:1.2;stroke-dasharray:3 4}
 .dome .dark{fill:none;stroke:var(--accent-fill);stroke-width:3.4;stroke-linecap:round}
 .dome .pk{fill:var(--accent-fill)}
+.dome .hzband{fill:#3b5a34;opacity:.55}
 .dome text{font:12px var(--sans);fill:var(--muted)}
 .dome .pkl{fill:var(--ink);font-weight:700}
 dialog::backdrop{background:rgba(4,9,18,.72)}
@@ -284,11 +362,13 @@ form textarea{min-height:88px;resize:vertical}
         <button role="tab" id="catBtn" aria-haspopup="true" aria-expanded="false">Lists</button>
         <div class="pop" id="catPop" hidden></div>
       </div>
+      <button role="tab" data-view="plan">Plan</button>
       <button role="tab" data-view="log">Logbook</button>
       <button role="tab" data-view="stats">Stats</button>
       <button role="tab" data-view="set">Settings</button>
     </div>
   </header>
+  <div class="sessbar" id="sessBar" hidden></div>
 
   <p class="note" id="status" hidden></p>
 
@@ -313,6 +393,7 @@ form textarea{min-height:88px;resize:vertical}
     <div class="grid" id="grid"></div>
   </section>
 
+  <section id="planView" class="plan" hidden></section>
   <section id="logView" hidden></section>
   <section id="statView" class="stats" hidden></section>
 
@@ -328,13 +409,21 @@ form textarea{min-height:88px;resize:vertical}
     <label for="sAlt">Lowest usable altitude in degrees</label>
     <input id="sAlt" type="number" min="0" max="60" step="1" inputmode="numeric">
     <p class="hint">An object counts as out of reach if it never climbs above this. Use 0 for the true horizon, or more to allow for trees and haze.</p>
+    <label>Horizon obstructions</label>
+    <p class="hint">How high trees or buildings reach in each direction, in degrees. Objects behind them don't count as up. Leave at 0 for an open horizon.</p>
+    <div class="hzwrap"><div class="hzgrid" id="hzGrid"></div><svg id="hzPrev" viewBox="0 0 160 160" aria-hidden="true"></svg></div>
     <label class="check" for="sHide"><input id="sHide" type="checkbox"><span>Hide out-of-reach objects from the chart and grid. Anything you have already observed always stays.</span></label>
     <p class="hint" id="setMsg" role="status"></p>
     <div id="gearSet" hidden>
     <h2>Gear</h2>
     <p class="note">Individual pieces of equipment. Pick any combination when you log an observation. Filters are suggested in the Filter field.</p>
     <ul class="saved" id="gearList"></ul>
-    <div class="addrow"><select id="gType" aria-label="Gear type"></select><input type="text" id="gName" placeholder="Name, e.g. 8-inch SCT" aria-label="Gear name"><button class="btn" data-act="addGear">Add gear</button></div>
+    <div class="addrow"><select id="gType" aria-label="Gear type"></select><input type="text" id="gName" placeholder="Name, e.g. 8-inch SCT" aria-label="Gear name">
+      <div class="gspecs" id="gfTel"><input type="number" id="gFl" min="1" step="any" inputmode="decimal" placeholder="Focal length, mm" aria-label="Focal length in millimetres"><input type="number" id="gAp" min="1" step="any" inputmode="decimal" placeholder="Aperture, mm" aria-label="Aperture in millimetres"></div>
+      <div class="gspecs" id="gfCam"><input type="number" id="gSw" min="0.1" step="any" inputmode="decimal" placeholder="Sensor width, mm" aria-label="Sensor width in millimetres"><input type="number" id="gSh" min="0.1" step="any" inputmode="decimal" placeholder="Sensor height, mm" aria-label="Sensor height in millimetres"><input type="number" id="gPx" min="0.1" step="any" inputmode="decimal" placeholder="Pixel size, µm" aria-label="Pixel size in micrometres"></div>
+      <div class="gspecs" id="gfFac"><input type="number" id="gFac" min="0.1" step="any" inputmode="decimal" placeholder="Factor, e.g. 0.8" aria-label="Focal length factor"></div>
+      <p class="hint">Focal length and sensor size let object pages show how a target fits your camera.</p>
+      <button class="btn" data-act="addGear">Save gear</button></div>
     <h2>Rigs</h2>
     <p class="note">A rig is a named set of your saved gear that you can select in one step.</p>
     <ul class="saved" id="rigList"></ul>
@@ -351,6 +440,7 @@ form textarea{min-height:88px;resize:vertical}
     <p class="hint" id="bkMsg" role="status"></p>
     </div>
     <h2>Catalog data</h2>
+    <p class="note">Star positions and constellation lines come from <a href="https://github.com/ofrohn/d3-celestial" target="_blank" rel="noopener">d3-celestial</a> by Olaf Frohn (BSD licence).</p>
     <p class="note">Planet and Moon positions are calculated with <a href="https://github.com/cosinekitty/astronomy" target="_blank" rel="noopener">Astronomy Engine</a> by Don Cross (MIT licence). Lunar feature positions are approximate.</p>
     <p class="note">NGC and IC data come from <a href="https://github.com/mattiaverga/OpenNGC" target="_blank" rel="noopener">OpenNGC</a> by Mattia Verga, licensed <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a>. Messier and Caldwell descriptions, distances and sizes are approximate.</p>
   </section>
@@ -358,6 +448,22 @@ form textarea{min-height:88px;resize:vertical}
 
 <script src="local.js"></script>
 <dialog id="detail"><div id="detailBody"></div></dialog>
+
+<dialog id="sessDlg">
+  <div class="dhead"><h3 id="sessTitle">Start a session</h3><button class="btn quiet" data-act="closeSess">Cancel</button></div>
+  <form class="dbody" id="sessForm" novalidate>
+    <p class="hint">These details fill in every observation you log until you end the session.</p>
+    <div class="two"><div><label for="sDate2">Night of</label><input id="sDate2" type="date"></div><div><label for="sSite2">Site</label><input id="sSite2" autocomplete="off"></div></div>
+    <div class="two"><div><label for="sRig2">Rig</label><select id="sRig2"></select></div><div><label for="sKind2">Type</label><select id="sKind2"><option value="imaged">Imaged</option><option value="visual">Visual</option></select></div></div>
+    <div class="three"><div><label for="sBortle2">Bortle class</label><select id="sBortle2"><option value=""></option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option></select></div>
+      <div><label for="sSee2">Seeing, 1 to 5</label><select id="sSee2"><option value=""></option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></div>
+      <div><label for="sTra2">Transparency, 1 to 5</label><select id="sTra2"><option value=""></option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></div></div>
+    <label for="sSqm2">SQM reading</label><input id="sSqm2" type="number" step="0.01" min="15" max="23" inputmode="decimal">
+    <label for="sNotes2">Notes</label><textarea id="sNotes2" placeholder="Conditions, goals for the night"></textarea>
+    <label class="check" id="sessPlan" hidden><input type="checkbox" id="sessUsePlan" checked><span id="sessPlanTxt"></span></label>
+    <div class="foot"><button class="btn primary" type="submit">Save session</button></div>
+  </form>
+</dialog>
 
 <dialog id="listDlg">
   <div class="dhead"><h3 id="listDlgTitle">New list</h3><button class="btn quiet" data-act="closeList">Cancel</button></div>
@@ -389,6 +495,8 @@ form textarea{min-height:88px;resize:vertical}
       <div><label for="fKind">Type</label><select id="fKind"><option value="imaged">Imaged</option><option value="visual">Visual</option></select></div>
       <div><label for="fBortle">Bortle class</label><select id="fBortle"><option value=""></option></select></div>
       <div><label for="fSqm">SQM reading</label><input id="fSqm" type="number" step="0.01" min="15" max="23" inputmode="decimal"></div>
+      <div><label for="fSee">Seeing, 1 to 5</label><select id="fSee"><option value=""></option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></div>
+      <div><label for="fTra">Transparency, 1 to 5</label><select id="fTra"><option value=""></option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></div>
     </div>
     <div class="three">
       <div><label for="fSubs">Number of subs</label><input id="fSubs" type="number" min="0" step="1" inputmode="numeric"></div>
@@ -402,6 +510,9 @@ form textarea{min-height:88px;resize:vertical}
     <input id="fFiles" type="file" accept="image/*" multiple>
     <p class="hint">JPEG, PNG or WebP. Anything over 20 MB is saved as a high-quality JPEG. You can also paste a copied image into this form, or drag files onto it.</p>
     <ul class="files" id="fileList"></ul>
+    <p class="hint"><button type="button" class="btn quiet" data-act="fitsPick">Read details from FITS files</button> Pick one or more raw light frames. Only the headers are read; the files aren't saved.</p>
+    <input type="file" id="fFits" accept=".fit,.fits,.fts,image/fits" multiple hidden>
+    <p class="hint autonote" id="fAuto" role="status" hidden></p>
     <p class="err" id="formErr" role="alert" hidden></p>
     <div class="foot"><button class="btn primary" id="saveBtn" type="submit">Save observation</button></div>
   </form>
@@ -411,6 +522,8 @@ form textarea{min-height:88px;resize:vertical}
 <p id="toast" role="status" hidden></p>
 
 <script src="astronomy.js"></script>
+<script src="sky.js"></script>
+<script src="features.js"></script>
 <script src="ngc.js"></script>
 <script src="ic.js"></script>
 <script src="names.js"></script>
@@ -1001,7 +1114,7 @@ let NIGHT=null;
 function night(){
   if(S.set.lat==null)return null;
   const lon=S.set.lon==null?defLon():S.set.lon,base=new Date(Date.now()-12*3600e3);base.setHours(12,0,0,0);
-  const id=[S.set.lat,lon,S.set.minAlt,base.getTime()].join();if(NIGHT&&NIGHT.id===id)return NIGHT;
+  const id=[S.set.lat,lon,S.set.minAlt,base.getTime(),(S.set.hz||[]).join(":")].join();if(NIGHT&&NIGHT.id===id)return NIGHT;
   const all=[];for(let i=0;i<=144;i++){const t=base.getTime()+i*600e3,d=jd(t)-2451545,lst=(((18.697374558+24.06570982441908*d+lon/15)%24)+24)%24,sp=sunPos(d);all.push({t,lst,sun:altOf(sp.ra,sp.dec,lst,S.set.lat)})}
   let dark=all.filter(x=>x.sun<-18);if(!dark.length)dark=all.filter(x=>x.sun<-12);
   return NIGHT={id,dark,cache:{}};
@@ -1021,8 +1134,8 @@ function moonSVG(rows,opt){const W=opt.w||960,H=opt.h||420,cx=W/2,cy=H/2,r=Math.
 function tonight(o){
   if(o.lunar){const e=sunEl(o,lunarSun().s);return{lunar:true,alt:e,good:e>0&&e<12,dark:true}}
   const n=night();if(!n)return null;if(n.cache[o.key])return n.cache[o.key];
-  let best=-90,at=0;for(const x of n.dark){const a=altOf(o.ra,o.dec,x.lst,S.set.lat);if(a>best){best=a;at=x.t}}
-  return n.cache[o.key]={alt:best,t:at,dark:n.dark.length>0,good:n.dark.length>0&&best>=Math.max(S.set.minAlt,10)&&best>=.75*maxAlt(o)};
+  let best=-90,at=0,vis=0;for(const x of n.dark){const a=altOf(o.ra,o.dec,x.lst,S.set.lat);if(a>best){best=a;at=x.t}if(a>limitAt(azOf(o.ra,o.dec,x.lst,S.set.lat)))vis+=10}
+  return n.cache[o.key]={alt:best,t:at,vis,dark:n.dark.length>0,good:n.dark.length>0&&vis>=30&&best>=Math.max(S.set.minAlt,10)&&best>=.75*maxAlt(o)};
 }
 let toastT=0;function toast(m){const t=$("toast");t.textContent=m;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>{t.hidden=true},5000)}
 const wq={};function putDoc(name,data){if(!db||!S.canWrite)return;wq[name]=(wq[name]||Promise.resolve()).then(()=>db.doc("settings/"+name).set(data)).catch(e=>toast(explain(e)))}
@@ -1090,20 +1203,23 @@ const S={view:"M",status:"all",type:"",q:"",sort:"num",obs:[],loaded:false,dbSta
 const maxAlt=o=>90-Math.abs(S.set.lat-o.dec);
 const isLow=o=>S.set.lat!=null&&maxAlt(o)<S.set.minAlt;
 const latLabel=()=>Math.abs(S.set.lat).toFixed(1)+"° "+(S.set.lat<0?"S":"N");
-function applySet(j){if(!j)return;const l=j.lat,a=+j.minAlt,n=j.lon;S.set={lon:typeof n==="number"&&isFinite(n)?Math.max(-180,Math.min(180,n)):null,lat:typeof l==="number"&&isFinite(l)?Math.max(-90,Math.min(90,l)):null,minAlt:isFinite(a)?Math.max(0,Math.min(60,a)):0,hide:!!j.hide}}
+function applySet(j){if(!j)return;const l=j.lat,a=+j.minAlt,n=j.lon;S.set={hz:Array.isArray(j.hz)&&j.hz.length===8&&j.hz.some(x=>+x>0)?j.hz.map(x=>Math.max(0,Math.min(60,+x||0))):null,lon:typeof n==="number"&&isFinite(n)?Math.max(-180,Math.min(180,n)):null,lat:typeof l==="number"&&isFinite(l)?Math.max(-90,Math.min(90,l)):null,minAlt:isFinite(a)?Math.max(0,Math.min(60,a)):0,hide:!!j.hide}}
 function syncSet(){const act=document.activeElement;if(act!==$("sLat"))$("sLat").value=S.set.lat==null?"":S.set.lat;if(act!==$("sAlt"))$("sAlt").value=S.set.minAlt;if(act!==$("sLon"))$("sLon").value=S.set.lon==null?"":S.set.lon;
   $("gearSet").hidden=!S.canWrite;$("backupSet").hidden=!S.canWrite;$("bkImport").hidden=!PLAT.app;
   if(PLAT.app)$("bkNote").textContent="Export saves every observation, setting and photo as one .zip file. Import adds observations from a backup, including one exported from the Claude version, and skips any already here.";
   $("rigList").innerHTML=S.rigs.map((r,i)=>`<li><span>${esc(r.name)}<small>${esc(rigItems(r).join(", "))}</small></span><button class="btn quiet" data-act="delRig" data-i="${i}">Remove</button></li>`).join("");
-  $("gearList").innerHTML=GT.map(t=>S.gear.map((g,i)=>g.type===t?`<li><span>${esc(g.name)}<small>${t}</small></span><button class="btn quiet" data-act="delGear" data-i="${i}">Remove</button></li>`:"").join("")).join("");
+  $("gearList").innerHTML=GT.map(t=>S.gear.map((g,i)=>g.type===t?`<li><span>${esc(g.name)}<small>${esc([t,g.fl?g.fl+" mm":"",g.ap?g.ap+" mm aperture":"",g.sw&&g.sh?g.sw+" × "+g.sh+" mm sensor":"",g.px?g.px+" µm pixels":"",g.fac?"× "+g.fac:""].filter(Boolean).join(", "))}</small></span><button class="btn quiet" data-act="editGear" data-i="${i}">Edit</button><button class="btn quiet" data-act="delGear" data-i="${i}">Remove</button></li>`:"").join("")).join("");
   $("rigPick").innerHTML=pickHTML(RP,"data-rg")||'<p class="hint">Add gear above, then tick the pieces that make up this rig.</p>';
-  $("siteList").innerHTML=S.sites.map((r,i)=>`<li><span>${esc(r.name)}<small>${r.bortle?"Bortle "+r.bortle:""}</small></span><button class="btn quiet" data-act="delSite" data-i="${i}">Remove</button></li>`).join("");$("sHide").checked=S.set.hide}
+  $("siteList").innerHTML=S.sites.map((r,i)=>`<li><span>${esc(r.name)}<small>${r.bortle?"Bortle "+r.bortle:""}</small></span><button class="btn quiet" data-act="delSite" data-i="${i}">Remove</button></li>`).join("");$("sHide").checked=S.set.hide;
+  for(let i=0;i<8;i++){const el=$("hz"+i);if(el&&document.activeElement!==el)el.value=S.set.hz?S.set.hz[i]:0}
+  {let d="";for(let z=0;z<=360;z+=5){const r=70*(90-hzAlt(z))/90;d+=(z?"L":"M")+(80-r*Math.sin(z*RAD)).toFixed(1)+" "+(80-r*Math.cos(z*RAD)).toFixed(1)}
+   $("hzPrev").innerHTML=`<circle class="hzsky" cx="80" cy="80" r="70"/>${hzOn()?`<path class="hzg" fill-rule="evenodd" d="M10 80A70 70 0 1 0 150 80A70 70 0 1 0 10 80Z${d}Z"/>`:""}<text x="80" y="8" text-anchor="middle">N</text><text x="80" y="159" text-anchor="middle">S</text><text x="3" y="83">E</text><text x="151" y="83">W</text>`}}
 async function saveSet(){
   const lv=$("sLat").value.trim(),l=parseFloat(lv);
   if(lv!==""&&!(l>=-90&&l<=90)){$("setMsg").textContent="Latitude must be between −90 and 90.";return}
   const nv=$("sLon").value.trim(),n=parseFloat(nv);
   if(nv!==""&&!(n>=-180&&n<=180)){$("setMsg").textContent="Longitude must be between −180 and 180.";return}
-  applySet({lon:nv===""?null:n,lat:lv===""?null:l,minAlt:parseFloat($("sAlt").value)||0,hide:$("sHide").checked});
+  applySet({hz:[0,1,2,3,4,5,6,7].map(i=>parseFloat($("hz"+i).value)||0),lon:nv===""?null:n,lat:lv===""?null:l,minAlt:parseFloat($("sAlt").value)||0,hide:$("sHide").checked});
   try{localStorage.setItem("obsSettings",JSON.stringify(S.set))}catch(e){}
   let msg="Saved.";
   if(db&&S.canWrite){try{await db.doc("settings/main").set(Object.assign({},S.set))}catch(e){msg="Saved on this device only. It couldn't be synced to your other devices."}}
@@ -1156,8 +1272,8 @@ function render(){
   const st=$("status");
   const msg=S.dbState==="none"?"Your saved observations aren't available in this view. Open the page in Claude while signed in to see and add to your log.":S.dbState==="error"?"The log couldn't be loaded. Reload the page to try again.":"";
   st.hidden=!msg;st.textContent=msg;
-  $("catView").hidden=!cl;$("logView").hidden=S.view!=="log";$("setView").hidden=S.view!=="set";$("statView").hidden=S.view!=="stats";
-  if(S.view==="log")renderLog();else if(S.view==="set")syncSet();else if(S.view==="stats")renderStats();else renderCat();
+  $("catView").hidden=!cl;$("planView").hidden=S.view!=="plan";$("logView").hidden=S.view!=="log";renderSessBar();$("setView").hidden=S.view!=="set";$("statView").hidden=S.view!=="stats";
+  if(S.view==="plan")renderPlan();else if(S.view==="log")renderLog();else if(S.view==="set")syncSet();else if(S.view==="stats")renderStats();else renderCat();
   if(S.detail&&$("detail").open)renderDetail();
 }
 function renderListHead(cat){
@@ -1236,7 +1352,7 @@ function renderCat(){
 }
 function entryHTML(o,withTarget){
   const lr=o.rig?null:S.rigs.find(r=>r.name===o.gear),its=o.items&&o.items.length?o.items:lr?rigItems(lr):[],integ=(o.subs||0)*(o.subLen||0);
-  const sky=[o.bortle?"Bortle "+o.bortle:"",o.sqm?"SQM "+o.sqm:""].filter(Boolean).join(", ");
+  const sky=[o.bortle?"Bortle "+o.bortle:"",o.sqm?"SQM "+o.sqm:"",o.seeing?"seeing "+o.seeing+"/5":"",o.transp?"transparency "+o.transp+"/5":""].filter(Boolean).join(", ");
   const rows=[["Type",kindOf(o)==="visual"?"Visual":"Imaged"],["Site",o.site],["Rig",o.rig||(lr?lr.name:"")],["Equipment",its.concat(lr||!o.gear?[]:[o.gear]).join(", ")],["Subs",integ?`${o.subs} × ${o.subLen} s, ${fmtDur(integ)} total`:""],["Filter",o.filter],["Capture",o.exposure],["Sky",sky],["Moon",o.date?moon(o.date):""]].filter(r=>r[1]);
   const tBtn=t=>`<button data-act="open" data-key="${esc(t.key)}">${esc(tName(t))}</button>`;
   const title=withTarget?o.targets.map(tBtn).join(", ")+", "+esc(fmtDate(o.date)):esc(fmtDate(o.date));
@@ -1283,6 +1399,7 @@ function dome(o){
   const mer=[];for(let a=0;a<=180;a+=3)mer.push(a<=90?P(a,0):P(180-a,180));g+=`<path class="ring" d="M${mer.map(pt).join("L")}"/>`;
   g+=`<path class="shell" d="M${cx-R} ${cy}A${R} ${R} 0 0 1 ${cx+R} ${cy}"/>`;
   const pts=[];for(let H=-12;H<=12.001;H+=.1){const[a,z]=altaz(H);pts.push({alt:a,xy:P(a,z)})}
+  if(hzOn()){const top=[],bot=[];for(let z=0;z<=360;z+=6){top.push(P(hzAlt(z),z));bot.unshift(P(0,z))}g+=`<path class="hzband" d="M${top.map(pt).join("L")}L${bot.map(pt).join("L")}Z"/>`}
   g+=line(segs(pts,false),"below")+line(segs(pts,true),"path");
   const n=night(),dk=[];
   if(n){let cur=[];for(const x of n.dark){const[a,z]=altaz(x.lst-o.ra);if(a>0)cur.push(P(a,z));else{if(cur.length>1)dk.push(cur);cur=[]}}if(cur.length>1)dk.push(cur);g+=line(dk,"dark")}
@@ -1307,9 +1424,12 @@ function renderDetail(){
     const dsc=inf?inf.desc:o.desc;if(dsc)h+=`<p class="idesc">${esc(dsc)}</p>`;
     const rows=[["Type",o.tlong||TYPES[o.type][0]],["Constellation",CON[o.con]||o.con],["Distance",o.ss?(o.dist?(o.body==="Moon"&&o.lab==="Moon"?Math.round(o.dist*149597870.7).toLocaleString()+" km":o.dist.toFixed(2)+" AU"):""):inf?fmtLy(inf.ly):""],["Right ascension",fmtRA(o.ra)],["Declination",fmtDec(o.dec)],["Apparent size",o.ss?o.sizeTxt:inf?inf.size:o.size||""],["From the Sun",o.ss&&o.elong?Math.round(o.elong.elongation)+"°, in the "+o.elong.visibility+" sky":""],["Phase",o.ss&&o.phase!=null&&/Moon|Mercury|Venus|Mars/.test(o.lab)?Math.round(o.phase*100)+"% lit":""],["Magnitude",o.mag==null?"":o.mag.toFixed(1)+(o.magB?" (blue)":"")],["Also listed as",o.alt],["On curated lists",CURATED.filter(c=>keysOf(key).some(k=>CUR[c.id].order.has(k))).map(c=>c.name).join(", ")],["Also called",[key].concat(EQ[key]||[]).flatMap(k=>ALTN[k]||[]).filter((x,i,a)=>nn(x)!==nn(o.name||"")&&a.findIndex(y=>nn(y)===nn(x))===i).join(", ")],["Best months",o.ss?"":bestMonths(o)],
       S.set.lat==null?null:["Highest from "+latLabel(),maxAlt(o)<=0?"Never rises":Math.round(maxAlt(o))+"°"+(isLow(o)?", below your limit":"")],
-      tn?["Tonight",!tn.dark?"No darkness tonight":tn.alt<=0?"Not up in darkness":Math.round(tn.alt)+"° at "+fmtTime(tn.t)]:null].filter(r=>r&&r[1]);
+      tn?["Tonight",!tn.dark?"No darkness tonight":tn.alt<=0?"Not up in darkness":Math.round(tn.alt)+"° at "+fmtTime(tn.t)+(hzOn()&&tn.vis!=null?(tn.vis?", "+fmtDur(tn.vis*60)+" above your horizon":", hidden by your horizon"):"")]:null,
+      S.set.lat==null?null:["Moon tonight",moonText(o)]].filter(r=>r&&r[1]);
     h+=`<div class="icols"><dl class="tdata">${rows.map(r=>`<div><dt>${r[0]}</dt><dd>${esc(r[1])}</dd></div>`).join("")}</dl><div class="domebox">${S.set.lat==null?`<p class="ihint">Set your latitude in Settings to see this object's path across your sky.</p>`:dome(o)}</div></div>`;
   }
+  if(o&&!o.lunar&&!o.ss)h+=framingHTML(o);
+  if(S.canWrite&&sessActive())h+=`<div class="acts" style="margin:0 0 10px"><button class="btn primary" data-act="quickLog" data-key="${esc(key)}">Log ${esc(labelOf(key,list))} in this session</button></div>`;
   if(S.canWrite)h+=`<div class="acts" style="margin:0"><button class="btn primary" data-act="new" data-key="${esc(key)}">Log observation of ${esc(labelOf(key,list))}</button>${o?`<button class="btn" data-act="plan" data-key="${esc(key)}" aria-pressed="${!!S.plan[key]}">${S.plan[key]?"Remove from plan":"Add to plan"}</button>`:""}</div>`;
   if(o&&S.canWrite){const mine=S.lists.filter(l=>inItems(l.items||[],key)),rest=S.lists.filter(l=>!inItems(l.items||[],key));
     h+=`<div class="inlists">${mine.length?`<ul class="chips" style="margin:0">`:""}${mine.map(l=>`<li>${esc(l.name)}<button type="button" data-act="unlist" data-list="${esc(l.id)}" aria-label="Remove from ${esc(l.name)}">×</button></li>`).join("")}${mine.length?"</ul>":""}
@@ -1410,9 +1530,13 @@ function openForm(key,obs){
   $("fTarget").value="";chips();
   const d=new Date(),v=(id,x)=>{$(id).value=x==null?"":x};
   v("fDate",obs?obs.date:d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"));
+  F.dateTouched=!!obs;$("fAuto").hidden=true;v("fSee",obs&&obs.seeing);v("fTra",obs&&obs.transp);
   v("fKind",obs?kindOf(obs):"imaged");v("fSite",obs&&obs.site);v("fGear",obs&&obs.gear);v("fSubs",obs&&obs.subs);v("fLen",obs&&obs.subLen);v("fFilter",obs&&obs.filter);v("fBortle",obs&&obs.bortle);v("fSqm",obs&&obs.sqm);v("fExp",obs&&obs.exposure);v("fNotes",obs&&obs.notes);v("fFiles","");
   const opts=(saved,f)=>[...new Set(saved.concat(S.obs.map(o=>o[f])).filter(Boolean))];
   SUG.fSite=opts(S.sites.map(x=>x.name),"site");SUG.fGear=opts([],"gear");SUG.fFilter=opts(S.gear.filter(g=>g.type==="Filter").map(g=>g.name),"filter");
+  const ss=!obs&&sessActive();
+  if(ss){v("fDate",ss.date);v("fSite",ss.site);v("fKind",ss.kind||"imaged");v("fBortle",ss.bortle);v("fSqm",ss.sqm);v("fSee",ss.seeing);v("fTra",ss.transp);
+    if(ss.rig&&S.rigs.some(r=>r.name===ss.rig)){$("fRig").value=ss.rig;F.items=new Set(ss.items||[])}else F.items=new Set(ss.items||[]);gearPick();F.dateTouched=true}
   setErr("");setBusy(false);fileList();formHints();hideSuggest();
   $("formDlg").showModal();
 }
@@ -1468,7 +1592,7 @@ async function save(ev){
       added.push(Object.assign({id:m.id,thumb:th.id},F.caps[i]&&F.caps[i].trim()?{cap:F.caps[i].trim()}:{}));
     }
     setBusy(true);
-    const body={targets:F.targets.slice(),date,kind:$("fKind").value,site:$("fSite").value.trim(),gear:$("fGear").value.trim(),rig:$("fRig").value,items:[...F.items],subs:num("fSubs"),subLen:num("fLen"),filter:$("fFilter").value.trim(),bortle:num("fBortle"),sqm:num("fSqm"),exposure:$("fExp").value.trim(),notes:$("fNotes").value.trim(),photos:F.keep.map(p=>Object.assign({id:p.id,thumb:p.thumb||""},p.cap&&p.cap.trim()?{cap:p.cap.trim()}:{})).concat(added),created:F.editing?F.editing.created||Date.now():Date.now()};
+    const body={targets:F.targets.slice(),date,kind:$("fKind").value,site:$("fSite").value.trim(),gear:$("fGear").value.trim(),rig:$("fRig").value,items:[...F.items],subs:num("fSubs"),subLen:num("fLen"),filter:$("fFilter").value.trim(),bortle:num("fBortle"),sqm:num("fSqm"),seeing:num("fSee"),transp:num("fTra"),session:F.editing?F.editing.session||null:(sessActive()?sessActive().id:null),exposure:$("fExp").value.trim(),notes:$("fNotes").value.trim(),photos:F.keep.map(p=>Object.assign({id:p.id,thumb:p.thumb||""},p.cap&&p.cap.trim()?{cap:p.cap.trim()}:{})).concat(added),created:F.editing?F.editing.created||Date.now():Date.now()};
     if(F.editing){
       const old=F.editing.photos||[];
       await db.collection("observations").doc(F.editing.id).set(body);
@@ -1493,7 +1617,7 @@ async function removeObs(id,box){
 }
 
 /* ---------- events ---------- */
-function catMenu(open){$("catPop").hidden=!open;$("catBtn").setAttribute("aria-expanded",open)}
+function catMenu(open){const p=$("catPop");p.hidden=!open;$("catBtn").setAttribute("aria-expanded",open);if(open){const r=$("catBtn").getBoundingClientRect();p.style.top=(r.bottom+4)+"px";p.style.left=Math.max(8,Math.min(r.left,innerWidth-Math.max(p.offsetWidth,220)-8))+"px"}}
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("catPop").hidden){catMenu(false);$("catBtn").focus()}});
 document.addEventListener("click",async ev=>{
   if(ev.target.closest("#catBtn")){catMenu($("catPop").hidden);return}
@@ -1505,6 +1629,7 @@ document.addEventListener("click",async ev=>{
   const sg=ev.target.closest("[data-status]");if(sg){S.status=sg.dataset.status;renderCat();return}
   const a=ev.target.closest("[data-act]");if(!a)return;
   const act=a.dataset.act,box=a.closest("[data-obs]"),oid=box&&box.dataset.obs;
+  if(await featureAct(act,a))return;
   if(act==="open"){S.detail=a.dataset.key;renderDetail();if(!$("detail").open)$("detail").showModal()}
   else if(act==="closeDetail")$("detail").close();
   else if(act==="new")openForm(a.dataset.key||"");
@@ -1518,7 +1643,9 @@ document.addEventListener("click",async ev=>{
   else if(act==="setCover"){if(!S.detail||!LB)return;S.covers[S.detail]=LB.id;putDoc("covers",{list:Object.keys(S.covers).map(k=>({k,id:S.covers[k]}))});render();lbBtn()}
   else if(act==="plan"){const k=a.dataset.key;if(S.plan[k])delete S.plan[k];else S.plan[k]=1;putDoc("plan",{keys:Object.keys(S.plan)});render()}
   else if(act==="addRig"){const n=$("rName").value.trim();if(!n){$("rName").focus();return}if(!RP.size){toast("Tick at least one piece of gear for this rig.");return}S.rigs=S.rigs.filter(r=>r.name!==n).concat({name:n,items:[...RP]});RP.clear();$("rName").value="";saveGear()}
-  else if(act==="addGear"){const n=$("gName").value.trim();if(!n){$("gName").focus();return}S.gear=S.gear.filter(g=>g.name!==n).concat({type:$("gType").value,name:n});$("gName").value="";saveGear()}
+  else if(act==="addGear"){const n=$("gName").value.trim();if(!n){$("gName").focus();return}const t=$("gType").value,nv=id=>{const x=parseFloat($(id).value);return x>0?x:null},g={type:t,name:n};
+    if(t==="Telescope"){g.fl=nv("gFl");g.ap=nv("gAp")}if(t==="Camera"){g.sw=nv("gSw");g.sh=nv("gSh");g.px=nv("gPx")}if(/Reducer|Barlow/.test(t))g.fac=nv("gFac");
+    const i=S.gear.findIndex(x=>x.name===n);if(i>=0)S.gear[i]=g;else S.gear=S.gear.concat(g);for(const id of["gName","gFl","gAp","gSw","gSh","gPx","gFac"])$(id).value="";saveGear()}
   else if(act==="delGear"){const g=S.gear[+a.dataset.i];S.gear=S.gear.filter(x=>x!==g);if(g)RP.delete(g.name);saveGear()}
   else if(act==="delRig"){S.rigs=S.rigs.filter((r,i)=>i!==+a.dataset.i);saveGear()}
   else if(act==="more"){S.lim+=300;renderCat()}
@@ -1578,7 +1705,7 @@ $("form").addEventListener("click",e=>{const b=e.target.closest("[data-sg]");if(
 $("fTarget").addEventListener("keydown",e=>{if((e.key==="Enter"||e.key===",")&&$("fTarget").value.trim()){e.preventDefault();commitTargets()}});
 $("fTarget").addEventListener("change",commitTargets);
 function addFiles(list){const imgs=[...list].filter(x=>x&&/^image\//.test(x.type));if(!imgs.length)return false;F.files.push(...imgs);fileList();return true}
-$("fFiles").addEventListener("change",e=>{addFiles(e.target.files);e.target.value=""});
+$("fFiles").addEventListener("change",e=>{const fs=[...e.target.files];addFiles(fs);e.target.value="";exifFill(fs)});
 $("formDlg").addEventListener("paste",e=>{if(e.clipboardData&&addFiles(e.clipboardData.files))e.preventDefault()});
 $("formDlg").addEventListener("dragover",e=>e.preventDefault());
 $("formDlg").addEventListener("drop",e=>{e.preventDefault();if(e.dataTransfer)addFiles(e.dataTransfer.files)});
@@ -1614,6 +1741,7 @@ for(const[k,old]of replaced){const g=NM[nn(old)];if(!g||(g.length===1&&g[0].key=
 SUG.fTarget=Object.values(BYKEY).map(o=>dn(o)+(o.name?" "+o.name:"")).concat(NAMEDSUG);SUG.lAdd=SUG.fTarget;
 for(const c of CURATED){const keys=[];for(const part of c.items.split(","))for(const t of parseTargets(part))keys.push(t.key);CUR[c.id]=listRows(c.id,c.name,c.desc,keys,"cur");const miss=keys.filter(k=>!BYKEY[k]);if(miss.length)console.warn("Curated list "+c.id+" skipped",miss)}
 try{applySet(JSON.parse(localStorage.getItem("obsSettings")||"null"))}catch(e){}
+featuresInit();
 render();
 (async()=>{
   const use=n=>window.APP_USE?window.APP_USE(n):window.claude&&window.claude.use?window.claude.use(n).catch(()=>null):Promise.resolve(null);
@@ -1625,7 +1753,8 @@ render();
       if(d.id==="main"){if(!d.metadata.hasPendingWrites)applySet(v)}
       else if(d.id==="gear"){S.rigs=(v.rigs||[]).map(x=>Object.assign({},x));S.sites=(v.sites||[]).map(x=>Object.assign({},x));S.gear=(v.items||[]).map(x=>Object.assign({},x))}
       else if(d.id==="plan"){S.plan={};for(const k of v.keys||[])S.plan[k]=1}
-      else if(d.id==="covers"){S.covers={};for(const c of v.list||[])S.covers[c.k]=c.id}}
+      else if(d.id==="covers"){S.covers={};for(const c of v.list||[])S.covers[c.k]=c.id}
+      else if(d.id==="session"){S.session=v.active?Object.assign({},v):null}}
     render()},()=>{});
   db.collection("lists").onSnapshot(sn=>{S.lists=sn.docs.map(d=>Object.assign({},d.data(),{id:d.id})).sort((a,b)=>(a.created||0)-(b.created||0));S.lhSig="";render()},()=>{});
   db.collection("observations").onSnapshot(snap=>{

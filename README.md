@@ -37,3 +37,5 @@ Upload the changed files to the repository again. In `sw.js`, change `VERSION` (
 NGC and IC data in `ngc.js` and `ic.js`, and part of the name list in `names.js` are derived from [OpenNGC](https://github.com/mattiaverga/OpenNGC) by Mattia Verga and is licensed [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). Messier and Caldwell descriptions, distances and sizes were written for this app and are approximate.
 
 Planet and Moon positions use [Astronomy Engine](https://github.com/cosinekitty/astronomy) by Don Cross (`astronomy.js`, MIT licence). Lunar feature positions and descriptions were written for this app and are approximate.
+
+Star positions and constellation lines in `sky.js` come from [d3-celestial](https://github.com/ofrohn/d3-celestial) by Olaf Frohn, BSD 3-Clause licence (Copyright (c) 2015, Olaf Frohn). Framing images are DSS2 colour survey cut-outs from the CDS hips2fits service.
