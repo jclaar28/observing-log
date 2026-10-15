@@ -292,9 +292,22 @@ form label.pick,.setform label.pick{display:inline-flex;gap:6px;align-items:cent
 .lcard.lnew{border-style:dashed;background:none;justify-content:center}
 .lcard.lnew .lt{color:var(--accent)}
 .lhead .back{font-size:.9rem;margin-bottom:6px;display:inline-block}
-.builder{margin:6px 0 30px;padding:16px;border:1px solid var(--line);border-radius:4px;background:var(--surface)}
-.builder h2{margin:0 0 4px}
 .builder>.ihint{margin:0 0 12px}
+.builder .chartslot{margin-top:22px}
+.phead .back{font-size:.9rem;display:block;margin-bottom:4px}
+.psum{color:var(--muted);margin:-4px 0 16px;font-size:.92rem}
+.phero{border:1px solid var(--line);background:var(--surface);border-radius:4px;padding:16px 16px 4px;margin-bottom:6px}
+.phero .pnt{font:italic 600 1.6rem/1.15 var(--serif);margin:0}
+.phero .pverd{margin:4px 0 12px;color:var(--muted);max-width:62ch}
+.phero .facts{border-bottom:0;margin-bottom:0}
+.nights button{position:relative}
+.nights .nq{display:block;height:3px;background:var(--line);margin-top:6px}
+.nights .nq i{display:block;height:100%;background:var(--accent-fill)}
+.pcards .lcard{min-height:150px}
+.pcards .lfoot{color:var(--accent)}
+#pDetails .facts{margin-top:0}
+#pDetails .lsec,#pHome .lsec{margin-top:24px}
+#pChartBox{margin-bottom:8px}
 .bgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px 12px}
 .bgrid label{display:flex;flex-direction:column;gap:4px;font-size:.82rem;color:var(--muted)}
 .bgrid select{background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:7px 8px;font-size:.92rem;color:var(--ink);width:100%}
@@ -1417,7 +1430,7 @@ function renderLists(){
   const used=new Set();for(const[gname,ids]of CURGROUPS.concat([["More",CURATED.map(c=>c.id).filter(id=>!CURGROUPS.some(x=>x[1].includes(id)))]])){
     const cs=ids.map(id=>CURATED.find(c=>c.id===id)).filter(c=>c&&!used.has(c.id));if(!cs.length)continue;cs.forEach(c=>used.add(c.id));
     h+=`<p class="lgrp">${esc(gname)}</p><div class="lgrid">${cs.map(c=>listCard("cur:"+c.id,c.name,c.desc.split(/(?<=\.)\s/)[0],CUR[c.id].rows)).join("")}</div>`}
-  h+=`<h3 class="lsec">My lists</h3><div class="lgrid">${S.lists.map(l=>listCard("my:"+l.id,l.name,l.desc,(l.items||[]).map(k=>BYKEY[k]).filter(Boolean))).join("")}
+  h+=`<h3 class="lsec" id="myLists">My lists</h3><div class="lgrid">${S.lists.map(l=>listCard("my:"+l.id,l.name,l.desc,(l.items||[]).map(k=>BYKEY[k]).filter(Boolean))).join("")}
     ${S.canWrite?`<button class="lcard lnew" data-act="newList"><span class="lt">New list</span><span class="ldsc">Make a list of your own, or copy a curated list from its page and change it.</span></button>`:S.lists.length?"":`<p class="empty">No lists yet.</p>`}</div>`;
   $("listsView").innerHTML=h}
 function renderListHead(cat){
@@ -1771,7 +1784,7 @@ async function removeObs(id,box){
 function catMenu(open){const p=$("catPop");if(!p)return;p.hidden=!open;$("catBtn").setAttribute("aria-expanded",open);if(open){const r=$("catBtn").getBoundingClientRect();p.style.top=(r.bottom+4)+"px";p.style.left=Math.max(8,Math.min(r.left,innerWidth-Math.max(p.offsetWidth,220)-8))+"px"}}
 
 document.addEventListener("click",async ev=>{
-  const tab=ev.target.closest("[data-view]");if(tab){S.view=tab.dataset.view;S.type="";render();return}
+  const tab=ev.target.closest("[data-view]");if(tab){if(tab.dataset.view==="plan"&&tab.closest(".tabs"))S.pSub="";S.view=tab.dataset.view;S.type="";render();return}
   const ty=ev.target.closest("[data-type]");if(ty){S.type=S.type===ty.dataset.type?"":ty.dataset.type;renderCat();return}
   const md=ev.target.closest("[data-mode]");if(md){S.mode=md.dataset.mode;renderCat();return}
   if(ev.target.closest("#tonightBtn")){if(S.set.lat==null){S.view="set";render();$("setMsg").textContent="Set your latitude to use Up tonight.";$("sLat").focus()}else{S.tonight=!S.tonight;renderCat()}return}
