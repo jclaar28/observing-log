@@ -36,6 +36,7 @@ Running list of ideas for the Observing log app. Newest ideas go at the top of "
 
 ## Done
 
+- Filters on lists and the planner: season, telescope aperture, rig framing fit, and object type on the planner (2026-10-15)
 - Plan page (any night, 7-night strip, twilight and Moon times, altitude chart, targets from any list with moon distance), sky view, framing with rig field of view and sky survey image, custom horizon, session mode with quick log, auto-fill from photo EXIF and FITS headers (2026-10-15)
 - Solar system catalog (Sun, Moon, planets, Pluto, Galilean moons, Titan) with live positions, magnitudes and phases; Moon catalog of 73 features with a lighting map and best-viewing days; Herschel 400 and Messier marathon lists (2026-10-15)
 - Lists menu with Catalogs (Messier, Caldwell, NGC, IC), 10 curated lists and custom lists; add to list from any object page; lists included in backups (2026-10-14)

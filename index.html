@@ -268,6 +268,9 @@ form label.pick,.setform label.pick{display:inline-flex;gap:6px;align-items:cent
 .fframe.noimg .noimgmsg{display:grid;place-items:center;position:absolute;inset:0;color:#93A3BA;font-size:.85rem;padding:20px;text-align:center}
 .fframe.noimg img{display:none}
 .autonote{color:var(--ink)}
+.xf{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.xf select{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:7px 10px;font-size:.9rem;max-width:100%}
+#xFilters{margin-top:-4px}
 .empty{border:1px dashed var(--line);padding:28px 18px;color:var(--muted);text-align:center}
 .note{color:var(--muted);font-size:.9rem;margin:0 0 14px}
 
@@ -390,6 +393,7 @@ form textarea{min-height:88px;resize:vertical}
         <option value="ra">By right ascension</option><option value="mag">Brightest first</option><option value="tonight">Highest tonight</option>
       </select>
     </div>
+    <div class="tools xf" id="xFilters"></div>
     <div class="grid" id="grid"></div>
   </section>
 
@@ -1300,7 +1304,7 @@ function renderCat(){
   /* chart */
   $("chart").classList.toggle("moon",!!cat.lunar);$("chart").setAttribute("viewBox",cat.lunar?"0 0 440 440":"0 0 960 420");
   if(cat.lunar){S.pts=null;$("chart").classList.remove("big");
-    $("chart").innerHTML=moonSVG(rows,{w:440,h:440,g,filt:o=>(S.type&&o.type!==S.type)||(S.tonight&&!tonight(o).good)});
+    $("chart").innerHTML=moonSVG(rows,{w:440,h:440,g,filt:o=>(S.type&&o.type!==S.type)||(S.tonight&&!tonight(o).good)||!extraFilter(o)});
     $("chart").setAttribute("aria-label",`Map of the Moon's near side showing tonight's lighting. ${seen} of ${rows.length} features observed.`);
   }else{
   const L=36,T=10,PW=914,PH=384,x=ra=>L+(24-ra)/24*PW,y=d=>T+(90-d)/180*PH;
@@ -1314,12 +1318,12 @@ function renderCat(){
   s+=`<path class="ecl" d="${p}"/><text class="lab" x="${x(6)}" y="${y(23.44)-7}" text-anchor="middle">ecliptic</text>`;
   $("chart").classList.toggle("big",!!cat.big);
   if(cat.big){const P={u:"",s:"",p:"",f:""};S.pts=[];
-    for(const o of rows){const tn=S.tonight?tonight(o):null,f=(S.type&&o.type!==S.type)||(S.tonight&&!(tn&&tn.good)),X=x(o.ra),Y=y(o.dec),k=f?"f":g[o.key]?"s":S.plan[o.key]?"p":"u";
+    for(const o of rows){const tn=S.tonight?tonight(o):null,f=(S.type&&o.type!==S.type)||(S.tonight&&!(tn&&tn.good))||!extraFilter(o),X=x(o.ra),Y=y(o.dec),k=f?"f":g[o.key]?"s":S.plan[o.key]?"p":"u";
       P[k]+="M"+X.toFixed(1)+" "+Y.toFixed(1)+"h0";if(!f)S.pts.push([X,Y,o.key])}
     for(const k of["f","u","p","s"])if(P[k])s+=`<path class="dots ${k}" d="${P[k]}"/>`;
   }else{S.pts=null;
   const order=rows.slice().sort((a,b)=>(g[a.key]?1:0)-(g[b.key]?1:0));
-  for(const o of order){const tn=S.tonight?tonight(o):null,f=(S.type&&o.type!==S.type)||(S.tonight&&!(tn&&tn.good));
+  for(const o of order){const tn=S.tonight?tonight(o):null,f=(S.type&&o.type!==S.type)||(S.tonight&&!(tn&&tn.good))||!extraFilter(o);
     s+=`<g class="o${g[o.key]?" seen":S.plan[o.key]?" plan":""}${out(o)?" low":""}" data-act="open" data-key="${o.key}" transform="translate(${x(o.ra).toFixed(1)} ${y(o.dec).toFixed(1)})"${f?' opacity=".18"':""}><title>${esc(o.key+(o.name?" "+o.name:""))}</title><circle r="9" fill="transparent"/>${sym(o.type)}</g>`}}
   $("chart").innerHTML=s;
   $("chart").setAttribute("aria-label",`Sky chart of the ${cat.name} catalog by right ascension and declination. ${seen} of ${rows.length} observed.`);
@@ -1339,12 +1343,14 @@ function renderCat(){
     if(S.status==="todo"&&g[o.key])return false;
     if(S.status==="plan"&&!(S.plan[o.key]&&!g[o.key]))return false;
     if(S.tonight){const tn=tonight(o);if(!tn||!tn.good)return false}
+    if(!extraFilter(o))return false;
     if(q){const hay=o.hay||(o.hay=(o.key+" "+dn(o)+" "+o.key[0]+" "+o.n+" "+o.name+" "+o.alt+" "+o.con+" "+(CON[o.con]||"")+" "+(o.tlong||TYPES[o.type][0])+" "+[o.key].concat(EQ[o.key]||[]).map(k=>(ALTN[k]||[]).join(" ")).join(" ")).toLowerCase());if(!hay.includes(q))return false}
     return true});
   const ta=o=>{const t=tonight(o);return t?t.alt:-99};
   const cmp={tonight:(a,b)=>ta(b)-ta(a),num:cat.order?(a,b)=>cat.order.get(a.key)-cat.order.get(b.key):(a,b)=>a.n-b.n,con:(a,b)=>(CON[a.con]||"").localeCompare(CON[b.con]||"")||a.n-b.n,ra:(a,b)=>a.ra-b.ra,mag:(a,b)=>(a.mag==null?99:a.mag)-(b.mag==null?99:b.mag)}[S.sort];
   list.sort(cmp);
-  const sig=[S.view,S.type,S.status,S.q,S.sort,S.tonight,S.mode,S.set.hide].join("|");if(sig!==S.sig){S.sig=sig;S.lim=150}
+  $("xFilters").innerHTML=filterHTML(false);
+  const sig=[S.view,S.type,S.status,S.q,S.sort,S.tonight,S.mode,S.set.hide,filterSig()].join("|");if(sig!==S.sig){S.sig=sig;S.lim=150}
   const extra=list.length-S.lim;
   $("grid").innerHTML=list.length?list.slice(0,S.lim).map(o=>{const l=g[o.key],c=coverOf(o.key,l),pl=S.plan[o.key]&&!l;
     return`<button class="tile${l?" seen":""}${c?" pic":""}${out(o)?" low":""}${pl?" plan":""}" data-act="open" data-key="${o.key}" aria-label="${esc(dn(o)+(o.name?", "+o.name:"")+", "+(o.tlong||TYPES[o.type][0])+(l?", observed":out(o)?", out of reach from your latitude":pl?", planned":", not yet observed"))}">${c?`<img loading="lazy" alt="" src="${blob(c.thumb||c.id)}">`:icon(o.type,!!l)}${pl?'<span class="tag">Planned</span>':""}${l&&l.length>1?`<span class="ct">${l.length}</span>`:""}<span class="des${dn(o).length>5?" long":""}">${esc(dn(o))}</span><span class="nm">${esc(o.name||CON[o.con]||o.tlong||"")}</span></button>`}).join("")+(extra>0?`<button class="btn more" data-act="more">Show ${Math.min(300,extra).toLocaleString()} more of ${extra.toLocaleString()}</button>`:"")

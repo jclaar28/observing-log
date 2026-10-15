@@ -101,7 +101,7 @@ function renderPlan(){
   if(!el.dataset.built){el.dataset.built="1";el.innerHTML=`<div class="phead"><h2>Plan a night</h2>
     <div class="acts"><input type="date" id="pDate" aria-label="Night of"><button class="btn" data-act="pToday">Tonight</button>${S.canWrite?'<button class="btn primary" data-act="sessStart">Start session</button>':""}</div></div>
     <div class="nights" id="pNights"></div><dl class="facts" id="pFacts"></dl>
-    <div class="tools"><select id="pSrc" aria-label="Objects to plan from"></select><label class="check"><input type="checkbox" id="pWell" checked> Only objects up for an hour or more in darkness</label></div>
+    <div class="tools"><select id="pSrc" aria-label="Objects to plan from"></select><span class="xf" id="pFilters"></span><label class="check"><input type="checkbox" id="pWell" checked> Only objects up for an hour or more in darkness</label></div>
     <div class="chartbox"><svg id="pChart" viewBox="0 0 960 320" role="img"></svg></div>
     <div id="pRows"></div>
     <h2 class="skyh">Sky view</h2>
@@ -120,11 +120,12 @@ function renderPlan(){
   $("pFacts").innerHTML=f.map(r=>`<div><dt>${r[0]}</dt><dd>${esc(r[1])}</dd></div>`).join("");
   // rows
   const g=grouped(true),sess=S.session&&S.session.active?S.session:null;
-  let rows=planRows(S.pSrc).map(o=>({o,r:objNight(o,N)})).filter(x=>x.r);
+  const src=planRows(S.pSrc);$("pFilters").innerHTML=filterHTML(true,src);
+  let rows=src.filter(o=>extraFilter(o,true)).map(o=>({o,r:objNight(o,N)})).filter(x=>x.r);
   if($("pWell").checked)rows=rows.filter(x=>x.r.up>=60);
   if(planRowsBig())rows=rows.sort((a,b)=>b.r.up-a.r.up||(a.o.mag||99)-(b.o.mag||99)).slice(0,60);
   rows.sort((a,b)=>a.r.pt-b.r.pt);
-  if(!S.pChart||S.pChartSrc!==S.pSrc+S.pDate){S.pChart=new Set(rows.slice(0,6).map(x=>x.o.key));S.pChartSrc=S.pSrc+S.pDate}
+  if(!S.pChart||S.pChartSrc!==S.pSrc+S.pDate+filterSig()){S.pChart=new Set(rows.slice(0,6).map(x=>x.o.key));S.pChartSrc=S.pSrc+S.pDate+filterSig()}
   $("pRows").innerHTML=rows.length?rows.map(({o,r})=>{const w=moonWarn(r,N),done=g[o.key],inS=sess&&(g[o.key]||[]).some(e=>e.session===sess.id);
     return`<div class="prow${done?" seen":""}"><button class="pname" data-act="open" data-key="${esc(o.key)}">${esc(dn(o))}${o.name?` <small>${esc(o.name)}</small>`:""}</button>
       <span class="pmeta">${esc(o.tlong||TYPES[o.type][0])}${done?", observed":""}${inS?", logged this session":""}</span>
@@ -274,10 +275,12 @@ function featuresInit(){
   $("planView").addEventListener("input",e=>{if(e.target.id==="skyT"){S.skyIdx=+e.target.value;const N=nightAt(S.pDate);if(N)drawSky(N)}});
   $("detail").addEventListener("change",e=>{if(e.target.id==="frameRig"){S.frameRig=e.target.value;const o=BYKEY[S.detail];if(o){$("framingBox").outerHTML=framingHTML(o)}}});
   $("detail").addEventListener("input",e=>{if(e.target.id==="frameRot"){S.frameRot=+e.target.value;$("frameRotV").textContent=S.frameRot+"°";$("frameOv").innerHTML=frameOverlay()}});
+  document.addEventListener("change",e=>{const k=e.target.dataset&&e.target.dataset.f;if(!k)return;S["f_"+k]=e.target.value;render()});
   $("gType").addEventListener("change",gearFields);gearFields()}
 function gearFields(){const t=$("gType").value;$("gfTel").hidden=t!=="Telescope";$("gfCam").hidden=t!=="Camera";$("gfFac").hidden=!/Reducer|Barlow/.test(t)}
 async function featureAct(act,a){
   switch(act){
+    case"fClear":S.f_season=S.f_scope=S.f_frame=S.f_type="";render();return true;
     case"pToday":S.pDate=tonightStr();renderPlan();return true;
     case"pNight":S.pDate=a.dataset.d;renderPlan();return true;
     case"pChartT":{const k=a.dataset.key;if(S.pChart.has(k))S.pChart.delete(k);else S.pChart.add(k);renderPlan();return true}
@@ -291,3 +294,35 @@ async function featureAct(act,a){
     case"editGear":{const g=S.gear[+a.dataset.i];if(!g)return true;$("gType").value=g.type;gearFields();$("gName").value=g.name;$("gFl").value=g.fl||"";$("gAp").value=g.ap||"";$("gFac").value=g.fac||"";$("gSw").value=g.sw||"";$("gSh").value=g.sh||"";$("gPx").value=g.px||"";$("gName").focus();return true}
   }
   return false}
+
+/* ---------- shared filters: season, telescope, rig, type ---------- */
+function bestMonth(o){return new Date(2001,2,35+Math.round(((o.ra+12)%24)/24*365.25)).getMonth()}
+const limMag=ap=>.7+5*Math.log10(ap);
+const SEASONS={djf:[11,0,1],mam:[2,3,4],jja:[5,6,7],son:[8,9,10]};
+function filterOpts(){
+  const south=S.set.lat!=null&&S.set.lat<0;
+  const season=[["","Any season"],["now","Best this month"],["djf",`Dec to Feb (${south?"summer":"winter"})`],["mam",`Mar to May (${south?"autumn":"spring"})`],["jja",`Jun to Aug (${south?"winter":"summer"})`],["son",`Sep to Nov (${south?"spring":"autumn"})`]];
+  const scope=[["","Any telescope"]].concat(S.gear.filter(g=>g.type==="Telescope"&&g.ap).map(g=>[String(g.ap),`My ${g.name} (${g.ap} mm)`]),
+    [["50","Binoculars, 50 mm"],["80","Small telescope, 80 mm"],["100","4-inch, 100 mm"],["150","6-inch, 150 mm"],["200","8-inch, 200 mm"],["250","10-inch, 250 mm"],["300","12-inch or larger"]]);
+  const frame=[["","Any size"]].concat(S.rigs.filter(r=>rigOptics(r)).map(r=>[r.name,`Good fit for ${r.name}`]));
+  return{season,scope,frame}}
+function filterHTML(withType,rows){
+  const o=filterOpts(),sel=(k,label,opts)=>`<select data-f="${k}" aria-label="${label}">${opts.map(([v,n])=>`<option value="${esc(v)}"${String(S["f_"+k]||"")===v?" selected":""}>${esc(n)}</option>`).join("")}</select>`;
+  let h="";
+  if(withType){const ts=[...new Set((rows||[]).map(x=>x.type))].filter(t=>TYPES[t]);h+=sel("type","Object type",[["","Any type"]].concat(ts.map(t=>[t,TYPES[t][1]])))}
+  h+=sel("season","Season",o.season)+sel("scope","Telescope",o.scope);
+  if(o.frame.length>1)h+=sel("frame","Framing",o.frame);
+  const on=["season","scope","frame"].concat(withType?["type"]:[]).filter(k=>S["f_"+k]).length;
+  if(on)h+=`<button class="btn quiet" data-act="fClear">Clear filters</button>`;
+  return h}
+function extraFilter(o,withType){
+  if(withType&&S.f_type&&o.type!==S.f_type)return false;
+  if(o.ss||o.lunar)return!(S.f_frame);
+  if(S.f_season){const m=bestMonth(o),now=new Date().getMonth();
+    if(S.f_season==="now"?Math.min((m-now+12)%12,(now-m+12)%12)>1:!SEASONS[S.f_season].includes(m))return false}
+  if(S.f_scope&&(o.mag==null||o.mag>limMag(+S.f_scope)))return false;
+  if(S.f_frame){const r=S.rigs.find(x=>x.name===S.f_frame),op=r&&rigOptics(r),sz=sizeOf(o);if(!op||!sz)return false;
+    const[a,b]=[Math.max(sz[0],sz[1]),Math.min(sz[0],sz[1])],W=Math.max(op.w,op.h),H=Math.min(op.w,op.h);
+    if(a>W*.95||b>H*.95||a<W*.15)return false}
+  return true}
+function filterSig(){return[S.f_season,S.f_scope,S.f_frame,S.f_type].join("|")}
