@@ -48,7 +48,6 @@ img{max-width:100%}
 .tabs button{background:none;border:0;border-bottom:2px solid transparent;padding:8px 14px;margin-bottom:-1px;color:var(--muted);font-weight:500}
 .tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent-fill)}
 .menu{position:relative}
-#catBtn::after{content:"";display:inline-block;margin-left:8px;border:4px solid transparent;border-top-color:currentColor;border-bottom:0;vertical-align:middle}
 .tabs .pop{position:absolute;top:100%;left:0;z-index:5;min-width:200px;background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:4px;display:grid}
 .tabs .pop button{display:flex;justify-content:space-between;gap:16px;border:0;margin:0;border-radius:3px;text-align:left;color:var(--ink);font-weight:400}
 .tabs .pop button:hover{background:var(--bg)}
@@ -275,6 +274,24 @@ form label.pick,.setform label.pick{display:inline-flex;gap:6px;align-items:cent
 .xf{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .xf select{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:7px 10px;font-size:.9rem;max-width:100%}
 #xFilters{margin-top:-4px}
+.lhero{margin:0 0 6px}
+.lhero h2{font:italic 600 2rem/1.1 var(--serif);margin:0}
+.lhero p{margin:6px 0 0;color:var(--muted)}
+.lsec{font:italic 600 1.35rem/1.2 var(--serif);margin:26px 0 4px}
+.lgrp{margin:14px 0 8px;color:var(--muted);font-size:.85rem}
+.lgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.lcard{display:flex;flex-direction:column;gap:6px;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:14px 14px 12px;color:var(--ink);min-height:132px}
+.lcard:hover{border-color:var(--muted)}
+.lcard.done{border-color:var(--accent-fill)}
+.lcard .lt{font:italic 600 1.15rem/1.2 var(--serif)}
+.lcard .ldsc{font-size:.84rem;color:var(--muted);line-height:1.4;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.lcard .lfoot{margin-top:auto;display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center;font-size:.8rem;color:var(--muted)}
+.lcard .lbar{flex:1 0 100%;height:3px;background:var(--line)}
+.lcard .lbar i{display:block;height:100%;background:var(--accent-fill)}
+.lcard .lup{color:var(--accent)}
+.lcard.lnew{border-style:dashed;background:none;justify-content:center}
+.lcard.lnew .lt{color:var(--accent)}
+.lhead .back{font-size:.9rem;margin-bottom:6px;display:inline-block}
 .empty{border:1px dashed var(--line);padding:28px 18px;color:var(--muted);text-align:center}
 .note{color:var(--muted);font-size:.9rem;margin:0 0 14px}
 
@@ -365,10 +382,7 @@ form textarea{min-height:88px;resize:vertical}
     <button class="btn" id="night" aria-pressed="false" title="Dim the screen to red to protect dark adaptation">Red light</button>
     <button class="btn primary" id="logBtn" data-act="new" hidden>Log observation</button>
     <div class="tabs" role="tablist">
-      <div class="menu">
-        <button role="tab" id="catBtn" aria-haspopup="true" aria-expanded="false">Lists</button>
-        <div class="pop" id="catPop" hidden></div>
-      </div>
+      <button role="tab" id="catBtn" data-view="lists">Lists</button>
       <button role="tab" data-view="plan">Plan</button>
       <button role="tab" data-view="log">Logbook</button>
       <button role="tab" data-view="stats">Stats</button>
@@ -379,6 +393,7 @@ form textarea{min-height:88px;resize:vertical}
 
   <p class="note" id="status" hidden></p>
 
+  <section id="listsView" class="lists" hidden></section>
   <section id="catView">
     <div class="lhead" id="listHead" hidden></div>
     <div class="progress"><h2 id="headline"></h2><p id="sub"></p>
@@ -1285,7 +1300,7 @@ function suggestFor(inp){
 }
 function hideSuggest(){document.querySelectorAll(".sugg").forEach(u=>{u.hidden=true})}
 /* ---------- state ---------- */
-const S={view:"M",status:"all",type:"",q:"",sort:"num",obs:[],loaded:false,dbState:"wait",canWrite:false,detail:null,set:{lat:null,lon:null,minAlt:0,hide:false},mode:"any",tonight:false,plan:{},covers:{},rigs:[],sites:[],gear:[],lists:[]};
+const S={view:"lists",status:"all",type:"",q:"",sort:"num",obs:[],loaded:false,dbState:"wait",canWrite:false,detail:null,set:{lat:null,lon:null,minAlt:0,hide:false},mode:"any",tonight:false,plan:{},covers:{},rigs:[],sites:[],gear:[],lists:[]};
 const maxAlt=o=>90-Math.abs(S.set.lat-o.dec);
 const isLow=o=>S.set.lat!=null&&maxAlt(o)<S.set.minAlt;
 const latLabel=()=>Math.abs(S.set.lat).toFixed(1)+"° "+(S.set.lat<0?"S":"N");
@@ -1348,25 +1363,43 @@ const icon=(t,seen)=>`<svg viewBox="-10 -10 20 20" class="${seen?"seen":""}" ari
 function render(){
   document.querySelectorAll(".tabs>[data-view]").forEach(b=>b.setAttribute("aria-selected",b.dataset.view===S.view));
   const cl=curList();
-  $("catBtn").setAttribute("aria-selected",!!cl);
-  $("catBtn").textContent=cl?cl.name:"Lists";
-  const mi=(v,n,c)=>`<button data-view="${esc(v)}" aria-current="${S.view===v}">${esc(n)}<small>${c.toLocaleString()}</small></button>`;
-  $("catPop").innerHTML='<p class="mh">Catalogs</p>'+Object.keys(CATS).map(k=>mi(k,CATS[k].name,CATS[k].rows.length)).join("")+
-    '<p class="mh">Curated</p>'+CURATED.map(c=>mi("cur:"+c.id,c.name,CUR[c.id].rows.length)).join("")+
-    '<p class="mh">My lists</p>'+S.lists.map(l=>mi("my:"+l.id,l.name,(l.items||[]).length)).join("")+
-    (S.canWrite?'<button class="newl" data-act="newList">New list</button>':(S.lists.length?"":'<button disabled>No lists yet</button>'));
+  $("catBtn").setAttribute("aria-selected",!!cl||S.view==="lists");
   $("logBtn").hidden=!S.canWrite;
   const st=$("status");
   const msg=S.dbState==="none"?"Your saved observations aren't available in this view. Open the page in Claude while signed in to see and add to your log.":S.dbState==="error"?"The log couldn't be loaded. Reload the page to try again.":"";
   st.hidden=!msg;st.textContent=msg;
-  $("catView").hidden=!cl;$("planView").hidden=S.view!=="plan";$("logView").hidden=S.view!=="log";renderSessBar();$("setView").hidden=S.view!=="set";$("statView").hidden=S.view!=="stats";
-  if(S.view==="plan")renderPlan();else if(S.view==="log")renderLog();else if(S.view==="set")syncSet();else if(S.view==="stats")renderStats();else renderCat();
+  $("catView").hidden=!cl;$("listsView").hidden=S.view!=="lists";$("planView").hidden=S.view!=="plan";$("logView").hidden=S.view!=="log";renderSessBar();$("setView").hidden=S.view!=="set";$("statView").hidden=S.view!=="stats";
+  if(S.view==="lists")renderLists();else if(S.view==="plan")renderPlan();else if(S.view==="log")renderLog();else if(S.view==="set")syncSet();else if(S.view==="stats")renderStats();else renderCat();
   if(S.detail&&$("detail").open)renderDetail();
 }
+const CATDESC={M:"Charles Messier's 110 bright galaxies, nebulae and clusters, the classic first catalog for every observer.",
+  C:"Patrick Moore's 109 bright objects that Messier left out, including many southern showpieces.",
+  D:"Showpiece double stars, with their colours and the telescope you need to split each pair.",
+  S:"The Sun, Moon, planets and bright moons, with positions for tonight.",
+  L:"Craters, seas, mountains and landing sites, mapped with tonight's lighting.",
+  N:"The New General Catalogue: thousands of galaxies, clusters and nebulae for after the classics.",
+  I:"The Index Catalogue, a supplement to the NGC that includes many famous nebulae."};
+const CATORDER=["M","C","D","S","L","N","I"];
+const CURGROUPS=[["Getting started",["beginner-imaging","beginner-visual","visual"]],["Imaging",["astro-top","narrowband"]],["Seasons and regions",["galaxy-season","summer-milky-way","winter","southern"]],["By object type",["planetaries","globulars"]],["Challenges",["herschel400","marathon"]]];
+function listCard(v,name,desc,rows,big){
+  const g=grouped(),n=rows.length,seen=rows.filter(o=>g[o.key]).length,pct=n?Math.round(100*seen/n):0;
+  let up="";if(!big&&n&&(S.set.lat!=null||rows[0].lunar)){const k=rows.filter(o=>{const t=tonight(o);return t&&t.good}).length;if(k)up=rows[0].lunar?`${k} near the terminator tonight`:`${k} well placed tonight`}
+  return`<button class="lcard${seen&&seen===n?" done":""}" data-view="${esc(v)}"><span class="lt">${esc(name)}</span>${desc?`<span class="ldsc">${esc(desc)}</span>`:""}
+    <span class="lfoot"><span class="lbar"><i style="width:${pct}%"></i></span><span class="lnum">${n?`${seen.toLocaleString()} of ${n.toLocaleString()} observed`:"Empty"}</span>${up?`<span class="lup">${up}</span>`:""}</span></button>`}
+function renderLists(){
+  let h=`<div class="lhero"><h2>Lists</h2><p>Catalogs to work through, curated tours, and lists of your own.</p></div>`;
+  h+=`<h3 class="lsec">Catalogs</h3><div class="lgrid">${CATORDER.filter(k=>CATS[k]).map(k=>listCard(k,CATS[k].name,CATDESC[k],CATS[k].rows,CATS[k].big)).join("")}</div>`;
+  h+=`<h3 class="lsec">Curated lists</h3>`;
+  const used=new Set();for(const[gname,ids]of CURGROUPS.concat([["More",CURATED.map(c=>c.id).filter(id=>!CURGROUPS.some(x=>x[1].includes(id)))]])){
+    const cs=ids.map(id=>CURATED.find(c=>c.id===id)).filter(c=>c&&!used.has(c.id));if(!cs.length)continue;cs.forEach(c=>used.add(c.id));
+    h+=`<p class="lgrp">${esc(gname)}</p><div class="lgrid">${cs.map(c=>listCard("cur:"+c.id,c.name,c.desc.split(/(?<=\.)\s/)[0],CUR[c.id].rows)).join("")}</div>`}
+  h+=`<h3 class="lsec">My lists</h3><div class="lgrid">${S.lists.map(l=>listCard("my:"+l.id,l.name,l.desc,(l.items||[]).map(k=>BYKEY[k]).filter(Boolean))).join("")}
+    ${S.canWrite?`<button class="lcard lnew" data-act="newList"><span class="lt">New list</span><span class="ldsc">Make a list of your own, or copy a curated list from its page and change it.</span></button>`:S.lists.length?"":`<p class="empty">No lists yet.</p>`}</div>`;
+  $("listsView").innerHTML=h}
 function renderListHead(cat){
-  const el=$("listHead"),sig=cat.kind?[cat.kind,cat.id,cat.name,cat.desc,S.canWrite].join("|"):"";
-  el.hidden=!cat.kind;if(!cat.kind){S.lhSig="";return}if(sig===S.lhSig)return;S.lhSig=sig;
-  let h=`<h2>${esc(cat.name)}</h2>${cat.desc?`<p class="ld">${esc(cat.desc)}</p>`:""}`;
+  const el=$("listHead"),desc=cat.kind?cat.desc:CATDESC[S.view]||"",sig=[S.view,cat.name,desc,S.canWrite].join("|");
+  el.hidden=false;if(sig===S.lhSig)return;S.lhSig=sig;
+  let h=`<button class="linkish back" data-view="lists">All lists</button><h2>${esc(cat.name)}</h2>${desc?`<p class="ld">${esc(desc)}</p>`:""}`;
   if(cat.kind==="cur"&&S.canWrite)h+=`<div class="acts"><button class="btn" data-act="copyList">Copy to my lists</button></div>`;
   if(cat.kind==="my"&&S.canWrite)h+=`<div class="acts"><div class="addwrap"><input id="lAdd" autocomplete="off" autocapitalize="off" enterkeyhint="done" placeholder="Add objects: M31, Heart Nebula, NGC 7000" aria-label="Add objects to this list"></div><button class="btn" data-act="addToList">Add</button><button class="btn quiet" data-act="editList">Edit list</button></div>`;
   el.innerHTML=h;
@@ -1711,11 +1744,9 @@ async function removeObs(id,box){
 }
 
 /* ---------- events ---------- */
-function catMenu(open){const p=$("catPop");p.hidden=!open;$("catBtn").setAttribute("aria-expanded",open);if(open){const r=$("catBtn").getBoundingClientRect();p.style.top=(r.bottom+4)+"px";p.style.left=Math.max(8,Math.min(r.left,innerWidth-Math.max(p.offsetWidth,220)-8))+"px"}}
-document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("catPop").hidden){catMenu(false);$("catBtn").focus()}});
+function catMenu(open){const p=$("catPop");if(!p)return;p.hidden=!open;$("catBtn").setAttribute("aria-expanded",open);if(open){const r=$("catBtn").getBoundingClientRect();p.style.top=(r.bottom+4)+"px";p.style.left=Math.max(8,Math.min(r.left,innerWidth-Math.max(p.offsetWidth,220)-8))+"px"}}
+
 document.addEventListener("click",async ev=>{
-  if(ev.target.closest("#catBtn")){catMenu($("catPop").hidden);return}
-  catMenu(false);
   const tab=ev.target.closest("[data-view]");if(tab){S.view=tab.dataset.view;S.type="";render();return}
   const ty=ev.target.closest("[data-type]");if(ty){S.type=S.type===ty.dataset.type?"":ty.dataset.type;renderCat();return}
   const md=ev.target.closest("[data-mode]");if(md){S.mode=md.dataset.mode;renderCat();return}
