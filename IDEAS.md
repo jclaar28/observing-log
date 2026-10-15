@@ -28,6 +28,7 @@ Running list of ideas for the Observing log app. Newest ideas go at the top of "
 - **More curated lists**: objects for a given filter or focal length, and club challenge lists (send the club's list to add it).
 - **Full plate solving**: identify any photo by uploading it to astrometry.net. Needs a free astrometry.net account and API key, and probably a small server in between, because a web app may not be allowed to call their API directly. FITS files from NINA, ASIAIR and similar already carry solved coordinates, which the app uses to list objects in the field.
 - **Horizons per site**: the horizon editor covers the main location; saved sites would need their own coordinates and horizon.
+- **Full double star catalog**: the Washington Double Star catalog for fainter and closer pairs, with current separations and position angles.
 - **Comets and asteroids**: bright comets and asteroids such as Ceres and Vesta need orbital elements that update; could use the Minor Planet Center's data.
 - **Multiple filter sets per entry**: for LRGB or narrowband sessions, so one observation can hold several sub sets with their own filter, count and length.
 - **Google Photos picker**: pick photos through Google's own picker. Needs a Google Cloud project and sign-in, and photos would still be copied to the phone.
@@ -36,6 +37,7 @@ Running list of ideas for the Observing log app. Newest ideas go at the top of "
 
 ## Done
 
+- Double stars catalog (74 showpiece pairs) with separation, colours and the telescope needed to split each; Popular visual targets list (2026-10-15)
 - Filters on lists and the planner: season, telescope aperture, rig framing fit, and object type on the planner (2026-10-15)
 - Plan page (any night, 7-night strip, twilight and Moon times, altitude chart, targets from any list with moon distance), sky view, framing with rig field of view and sky survey image, custom horizon, session mode with quick log, auto-fill from photo EXIF and FITS headers (2026-10-15)
 - Solar system catalog (Sun, Moon, planets, Pluto, Galilean moons, Titan) with live positions, magnitudes and phases; Moon catalog of 73 features with a lighting map and best-viewing days; Herschel 400 and Messier marathon lists (2026-10-15)

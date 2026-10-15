@@ -318,6 +318,8 @@ function filterHTML(withType,rows){
 function extraFilter(o,withType){
   if(withType&&S.f_type&&o.type!==S.f_type)return false;
   if(o.ss||o.lunar)return!(S.f_frame);
+  if(o.ds){if(S.f_frame)return false;if(S.f_scope){const ap=+S.f_scope;if(!splitsWith(o,ap)||o.magB>limMag(ap)+2)return false}
+    if(S.f_season){const m=bestMonth(o),now=new Date().getMonth();if(S.f_season==="now"?Math.min((m-now+12)%12,(now-m+12)%12)>1:!SEASONS[S.f_season].includes(m))return false}return true}
   if(S.f_season){const m=bestMonth(o),now=new Date().getMonth();
     if(S.f_season==="now"?Math.min((m-now+12)%12,(now-m+12)%12)>1:!SEASONS[S.f_season].includes(m))return false}
   if(S.f_scope&&(o.mag==null||o.mag>limMag(+S.f_scope)))return false;
@@ -325,4 +327,8 @@ function extraFilter(o,withType){
     const[a,b]=[Math.max(sz[0],sz[1]),Math.min(sz[0],sz[1])],W=Math.max(op.w,op.h),H=Math.min(op.w,op.h);
     if(a>W*.95||b>H*.95||a<W*.15)return false}
   return true}
+const splitNeed=o=>116/o.sep*(Math.abs(o.magB-o.mag)>2?1.6:1)*1.3;
+const splitsWith=(o,ap)=>ap<=50?o.sep>=25:splitNeed(o)<=ap;
+function splitText(o){const need=splitNeed(o);
+  if(o.sep>=25)return"Binoculars or any telescope";if(need<=60)return"Any small telescope";const mm=Math.ceil(need/10)*10;return`About ${mm} mm (${(mm/25.4).toFixed(mm<100?1:0)}-inch) or larger, in steady seeing`}
 function filterSig(){return[S.f_season,S.f_scope,S.f_frame,S.f_type].join("|")}

@@ -753,7 +753,7 @@ const C_DATA=`1|NGC 188||OC|Cep|8.1|0.74|85.3
 107|NGC 6101||GC|Aps|9.3|16.43|-72.2
 108|NGC 4372||GC|Mus|7.8|12.43|-72.7
 109|NGC 3195||PN|Cha|11.6|10.16|-80.9`;
-const TYPES={G:["Galaxy","Galaxies"],OC:["Open cluster","Open clusters"],GC:["Globular cluster","Globular clusters"],N:["Nebula","Nebulae"],PN:["Planetary nebula","Planetary nebulae"],SNR:["Supernova remnant","Supernova remnants"],SS:["Solar system object","Solar system"],MA:["Mare","Maria"],CR:["Crater","Craters"],MT:["Mountain","Mountains"],RI:["Rille or valley","Rilles and valleys"],LS:["Landing site","Landing sites"],O:["Other","Other"]};
+const TYPES={G:["Galaxy","Galaxies"],OC:["Open cluster","Open clusters"],GC:["Globular cluster","Globular clusters"],N:["Nebula","Nebulae"],PN:["Planetary nebula","Planetary nebulae"],SNR:["Supernova remnant","Supernova remnants"],DS:["Double star","Double stars"],SS:["Solar system object","Solar system"],MA:["Mare","Maria"],CR:["Crater","Craters"],MT:["Mountain","Mountains"],RI:["Rille or valley","Rilles and valleys"],LS:["Landing site","Landing sites"],O:["Other","Other"]};
 const CON={Ser:"Serpens",Ant:"Antlia",Aql:"Aquila",Ari:"Aries",CMi:"Canis Minor",Cae:"Caelum",CrB:"Corona Borealis",Crt:"Crater",Equ:"Equuleus",Eri:"Eridanus",Gru:"Grus",Hyi:"Hydrus",Ind:"Indus",LMi:"Leo Minor",Lib:"Libra",Lup:"Lupus",Men:"Mensa",Mic:"Microscopium",Oct:"Octans",Phe:"Phoenix",Pic:"Pictor",PsA:"Piscis Austrinus",Pyx:"Pyxis",Ret:"Reticulum",Se1:"Serpens Caput",Se2:"Serpens Cauda",Tel:"Telescopium",UMi:"Ursa Minor",Vol:"Volans",And:"Andromeda",Aqr:"Aquarius",Aps:"Apus",Ara:"Ara",Aur:"Auriga",Boo:"Boötes",Cam:"Camelopardalis",Cap:"Capricornus",Car:"Carina",Cas:"Cassiopeia",Cen:"Centaurus",Cep:"Cepheus",Cet:"Cetus",Cha:"Chamaeleon",Cir:"Circinus",CMa:"Canis Major",Cnc:"Cancer",Col:"Columba",Com:"Coma Berenices",CrA:"Corona Australis",Cru:"Crux",Crv:"Corvus",CVn:"Canes Venatici",Cyg:"Cygnus",Del:"Delphinus",Dor:"Dorado",Dra:"Draco",For:"Fornax",Gem:"Gemini",Her:"Hercules",Hor:"Horologium",Hya:"Hydra",Lac:"Lacerta",Leo:"Leo",Lep:"Lepus",Lyn:"Lynx",Lyr:"Lyra",Mon:"Monoceros",Mus:"Musca",Nor:"Norma",Oph:"Ophiuchus",Ori:"Orion",Pav:"Pavo",Peg:"Pegasus",Per:"Perseus",Psc:"Pisces",Pup:"Puppis",Scl:"Sculptor",Sco:"Scorpius",Sct:"Scutum",Ser:"Serpens",Sex:"Sextans",Sge:"Sagitta",Sgr:"Sagittarius",Tau:"Taurus",TrA:"Triangulum Australe",Tri:"Triangulum",Tuc:"Tucana",UMa:"Ursa Major",Vel:"Vela",Vir:"Virgo",Vul:"Vulpecula"};
 function parse(pfx,txt){return txt.split("\n").map(l=>{const p=l.split("|");return{key:pfx+p[0],n:+p[0],alt:p[1],name:p[2],type:p[3],con:p[4],mag:p[5]===""?null:+p[5],ra:+p[6],dec:+p[7]}})}
 const CATS={M:{name:"Messier",rows:parse("M",M_DATA)},C:{name:"Caldwell",rows:parse("C",C_DATA)}};
@@ -763,6 +763,82 @@ function buildCat(data,pre,name){const rows=[];for(const l of data.split("\n")){
   return{name,rows,big:true}}
 if(window.NGC_DATA)CATS.N=buildCat(window.NGC_DATA,"NGC","NGC");
 if(window.IC_DATA)CATS.I=buildCat(window.IC_DATA,"IC","IC");
+const DS_DATA=`Beta Cygni|Albireo|β Cyg|19.5120|27.960|3.1|5.1|34.6|gold and blue|The best-known colour contrast in the sky, split at low power.
+Zeta Ursae Majoris|Mizar|ζ UMa|13.3988|54.925|2.2|3.9|14.4|white|In the Big Dipper's handle, with Alcor visible to the naked eye 12 arcminutes away.
+Gamma Andromedae|Almach|γ And|2.0650|42.330|2.3|5.0|9.6|orange and blue|A striking orange and blue pair, often compared with Albireo.
+Epsilon Lyrae|Double Double|ε1 Lyr|18.7390|39.670|5.0|5.2|2.3|white|Two pairs 208 arcseconds apart; each pair splits again at about 2.3 arcseconds in a steady 3-inch telescope.
+Alpha Geminorum|Castor|α Gem|7.5766|31.888|1.9|3.0|5.4|white|A bright, close white pair in a six-star system. The separation is slowly widening.
+Beta Orionis|Rigel|β Ori|5.2423|-8.202|0.1|6.8|9.5|blue-white and blue|A faint companion beside a brilliant star, a good test of steady seeing.
+Alpha Ursae Minoris|Polaris|α UMi|2.5303|89.264|2.0|9.1|18.2|yellow-white and blue-grey|The Pole Star has a faint companion that a 3-inch telescope shows.
+Gamma Delphini||γ Del|20.7776|16.124|4.4|5.0|8.9|yellow and pale green|A pretty pair at the tip of the Dolphin.
+Alpha Canum Venaticorum|Cor Caroli|α CVn|12.9338|38.318|2.9|5.5|19.3|white and pale yellow|An easy, bright pair below the Big Dipper's handle.
+Epsilon Bootis|Izar|ε Boo|14.7498|27.074|2.6|4.8|2.9|orange and blue-green|A lovely close pair also called Pulcherrima, the most beautiful.
+Gamma Leonis|Algieba|γ Leo|10.3329|19.841|2.4|3.6|4.7|golden yellow|A close pair of golden giants in the Sickle of Leo.
+Delta Cephei||δ Cep|22.4862|58.415|4.1|6.1|41|yellow and blue|The prototype Cepheid variable, with a wide blue companion.
+61 Cygni|Bessel's Star|61 Cyg|21.1150|38.749|5.2|6.0|31.6|orange|A pair of nearby orange dwarfs, the first star to have its distance measured.
+Theta1 Orionis|Trapezium|θ1 Ori|5.5877|-5.387|5.1|6.7|13|white|Four young stars in the heart of the Orion Nebula, with two fainter ones in steady seeing.
+Sigma Orionis||σ Ori|5.6458|-2.600|3.8|6.6|12.9|white|A multiple star near the Horsehead, with several companions in one field.
+Iota Cancri||ι Cnc|8.7783|28.760|4.0|6.6|30.5|yellow and blue|A wide, colourful pair in Cancer.
+Beta Monocerotis||β Mon|6.4803|-7.033|4.6|5.0|7.1|white|A fine triple star of three similar white stars.
+Eta Cassiopeiae|Achird|η Cas|0.8184|57.815|3.5|7.4|13.4|yellow and red-purple|A nearby yellow star with a reddish companion.
+Nu Draconis|Kuma|ν1 Dra|17.5363|55.184|4.9|4.9|62|white|A matched wide pair, easy in binoculars.
+Zeta Lyrae||ζ1 Lyr|18.7462|37.605|4.3|5.7|43.7|white and yellow|A wide pair near Vega, easy at low power.
+Beta Scorpii|Acrab|β Sco|16.0906|-19.805|2.6|4.5|13.6|blue-white|A bright pair at the head of the Scorpion.
+Alpha Herculis|Rasalgethi|α Her|17.2441|14.390|3.5|5.4|4.6|orange and blue-green|A red giant with a contrasting companion.
+Gamma Arietis|Mesarthim|γ Ari|1.8922|19.294|4.6|4.7|7.5|white|A matched pair that looks like a pair of headlights.
+Lambda Orionis|Meissa|λ Ori|5.5856|9.934|3.5|5.5|4.4|blue-white|The head of Orion, a close bright pair.
+Zeta Orionis|Alnitak|ζ Ori|5.6793|-1.943|1.9|3.7|2.3|blue-white|The eastern belt star, a close pair beside the Flame Nebula.
+Delta Orionis|Mintaka|δ Ori|5.5334|-0.299|2.4|6.8|52|blue-white|The western belt star, with a wide faint companion.
+32 Eridani||32 Eri|3.9049|-2.955|4.8|5.9|6.9|yellow and blue|A colourful pair in Eridanus.
+145 Canis Majoris|Winter Albireo|145 CMa|7.2769|-23.316|4.8|6.8|26.6|orange and blue|Also catalogued as h3945, a winter colour pair.
+Zeta Aquarii||ζ Aqr|22.4805|-0.020|4.3|4.5|2.3|white|A close, even pair at the centre of the Water Jar asterism.
+Gamma Virginis|Porrima|γ Vir|12.6943|-1.449|3.5|3.5|3.2|white|Two equal stars on a 169-year orbit, now opening up after their 2005 closest approach.
+Mu Bootis|Alkalurops|μ Boo|15.4082|37.377|4.3|6.5|108|white and yellow|A wide pair whose companion splits again at 2 arcseconds.
+Xi Bootis||ξ Boo|14.8565|19.101|4.8|6.9|5|yellow and orange|A nearby pair of sunlike stars.
+Pi Bootis||π Boo|14.6788|16.418|4.9|5.8|5.5|white|An easy pair near Arcturus.
+Kappa Herculis||κ Her|16.1346|17.047|5.0|6.3|27|yellow and orange|A wide colourful pair.
+Rho Herculis||ρ Her|17.3947|37.146|4.5|5.4|4.1|white and pale green|A close pair in the Keystone region of Hercules.
+95 Herculis||95 Her|18.0251|21.596|4.9|5.2|6.3|silver and gold|A subtle colour contrast in an even pair.
+70 Ophiuchi||70 Oph|18.0909|2.500|4.2|6.2|6.7|yellow and orange|A nearby binary with an 88-year orbit.
+36 Ophiuchi||36 Oph|17.2558|-26.603|4.3|5.1|5|orange|A pair of orange dwarfs near Antares.
+Theta Serpentis|Alya|θ1 Ser|18.9370|4.204|4.6|5.0|22|white|An easy, matched pair at the tail of the Serpent.
+Nu Scorpii||ν Sco|16.1999|-19.461|4.0|6.3|41|blue-white|A double-double: each component splits again at higher power.
+Alpha Capricorni|Algedi|α2 Cap|20.3009|-12.545|3.6|4.3|378|yellow|A naked-eye pair; each star has a faint companion in a telescope.
+Beta Capricorni|Dabih|β1 Cap|20.3502|-14.781|3.1|6.1|205|gold and blue|A wide binocular pair.
+Psi1 Piscium||ψ1 Psc|1.0947|21.473|5.3|5.5|30|white|A wide, even pair.
+Zeta Piscium||ζ Psc|1.2289|7.575|5.2|6.3|23|white and yellow|An easy pair in Pisces.
+Alpha Piscium|Alrescha|α Psc|2.0341|2.764|4.2|5.2|1.8|white|A close pair at the knot of the fishes' cords.
+Gamma Ceti||γ Cet|2.7217|3.236|3.5|6.2|2.3|yellow-white and blue|A close, unequal pair.
+Eta Persei||η Per|2.8449|55.895|3.8|8.5|28|orange and blue|A striking orange giant with a faint blue companion.
+Theta Aurigae||θ Aur|5.9954|37.213|2.6|7.1|3.6|white|A difficult unequal pair for steady nights.
+Delta Geminorum|Wasat|δ Gem|7.3354|21.982|3.6|8.2|5.5|white and orange|A bright star with a faint companion close by.
+Iota Cassiopeiae||ι Cas|2.4844|67.403|4.6|6.9|2.6|white|A fine triple star for a 4-inch telescope.
+Sigma Cassiopeiae||σ Cas|23.9835|55.755|5.0|7.2|3.1|blue and white|A close pair near M52.
+Beta Cephei|Alfirk|β Cep|21.4777|70.561|3.2|7.9|13.3|white and blue|An unequal pair with a pulsating primary.
+Xi Cephei||ξ Cep|22.0632|64.628|4.4|6.5|8.4|white and yellow|An easy pair in Cepheus.
+Kappa Bootis||κ2 Boo|14.2247|51.790|4.5|6.6|13.4|white and blue|An attractive unequal pair.
+Zeta Coronae Borealis||ζ2 CrB|15.6563|36.636|5.0|6.0|6.3|blue-white|A delicate pair in the Northern Crown.
+Sigma Coronae Borealis||σ CrB|16.2447|33.859|5.6|6.5|7.3|yellow|A pair of sunlike stars.
+Epsilon Draconis||ε Dra|19.8029|70.268|3.8|7.4|3.2|yellow and blue|A close, unequal pair.
+Psi Draconis||ψ1 Dra|17.6990|72.149|4.6|5.6|30|white and yellow|An easy wide pair.
+Gamma Leporis||γ Lep|5.7411|-22.448|3.6|6.3|96|yellow and orange|A wide pair, easy in binoculars.
+Alpha Centauri|Rigil Kentaurus|α1 Cen|14.6601|-60.834|0.0|1.3|8|yellow and orange|The nearest star system to the Sun. Southern hemisphere only.
+Alpha Crucis|Acrux|α Cru|12.4433|-63.099|1.3|1.6|4|blue-white|The brightest star of the Southern Cross is an easy close pair.
+Gamma Velorum||γ2 Vel|8.1589|-47.337|1.8|4.1|41|blue-white|A bright pair including the brightest Wolf–Rayet star.
+Beta Tucanae||β1 Tuc|0.5257|-62.958|4.4|4.5|27|white|A wide, even pair in the far south.
+Theta Eridani|Acamar|θ1 Eri|2.9710|-40.305|3.2|4.1|8.3|white|A bright pair at the end of the River.
+Delta Corvi|Algorab|δ Crv|12.4977|-16.515|2.9|8.5|24|white and purple|An unequal pair in Corvus.
+Alpha Librae|Zubenelgenubi|α2 Lib|14.8480|-16.042|2.8|5.2|231|white|A wide pair easy in binoculars.
+Beta Lyrae|Sheliak|β Lyr|18.8347|33.363|3.5|6.7|45.7|white and blue|An eclipsing binary with a wide companion.
+54 Leonis||54 Leo|10.9269|24.750|4.5|6.3|6.5|white and blue|An easy pair in Leo.
+2 Canum Venaticorum||2 CVn|12.2688|40.660|5.8|8.1|11.4|orange and blue|A small colour-contrast pair.
+24 Comae Berenices||24 Com|12.5855|18.377|5.0|6.6|20|orange and blue|A pretty colour pair, a fainter cousin of Albireo.
+Delta Bootis||δ Boo|15.2584|33.315|3.5|7.9|105|yellow|A wide, unequal pair.
+Lambda Arietis||λ Ari|1.9655|23.596|4.8|6.7|37|white and yellow|A wide pair near Hamal.
+Zeta Cancri|Tegmine|ζ1 Cnc|8.2035|17.648|5.0|5.9|6|yellow|A triple: the brighter star splits again at about 1 arcsecond in large telescopes.
+Iota Orionis||ι Ori|5.5906|-5.910|2.8|7.0|11.3|blue-white|At the tip of Orion's sword, below the Orion Nebula.`;
+CATS.D={name:"Double stars",unit:"double stars",rows:DS_DATA.split("\n").map((l,i)=>{const p=l.split("|");return{key:"DS_"+p[0].replace(/[^A-Za-z0-9]+/g,"_"),n:i+1,lab:p[1]||p[0],name:p[1]?p[0]:"",alt:p[2],type:"DS",tlong:"Double star",ds:true,
+  con:p[2].split(" ").pop(),ra:+p[3],dec:+p[4],mag:+p[5],magB:+p[6],sep:+p[7],colors:p[8],desc:p[9]}})};
 const SS_DATA=`Sun|Star|Sun|32'|Our star. Never point a telescope, binoculars or camera at it without a certified solar filter covering the front of the instrument, because eye damage is instant and permanent.
 Moon|Moon|Moon|29'–34'|Earth's companion, rich in detail at any magnification. Craters and mountains show best near the terminator, the line between day and night.
 Mercury|Planet|Mercury|5"–13"|The innermost planet, seen low in twilight around its greatest elongations. A telescope shows its phase.
@@ -1156,8 +1232,8 @@ const CURATED=[
  items:"M31,M42,M45,M8,M16,M17,M20,M27,M33,M51,M81,M82,M101,M104,M13,M63,M106,M1,M78,Leo Triplet,C20,IC 5070,C49,IC 1805,IC 1848,NGC 1499,IC 434,NGC 2024,C33,C34,C27,NGC 281,IC 1396,NGC 7380,C11,C4,C9,NGC 2264,IC 443,NGC 2359,IC 410,C31,C14,C38"},
 {id:"beginner-imaging",name:"Beginner imaging targets",desc:"Bright, large and forgiving. Good first targets for a camera lens, small refractor or smart telescope, and most show up in short exposures.",
  items:"M42,M31,M45,M8,M20,M16,M17,M13,M27,M81,M82,M51,M44,C14,C20,C49,M33,M3,M5,M11,M57,M35,M38"},
-{id:"visual",name:"Popular visual targets",desc:"Showpieces that observers return to at the eyepiece, from the Moon and planets to bright clusters, galaxies and planetary nebulae. Most show well in a 6- to 8-inch telescope; the Veil and Crescent nebulae need an OIII or UHC filter.",
- items:"Moon,Jupiter,Saturn,Mars,M31,M32,M110,C23,M33,C13,C14,M76,M34,M45,M1,M42,M43,M78,M35,M37,M36,M38,M41,C39,M46,M47,M44,M67,C59,M81,M82,C3,NGC 2903,M65,M66,NGC 3628,M97,M108,M106,M94,M64,M63,M51,M101,C38,M104,M87,M84,M86,M3,M53,M5,M13,M92,M4,M80,M10,M12,C6,M6,M7,M8,M20,M17,M16,M11,M22,M57,M56,M27,M71,C15,C34,C33,C27,M15,M2,C55,C30,C22,C63,NGC 7789"},
+{id:"visual",name:"Popular visual targets",desc:"Showpieces that observers return to at the eyepiece, from the Moon and planets to bright clusters, galaxies and planetary nebulae. Most show well in a 6- to 8-inch telescope, and the double stars split in almost any telescope; the Veil and Crescent nebulae need an OIII or UHC filter.",
+ items:"Moon,Jupiter,Saturn,Mars,Albireo,Mizar,Almach,Double Double,Castor,Cor Caroli,Izar,Algieba,Trapezium,M31,M32,M110,C23,M33,C13,C14,M76,M34,M45,M1,M42,M43,M78,M35,M37,M36,M38,M41,C39,M46,M47,M44,M67,C59,M81,M82,C3,NGC 2903,M65,M66,NGC 3628,M97,M108,M106,M94,M64,M63,M51,M101,C38,M104,M87,M84,M86,M3,M53,M5,M13,M92,M4,M80,M10,M12,C6,M6,M7,M8,M20,M17,M16,M11,M22,M57,M56,M27,M71,C15,C34,C33,C27,M15,M2,C55,C30,C22,C63,NGC 7789"},
 {id:"beginner-visual",name:"First targets for a small telescope",desc:"Easy to find and rewarding at the eyepiece, even from suburban skies.",
  items:"M42,M45,M44,M31,M13,M57,M27,C14,M3,M5,M11,M22,M15,M2,M92,M81,M82,M35,M36,M37,M38,M41,M6,M7,M8,M17,C41,C55,C59,C39"},
 {id:"narrowband",name:"Narrowband nebulae",desc:"Emission nebulae that cut through light pollution with dual-band or hydrogen-alpha, oxygen-III and sulfur-II filters.",
@@ -1252,6 +1328,7 @@ function sym(t){
     case"N":return'<rect class="sym" x="-4.6" y="-4.6" width="9.2" height="9.2"/>';
     case"SNR":return'<rect class="sym" x="-4.2" y="-4.2" width="8.4" height="8.4" transform="rotate(45)"/>';
     case"PN":return'<g class="sym"><circle r="3.6"/><path d="M-7 0h-3.4M7 0h3.4M0-7v-3.4M0 7v3.4" transform="scale(.72)" fill="none"/></g>';
+    case"DS":return'<g class="sym"><circle cx="-2.4" cy="1" r="3.4"/><circle cx="3.6" cy="-2.2" r="2.1"/></g>';
     case"SS":return'<g class="sym"><circle r="4.4"/><path class="x" d="M-7.5 1.8L7.5-1.8" fill="none"/></g>';
     case"MA":return'<path class="sym" d="M-6.5 0C-6.5-4-1.5-5 2-4S7.5-.5 5.5 3S-2 6.5-6.5 0Z"/>';
     case"CR":return'<g class="sym"><circle r="5.4"/><circle r="2.2"/></g>';
@@ -1421,7 +1498,7 @@ function dome(o){
 function renderDetail(){
   const key=S.detail,o=BYKEY[key],xl=o?"":labelOf(key,grouped(true)[key]),xn=o?"":(ALTN[key]||[])[0]||"",xa=o?[]:(ALTN[key]||[]).slice(1),list=grouped(true)[key]||[],tn=o?tonight(o):null,inf=o?INFO[key]||INFO[(EQ[key]||[]).find(k=>INFO[k])]:null,cov=coverOf(key,list);
   let h=`<div class="ihero${cov?"":" none"}">${cov?`<img alt="" src="${blob(cov.id)}">`:`<div>${o?`<svg viewBox="-10 -10 20 20" aria-hidden="true">${sym(o.type)}</svg>`:""}${list.length?"No photos on these observations":"No photo yet"}</div>`}<button class="btn iclose" data-act="closeDetail">Close</button></div>`;
-  h+=`<div class="ihead"><p class="des">${esc(o?(o.ss?"Solar system":o.lunar?"On the Moon":dn(o)+(o.alt?" ("+o.alt+")":"")):xl.replace(xn?" "+xn:"",""))}</p><h3>${esc(o?(o.name||dn(o)):xn||xl)}</h3><p class="kind">${o?esc(o.lunar?o.tlong+(o.eng?", also called "+o.eng:""):(o.tlong||TYPES[o.type][0])+" in "+(CON[o.con]||o.con)+(o.ss?" tonight":"")):esc("Not in the app's catalogs yet"+(xa.length?". Also called "+xa.join(", "):""))}</p></div><div class="dbody">`;
+  h+=`<div class="ihead"><p class="des">${esc(o?(o.ds?"Double star":o.ss?"Solar system":o.lunar?"On the Moon":dn(o)+(o.alt?" ("+o.alt+")":"")):xl.replace(xn?" "+xn:"",""))}</p><h3>${esc(o?(o.ds?dn(o):o.name||dn(o)):xn||xl)}</h3><p class="kind">${o?esc(o.ds?(o.name&&o.name!==o.lab?o.name+", ":"")+o.alt+" in "+(CON[o.con]||o.con):o.lunar?o.tlong+(o.eng?", also called "+o.eng:""):(o.tlong||TYPES[o.type][0])+" in "+(CON[o.con]||o.con)+(o.ss?" tonight":"")):esc("Not in the app's catalogs yet"+(xa.length?". Also called "+xa.join(", "):""))}</p></div><div class="dbody">`;
   if(o&&o.lunar){const L=lunarSun(),e=sunEl(o,L.s),md=x=>Math.max(1,Math.round(((x%360+360)%360)/360*SYN));
     h+=`<p class="idesc">${esc(o.desc)}</p>`;
     const rows=[["Type",o.tlong],["Location",`${Math.abs(o.lat).toFixed(1)}° ${o.lat<0?"S":"N"}, ${Math.abs(o.lon).toFixed(1)}° ${o.lon<0?"W":"E"}`],["Size",o.km?o.km.toLocaleString()+" km":""],
@@ -1430,13 +1507,13 @@ function renderDetail(){
     h+=`<div class="icols"><dl class="tdata">${rows.map(r=>`<div><dt>${r[0]}</dt><dd>${esc(r[1])}</dd></div>`).join("")}</dl><div class="domebox mmap"><figure><svg viewBox="0 0 360 360" role="img" aria-label="Map of the Moon with ${esc(o.lab)} marked">${moonSVG(CATS.L.rows,{w:360,h:360,hl:o.key,g:grouped()})}</svg><figcaption>Tonight's lighting on the Moon. The ringed marker is ${esc(o.lab)}.</figcaption></figure></div></div>`;
   }else if(o){
     const dsc=inf?inf.desc:o.desc;if(dsc)h+=`<p class="idesc">${esc(dsc)}</p>`;
-    const rows=[["Type",o.tlong||TYPES[o.type][0]],["Constellation",CON[o.con]||o.con],["Distance",o.ss?(o.dist?(o.body==="Moon"&&o.lab==="Moon"?Math.round(o.dist*149597870.7).toLocaleString()+" km":o.dist.toFixed(2)+" AU"):""):inf?fmtLy(inf.ly):""],["Right ascension",fmtRA(o.ra)],["Declination",fmtDec(o.dec)],["Apparent size",o.ss?o.sizeTxt:inf?inf.size:o.size||""],["From the Sun",o.ss&&o.elong?Math.round(o.elong.elongation)+"°, in the "+o.elong.visibility+" sky":""],["Phase",o.ss&&o.phase!=null&&/Moon|Mercury|Venus|Mars/.test(o.lab)?Math.round(o.phase*100)+"% lit":""],["Magnitude",o.mag==null?"":o.mag.toFixed(1)+(o.magB?" (blue)":"")],["Also listed as",o.alt],["On curated lists",CURATED.filter(c=>keysOf(key).some(k=>CUR[c.id].order.has(k))).map(c=>c.name).join(", ")],["Also called",[key].concat(EQ[key]||[]).flatMap(k=>ALTN[k]||[]).filter((x,i,a)=>nn(x)!==nn(o.name||"")&&a.findIndex(y=>nn(y)===nn(x))===i).join(", ")],["Best months",o.ss?"":bestMonths(o)],
+    const rows=[["Type",o.tlong||TYPES[o.type][0]],["Constellation",CON[o.con]||o.con],["Distance",o.ss?(o.dist?(o.body==="Moon"&&o.lab==="Moon"?Math.round(o.dist*149597870.7).toLocaleString()+" km":o.dist.toFixed(2)+" AU"):""):inf?fmtLy(inf.ly):""],["Right ascension",fmtRA(o.ra)],["Declination",fmtDec(o.dec)],["Magnitudes",o.ds?o.mag.toFixed(1)+" and "+o.magB.toFixed(1):""],["Separation",o.ds?o.sep+"\u2033":""],["Colours",o.ds?o.colors:""],["To split it",o.ds?splitText(o):""],["Apparent size",o.ds?"":o.ss?o.sizeTxt:inf?inf.size:o.size||""],["From the Sun",o.ss&&o.elong?Math.round(o.elong.elongation)+"°, in the "+o.elong.visibility+" sky":""],["Phase",o.ss&&o.phase!=null&&/Moon|Mercury|Venus|Mars/.test(o.lab)?Math.round(o.phase*100)+"% lit":""],["Magnitude",o.ds||o.mag==null?"":o.mag.toFixed(1)+(o.magB?" (blue)":"")],["Also listed as",o.ds?"":o.alt],["On curated lists",CURATED.filter(c=>keysOf(key).some(k=>CUR[c.id].order.has(k))).map(c=>c.name).join(", ")],["Also called",[key].concat(EQ[key]||[]).flatMap(k=>ALTN[k]||[]).filter((x,i,a)=>nn(x)!==nn(o.name||"")&&a.findIndex(y=>nn(y)===nn(x))===i).join(", ")],["Best months",o.ss?"":bestMonths(o)],
       S.set.lat==null?null:["Highest from "+latLabel(),maxAlt(o)<=0?"Never rises":Math.round(maxAlt(o))+"°"+(isLow(o)?", below your limit":"")],
       tn?["Tonight",!tn.dark?"No darkness tonight":tn.alt<=0?"Not up in darkness":Math.round(tn.alt)+"° at "+fmtTime(tn.t)+(hzOn()&&tn.vis!=null?(tn.vis?", "+fmtDur(tn.vis*60)+" above your horizon":", hidden by your horizon"):"")]:null,
       S.set.lat==null?null:["Moon tonight",moonText(o)]].filter(r=>r&&r[1]);
     h+=`<div class="icols"><dl class="tdata">${rows.map(r=>`<div><dt>${r[0]}</dt><dd>${esc(r[1])}</dd></div>`).join("")}</dl><div class="domebox">${S.set.lat==null?`<p class="ihint">Set your latitude in Settings to see this object's path across your sky.</p>`:dome(o)}</div></div>`;
   }
-  if(o&&!o.lunar&&!o.ss)h+=framingHTML(o);
+  if(o&&!o.lunar&&!o.ss&&!o.ds)h+=framingHTML(o);
   if(S.canWrite&&sessActive())h+=`<div class="acts" style="margin:0 0 10px"><button class="btn primary" data-act="quickLog" data-key="${esc(key)}">Log ${esc(labelOf(key,list))} in this session</button></div>`;
   if(S.canWrite)h+=`<div class="acts" style="margin:0"><button class="btn primary" data-act="new" data-key="${esc(key)}">Log observation of ${esc(labelOf(key,list))}</button>${o?`<button class="btn" data-act="plan" data-key="${esc(key)}" aria-pressed="${!!S.plan[key]}">${S.plan[key]?"Remove from plan":"Add to plan"}</button>`:""}</div>`;
   if(o&&S.canWrite){const mine=S.lists.filter(l=>inItems(l.items||[],key)),rest=S.lists.filter(l=>!inItems(l.items||[],key));
@@ -1737,6 +1814,7 @@ try{if(localStorage.getItem("night")==="1")setNight(true)}catch(e){}
 
 /* ---------- boot ---------- */
 for(const k in NAMES)if(NAMES[k])NM[nn(k)]=[{key:NAMES[k],label:NAMES[k]}];
+for(const o of CATS.D.rows){for(const n of[o.lab,o.name,o.alt])if(n)NM[nn(n)]=[{key:o.key,label:o.lab}];if(o.name)addAlt(o.key,o.name)}
 for(const c of[CATS.S,CATS.L])if(c)for(const o of c.rows){NM[nn(o.lab)]=[{key:o.key,label:o.lab}];if(o.eng){NM[nn(o.eng)]=[{key:o.key,label:o.lab}];addAlt(o.key,o.eng)}}
 for(const o of Object.values(BYKEY))if(o.name)addAlt(o.key,o.name);
 let curatedName=true;const named=new Set(),replaced=[];
