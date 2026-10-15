@@ -292,6 +292,30 @@ form label.pick,.setform label.pick{display:inline-flex;gap:6px;align-items:cent
 .lcard.lnew{border-style:dashed;background:none;justify-content:center}
 .lcard.lnew .lt{color:var(--accent)}
 .lhead .back{font-size:.9rem;margin-bottom:6px;display:inline-block}
+.builder{margin:6px 0 30px;padding:16px;border:1px solid var(--line);border-radius:4px;background:var(--surface)}
+.builder h2{margin:0 0 4px}
+.builder>.ihint{margin:0 0 12px}
+.bgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px 12px}
+.bgrid label{display:flex;flex-direction:column;gap:4px;font-size:.82rem;color:var(--muted)}
+.bgrid select{background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:7px 8px;font-size:.92rem;color:var(--ink);width:100%}
+.bchecks{display:flex;flex-wrap:wrap;gap:6px 18px;margin:12px 0 4px}
+.bchecks .check{display:flex;gap:7px;align-items:center;font-size:.9rem}
+.bchecks input{width:auto;margin:0}
+.blist{list-style:none;margin:14px 0 8px;padding:0}
+.brow{display:grid;grid-template-columns:auto 1fr auto;gap:2px 12px;align-items:baseline;padding:9px 0;border-top:1px solid var(--line)}
+.brow .bt{font-variant-numeric:tabular-nums;font-weight:500;white-space:nowrap;min-width:4.6em}
+.brow .bn{display:flex;flex-direction:column;gap:2px;min-width:0}
+.brow .pname{background:none;border:0;padding:0;text-align:left;font:600 1rem var(--serif);color:var(--accent)}
+.brow .pname small{font:400 .8rem var(--sans);color:var(--muted)}
+.brow .pmeta{font-size:.84rem;color:var(--muted)}
+.brow .warn,.hint.warn{color:var(--danger)}
+.brow.pinned{box-shadow:inset 3px 0 0 var(--accent-fill);padding-left:8px}
+.bacts{display:flex;gap:2px}
+.bacts .btn{padding:3px 8px;font-size:.8rem}
+@media (max-width:600px){.brow{grid-template-columns:auto 1fr}.bacts{grid-column:2}.builder{padding:14px 12px}}
+.badd{display:flex;gap:8px;align-items:flex-start;margin-top:12px}
+.badd .addwrap{flex:1;min-width:0;display:flex;flex-direction:column}
+.badd input{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:7px 10px;font-size:.9rem}
 .empty{border:1px dashed var(--line);padding:28px 18px;color:var(--muted);text-align:center}
 .note{color:var(--muted);font-size:.9rem;margin:0 0 14px}
 
