@@ -1,6 +1,6 @@
 /* Observing log service worker: keeps the app working offline. Bump VERSION when files change. */
-const VERSION="observing-log-v3";
-const SHELL=["./","index.html","local.js","jszip.min.js","ngc.js","manifest.webmanifest","icon-192.png","icon-512.png","icon-maskable-512.png"];
+const VERSION="observing-log-v4";
+const SHELL=["./","index.html","local.js","jszip.min.js","ngc.js","names.js","manifest.webmanifest","icon-192.png","icon-512.png","icon-maskable-512.png"];
 self.addEventListener("install",e=>{e.waitUntil(caches.open(VERSION).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting()))});
 self.addEventListener("activate",e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==VERSION).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
 self.addEventListener("fetch",e=>{

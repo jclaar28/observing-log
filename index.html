@@ -378,6 +378,7 @@ form textarea{min-height:88px;resize:vertical}
 <p id="toast" role="status" hidden></p>
 
 <script src="ngc.js"></script>
+<script src="names.js"></script>
 <script>
 "use strict";
 /* ---------- catalog data: id|designation|name|type|constellation|mag|RA h|Dec deg ---------- */
@@ -847,6 +848,9 @@ if(CATS.N){
   for(const o of CATS.N.rows){const c=(EQ[o.key]||[]).filter(k=>k[0]==="C");if(c.length)o.alt=[o.alt].concat(c).filter(Boolean).join(", ")}
 }
 const dn=o=>o.lab||o.key;
+const nn=x=>String(x).toLowerCase().replace(/[\u2018\u2019]/g,"'").replace(/\s*\([^)]*\)\s*$/,"").replace(/^the /,"").replace(/\s+/g," ").trim();
+const NM={},ALTN={},NAMEDSUG=[];
+const addAlt=(k,n)=>{const l=ALTN[k]||(ALTN[k]=[]);if(!l.some(x=>nn(x)===nn(n)))l.push(n)};
 const tName=t=>{const b=BYKEY[t.key];return b?dn(b)+(b.name?" "+b.name:"")+(/^(NGC|IC|M|C) ?\d/.test(b.alt)?" ("+b.alt+")":""):t.label||t.key.replace(/^X:/,"")};
 const MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],RAD=Math.PI/180,SYN=29.530588853;
 const jd=t=>t/86400000+2440587.5;
@@ -1007,7 +1011,7 @@ function renderCat(){
     if(S.status==="todo"&&g[o.key])return false;
     if(S.status==="plan"&&!(S.plan[o.key]&&!g[o.key]))return false;
     if(S.tonight){const tn=tonight(o);if(!tn||!tn.good)return false}
-    if(q){const hay=o.hay||(o.hay=(o.key+" "+dn(o)+" "+o.key[0]+" "+o.n+" "+o.name+" "+o.alt+" "+o.con+" "+(CON[o.con]||"")+" "+(o.tlong||TYPES[o.type][0])).toLowerCase());if(!hay.includes(q))return false}
+    if(q){const hay=o.hay||(o.hay=(o.key+" "+dn(o)+" "+o.key[0]+" "+o.n+" "+o.name+" "+o.alt+" "+o.con+" "+(CON[o.con]||"")+" "+(o.tlong||TYPES[o.type][0])+" "+[o.key].concat(EQ[o.key]||[]).map(k=>(ALTN[k]||[]).join(" ")).join(" ")).toLowerCase());if(!hay.includes(q))return false}
     return true});
   const ta=o=>{const t=tonight(o);return t?t.alt:-99};
   const cmp={tonight:(a,b)=>ta(b)-ta(a),num:(a,b)=>a.n-b.n,con:(a,b)=>(CON[a.con]||"").localeCompare(CON[b.con]||"")||a.n-b.n,ra:(a,b)=>a.ra-b.ra,mag:(a,b)=>(a.mag==null?99:a.mag)-(b.mag==null?99:b.mag)}[S.sort];
@@ -1078,12 +1082,12 @@ function dome(o){
   return`<figure><svg class="dome" viewBox="0 0 ${W} ${(cy+R*Math.sin(t)+26).toFixed(0)}" role="img" aria-label="Sky dome showing ${esc(o.key)} rising to ${Math.max(0,Math.round(top))} degrees">${g}</svg><figcaption>${cap}</figcaption></figure>`;
 }
 function renderDetail(){
-  const key=S.detail,o=BYKEY[key],list=grouped(true)[key]||[],tn=o?tonight(o):null,inf=o?INFO[key]||INFO[(EQ[key]||[]).find(k=>INFO[k])]:null,cov=coverOf(key,list);
+  const key=S.detail,o=BYKEY[key],xl=o?"":labelOf(key,grouped(true)[key]),xn=o?"":(ALTN[key]||[])[0]||"",xa=o?[]:(ALTN[key]||[]).slice(1),list=grouped(true)[key]||[],tn=o?tonight(o):null,inf=o?INFO[key]||INFO[(EQ[key]||[]).find(k=>INFO[k])]:null,cov=coverOf(key,list);
   let h=`<div class="ihero${cov?"":" none"}">${cov?`<img alt="" src="${blob(cov.id)}">`:`<div>${o?`<svg viewBox="-10 -10 20 20" aria-hidden="true">${sym(o.type)}</svg>`:""}${list.length?"No photos on these observations":"No photo yet"}</div>`}<button class="btn iclose" data-act="closeDetail">Close</button></div>`;
-  h+=`<div class="ihead"><p class="des">${esc(o?dn(o)+(o.alt?" ("+o.alt+")":""):labelOf(key,list))}</p><h3>${esc(o?(o.name||dn(o)):labelOf(key,list))}</h3><p class="kind">${o?esc((o.tlong||TYPES[o.type][0])+" in "+(CON[o.con]||o.con)):"Outside the catalogs"}</p></div><div class="dbody">`;
+  h+=`<div class="ihead"><p class="des">${esc(o?dn(o)+(o.alt?" ("+o.alt+")":""):xl.replace(xn?" "+xn:"",""))}</p><h3>${esc(o?(o.name||dn(o)):xn||xl)}</h3><p class="kind">${o?esc((o.tlong||TYPES[o.type][0])+" in "+(CON[o.con]||o.con)):esc("Not in the app's catalogs yet"+(xa.length?". Also called "+xa.join(", "):""))}</p></div><div class="dbody">`;
   if(o){
     if(inf)h+=`<p class="idesc">${esc(inf.desc)}</p>`;
-    const rows=[["Type",o.tlong||TYPES[o.type][0]],["Constellation",CON[o.con]||o.con],["Distance",inf?fmtLy(inf.ly):""],["Right ascension",fmtRA(o.ra)],["Declination",fmtDec(o.dec)],["Apparent size",inf?inf.size:o.size||""],["Magnitude",o.mag==null?"":o.mag.toFixed(1)+(o.magB?" (blue)":"")],["Also listed as",o.alt],["Best months",bestMonths(o)],
+    const rows=[["Type",o.tlong||TYPES[o.type][0]],["Constellation",CON[o.con]||o.con],["Distance",inf?fmtLy(inf.ly):""],["Right ascension",fmtRA(o.ra)],["Declination",fmtDec(o.dec)],["Apparent size",inf?inf.size:o.size||""],["Magnitude",o.mag==null?"":o.mag.toFixed(1)+(o.magB?" (blue)":"")],["Also listed as",o.alt],["Also called",[key].concat(EQ[key]||[]).flatMap(k=>ALTN[k]||[]).filter((x,i,a)=>nn(x)!==nn(o.name||"")&&a.findIndex(y=>nn(y)===nn(x))===i).join(", ")],["Best months",bestMonths(o)],
       S.set.lat==null?null:["Highest from "+latLabel(),maxAlt(o)<=0?"Never rises":Math.round(maxAlt(o))+"°"+(isLow(o)?", below your limit":"")],
       tn?["Tonight",!tn.dark?"No darkness tonight":tn.alt<=0?"Not up in darkness":Math.round(tn.alt)+"° at "+fmtTime(tn.t)]:null].filter(r=>r&&r[1]);
     h+=`<div class="icols"><dl class="tdata">${rows.map(r=>`<div><dt>${r[0]}</dt><dd>${esc(r[1])}</dd></div>`).join("")}</dl><div class="domebox">${S.set.lat==null?`<p class="ihint">Set your latitude in Settings to see this object's path across your sky.</p>`:dome(o)}</div></div>`;
@@ -1161,14 +1165,16 @@ function parseTarget(str){
   const s=str.trim().replace(/\s+/g," "),m=s.match(/^(messier|caldwell|m|c)\s*(\d{1,3})(?![\d\/])/i);
   if(m){const k=m[1][0].toUpperCase()+(+m[2]);if(BYKEY[k])return{key:k,label:k}}
   const n=s.toUpperCase().replace(/^SHARPLESS\s*(2\s*-)?\s*/,"SH2").replace(/[\s\-]+/g,""),c=n.match(/^(NGC|IC)0*(\d+)/);
-  const hit=c?ALIAS[c[1]+c[2]]:ALIAS[n]||NAMES[s.toLowerCase()];
+  const hit=c?ALIAS[c[1]+c[2]]:ALIAS[n];
   if(hit)return{key:hit,label:hit};
+  if(!c&&!/^(messier|caldwell|m|c)\s*\d/i.test(s)){const g=NM[nn(s)];if(g&&g.length===1)return Object.assign({},g[0])}
   if(c&&c[1]==="NGC"){const k="NGC"+c[2],d=NDUP[k];if(BYKEY[k])return{key:k,label:"NGC "+c[2]};if(d)return BYKEY[d]?{key:d,label:labelOf(d)}:{key:d,label:d.replace(/^X:/,"").toUpperCase()}}
   if(c)return{key:"X:"+c[1].toLowerCase()+" "+c[2],label:c[1]+" "+c[2]};
   return{key:"X:"+s.toLowerCase(),label:s};
 }
+function parseTargets(part){const g=NM[nn(part)];if(g&&g.length>1)return g.map(t=>Object.assign({},t));return[parseTarget(part)]}
 function commitTargets(){
-  for(const part of $("fTarget").value.split(/[,;\n]+/)){if(!part.trim())continue;const t=parseTarget(part);if(!F.targets.some(x=>x.key===t.key))F.targets.push(t)}
+  for(const part of $("fTarget").value.split(/[,;\n]+/)){if(!part.trim())continue;for(const t of parseTargets(part))if(!F.targets.some(x=>x.key===t.key))F.targets.push(t)}
   $("fTarget").value="";chips();const u=document.getElementById("sg-fTarget");if(u)u.hidden=true;
 }
 function chips(){$("chips").innerHTML=F.targets.map((t,i)=>`<li>${esc(tName(t))}<button type="button" data-act="dropTarget" data-i="${i}" aria-label="Remove ${esc(tName(t))}">×</button></li>`).join("")}
@@ -1341,7 +1347,14 @@ $("night").addEventListener("click",()=>setNight(!document.documentElement.hasAt
 try{if(localStorage.getItem("night")==="1")setNight(true)}catch(e){}
 
 /* ---------- boot ---------- */
-SUG.fTarget=Object.values(BYKEY).map(o=>dn(o)+(o.name?" "+o.name:""));
+for(const k in NAMES)if(NAMES[k])NM[nn(k)]=[{key:NAMES[k],label:NAMES[k]}];
+for(const o of Object.values(BYKEY))if(o.name)addAlt(o.key,o.name);
+for(const l of(window.NAMES_DATA||"").split("\n")){const i=l.lastIndexOf("|");if(i<1)continue;const name=l.slice(0,i),ds=l.slice(i+1).split(",");
+  const ts=ds.map(d=>{const t=parseTarget(d);if(t.key.startsWith("X:")&&ds.length===1)t.label=t.label+" "+name;return t});
+  NM[nn(name)]=ts;if(ts.length===1){addAlt(ts[0].key,name);const r=BYKEY[ts[0].key];if(r&&!r.name){r.name=name;r.hay=null}}
+  const own=ts.length===1&&BYKEY[ts[0].key]&&nn(BYKEY[ts[0].key].name)===nn(name);
+  if(!own)NAMEDSUG.push(name+" ("+ts.map(t=>BYKEY[t.key]?dn(BYKEY[t.key]):t.label.replace(" "+name,"")).join(", ")+")")}
+SUG.fTarget=Object.values(BYKEY).map(o=>dn(o)+(o.name?" "+o.name:"")).concat(NAMEDSUG);
 try{applySet(JSON.parse(localStorage.getItem("obsSettings")||"null"))}catch(e){}
 render();
 (async()=>{

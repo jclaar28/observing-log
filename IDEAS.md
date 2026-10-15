@@ -25,6 +25,7 @@ Running list of ideas for the Observing log app. Newest ideas go at the top of "
 
 ## Done
 
+- Common names: about 270 names (curated plus OpenNGC), alternate names, group names such as Leo Triplet that log several objects (2026-10-14)
 - NGC catalog (7,572 objects from OpenNGC) with dot chart, paged grid and cross-matching to Messier and Caldwell (2026-10-14)
 - Offline installable app with on-phone storage, backup export and import (2026-10-13)
 - Target info pages with descriptions, data table and sky dome (2026-10-13)
