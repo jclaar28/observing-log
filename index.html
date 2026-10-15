@@ -72,6 +72,10 @@ img{max-width:100%}
 .chartbox svg{display:block;min-width:680px;width:100%;height:auto}
 .chart .grid{stroke:var(--line);stroke-width:1}
 .chart .ecl{stroke:var(--muted);stroke-width:1;stroke-dasharray:2 5;fill:none}
+.chart .cline{fill:none;stroke:var(--line);stroke-width:1}
+.chart .cstar{fill:var(--muted);opacity:.75}
+.chart text.ccon{font:italic 10px var(--serif);fill:var(--muted);opacity:.7}
+.chart text.cname{font:10px var(--sans);fill:var(--muted)}
 .chart text{font:12px var(--sans);fill:var(--muted)}
 .chart .lab{font:italic 12px var(--serif)}
 .chart .o{cursor:pointer}
@@ -1395,6 +1399,11 @@ function renderCat(){
     if(hi<90)s+=`<rect class="band" x="${L}" y="${T}" width="${PW}" height="${y(hi)-T}"/><text class="lab" x="${L+8}" y="${T+14}">out of reach from ${latLabel()}</text>`}
   let p="";for(let h=0;h<=24;h+=.25)p+=(h?"L":"M")+x(h).toFixed(1)+" "+y(23.44*Math.sin(h*Math.PI/12)).toFixed(1);
   s+=`<path class="ecl" d="${p}"/><text class="lab" x="${x(6)}" y="${y(23.44)-7}" text-anchor="middle">ecliptic</text>`;
+  if(S.stars!==false&&window.skyData){const D=skyData(),half=PW/2;
+    for(const seg of D.ln){let d="",px=null;for(const q of seg){const X=x(q[0]),Y=y(q[1]);d+=(px!=null&&Math.abs(X-px)<half?"L":"M")+X.toFixed(1)+" "+Y.toFixed(1);px=X}s+=`<path class="cline" d="${d}"/>`}
+    for(const t of D.st)if(t[2]<4.6)s+=`<circle class="cstar" cx="${x(t[0]).toFixed(1)}" cy="${y(t[1]).toFixed(1)}" r="${Math.max(.6,2.6-.45*t[2]).toFixed(2)}"/>`;
+    for(const t of D.lb)s+=`<text class="ccon" x="${x(t[0]).toFixed(1)}" y="${y(t[1]).toFixed(1)}" text-anchor="middle">${esc(t[2])}</text>`;
+    const nmd=[];for(const t of D.nm){if(!t[2].length||!D.st.some(q=>q[0]===t[0]&&q[1]===t[1]&&q[2]<1.6))continue;const X=x(t[0]),Y=y(t[1]);if(nmd.some(q=>Math.abs(q[0]-X)<40&&Math.abs(q[1]-Y)<12))continue;nmd.push([X,Y]);s+=`<text class="cname" x="${(X+4).toFixed(1)}" y="${(Y-3).toFixed(1)}">${esc(t[2])}</text>`}}
   $("chart").classList.toggle("big",!!cat.big);
   if(cat.big){const P={u:"",s:"",p:"",f:""};S.pts=[];
     for(const o of rows){const tn=S.tonight?tonight(o):null,f=(S.type&&o.type!==S.type)||(S.tonight&&!(tn&&tn.good))||!extraFilter(o),X=x(o.ra),Y=y(o.dec),k=f?"f":g[o.key]?"s":S.plan[o.key]?"p":"u";
