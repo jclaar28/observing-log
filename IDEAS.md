@@ -17,7 +17,7 @@ Running list of ideas for the Observing log app. Newest ideas go at the top of "
 
 ## Parked
 
-- **NGC, IC and Sharpless catalogs**: waiting on data files (OpenNGC `NGC.csv` for NGC and IC, plus a Sharpless list with coordinates). The tile grid and sky chart will need paging and a faster drawing method at that size.
+- **IC and Sharpless catalogs**: IC is in the same OpenNGC file as NGC, so it's a small addition. Sharpless needs a separate list with coordinates.
 - **Multiple filter sets per entry**: for LRGB or narrowband sessions, so one observation can hold several sub sets with their own filter, count and length.
 - **Google Photos picker**: pick photos through Google's own picker. Needs a Google Cloud project and sign-in, and photos would still be copied to the phone.
 - **Google Play release**: wrap the app with Capacitor and build in Android Studio. Needs a developer account ($25), a closed-testing period and a privacy policy.
@@ -25,5 +25,6 @@ Running list of ideas for the Observing log app. Newest ideas go at the top of "
 
 ## Done
 
+- NGC catalog (7,572 objects from OpenNGC) with dot chart, paged grid and cross-matching to Messier and Caldwell (2026-10-14)
 - Offline installable app with on-phone storage, backup export and import (2026-10-13)
 - Target info pages with descriptions, data table and sky dome (2026-10-13)

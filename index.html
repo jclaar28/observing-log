@@ -161,6 +161,15 @@ form label.pick,.setform label.pick{display:inline-flex;gap:6px;align-items:cent
 .sugg button{display:block;width:100%;text-align:left;background:none;border:0;padding:9px 10px;font-size:.9rem;color:var(--ink)}
 .sugg li+li button{border-top:1px solid var(--line)}
 .sugg button:hover,.sugg button:focus-visible{background:var(--bg)}
+.chart .dots{fill:none;stroke-linecap:round}
+.chart .dots.u{stroke:var(--muted);stroke-width:2.6;opacity:.5}
+.chart .dots.f{stroke:var(--muted);stroke-width:2;opacity:.1}
+.chart .dots.p{stroke:var(--accent-fill);stroke-width:3.2;opacity:.55}
+.chart .dots.s{stroke:var(--accent-fill);stroke-width:4}
+.chart.big{cursor:pointer}
+.tile .des.long{font-size:1.02rem}
+.more{grid-column:1/-1;justify-self:center;margin-top:6px}
+.setform a{color:var(--accent)}
 .empty{border:1px dashed var(--line);padding:28px 18px;color:var(--muted);text-align:center}
 .note{color:var(--muted);font-size:.9rem;margin:0 0 14px}
 
@@ -319,6 +328,8 @@ form textarea{min-height:88px;resize:vertical}
     <div class="acts" style="margin:0"><button class="btn" data-act="export">Export backup</button><span id="bkImport" hidden><input type="file" id="bkFile" accept=".zip,application/zip" hidden><button class="btn" data-act="import">Import backup</button></span></div>
     <p class="hint" id="bkMsg" role="status"></p>
     </div>
+    <h2>Catalog data</h2>
+    <p class="note">NGC data comes from <a href="https://github.com/mattiaverga/OpenNGC" target="_blank" rel="noopener">OpenNGC</a> by Mattia Verga, licensed <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a>. Messier and Caldwell descriptions, distances and sizes are approximate.</p>
   </section>
 </div>
 
@@ -366,6 +377,7 @@ form textarea{min-height:88px;resize:vertical}
 <dialog id="lightbox"><img alt="" id="lbImg"><div class="lbbar"><span id="lbCap"></span><button class="btn" id="lbCover" data-act="setCover"></button><button class="btn" data-act="closeLb">Close</button></div></dialog>
 <p id="toast" role="status" hidden></p>
 
+<script src="ngc.js"></script>
 <script>
 "use strict";
 /* ---------- catalog data: id|designation|name|type|constellation|mag|RA h|Dec deg ---------- */
@@ -589,9 +601,13 @@ const C_DATA=`1|NGC 188||OC|Cep|8.1|0.74|85.3
 108|NGC 4372||GC|Mus|7.8|12.43|-72.7
 109|NGC 3195||PN|Cha|11.6|10.16|-80.9`;
 const TYPES={G:["Galaxy","Galaxies"],OC:["Open cluster","Open clusters"],GC:["Globular cluster","Globular clusters"],N:["Nebula","Nebulae"],PN:["Planetary nebula","Planetary nebulae"],SNR:["Supernova remnant","Supernova remnants"],O:["Other","Other"]};
-const CON={And:"Andromeda",Aqr:"Aquarius",Aps:"Apus",Ara:"Ara",Aur:"Auriga",Boo:"Boötes",Cam:"Camelopardalis",Cap:"Capricornus",Car:"Carina",Cas:"Cassiopeia",Cen:"Centaurus",Cep:"Cepheus",Cet:"Cetus",Cha:"Chamaeleon",Cir:"Circinus",CMa:"Canis Major",Cnc:"Cancer",Col:"Columba",Com:"Coma Berenices",CrA:"Corona Australis",Cru:"Crux",Crv:"Corvus",CVn:"Canes Venatici",Cyg:"Cygnus",Del:"Delphinus",Dor:"Dorado",Dra:"Draco",For:"Fornax",Gem:"Gemini",Her:"Hercules",Hor:"Horologium",Hya:"Hydra",Lac:"Lacerta",Leo:"Leo",Lep:"Lepus",Lyn:"Lynx",Lyr:"Lyra",Mon:"Monoceros",Mus:"Musca",Nor:"Norma",Oph:"Ophiuchus",Ori:"Orion",Pav:"Pavo",Peg:"Pegasus",Per:"Perseus",Psc:"Pisces",Pup:"Puppis",Scl:"Sculptor",Sco:"Scorpius",Sct:"Scutum",Ser:"Serpens",Sex:"Sextans",Sge:"Sagitta",Sgr:"Sagittarius",Tau:"Taurus",TrA:"Triangulum Australe",Tri:"Triangulum",Tuc:"Tucana",UMa:"Ursa Major",Vel:"Vela",Vir:"Virgo",Vul:"Vulpecula"};
+const CON={Ant:"Antlia",Aql:"Aquila",Ari:"Aries",CMi:"Canis Minor",Cae:"Caelum",CrB:"Corona Borealis",Crt:"Crater",Equ:"Equuleus",Eri:"Eridanus",Gru:"Grus",Hyi:"Hydrus",Ind:"Indus",LMi:"Leo Minor",Lib:"Libra",Lup:"Lupus",Men:"Mensa",Mic:"Microscopium",Oct:"Octans",Phe:"Phoenix",Pic:"Pictor",PsA:"Piscis Austrinus",Pyx:"Pyxis",Ret:"Reticulum",Se1:"Serpens Caput",Se2:"Serpens Cauda",Tel:"Telescopium",UMi:"Ursa Minor",Vol:"Volans",And:"Andromeda",Aqr:"Aquarius",Aps:"Apus",Ara:"Ara",Aur:"Auriga",Boo:"Boötes",Cam:"Camelopardalis",Cap:"Capricornus",Car:"Carina",Cas:"Cassiopeia",Cen:"Centaurus",Cep:"Cepheus",Cet:"Cetus",Cha:"Chamaeleon",Cir:"Circinus",CMa:"Canis Major",Cnc:"Cancer",Col:"Columba",Com:"Coma Berenices",CrA:"Corona Australis",Cru:"Crux",Crv:"Corvus",CVn:"Canes Venatici",Cyg:"Cygnus",Del:"Delphinus",Dor:"Dorado",Dra:"Draco",For:"Fornax",Gem:"Gemini",Her:"Hercules",Hor:"Horologium",Hya:"Hydra",Lac:"Lacerta",Leo:"Leo",Lep:"Lepus",Lyn:"Lynx",Lyr:"Lyra",Mon:"Monoceros",Mus:"Musca",Nor:"Norma",Oph:"Ophiuchus",Ori:"Orion",Pav:"Pavo",Peg:"Pegasus",Per:"Perseus",Psc:"Pisces",Pup:"Puppis",Scl:"Sculptor",Sco:"Scorpius",Sct:"Scutum",Ser:"Serpens",Sex:"Sextans",Sge:"Sagitta",Sgr:"Sagittarius",Tau:"Taurus",TrA:"Triangulum Australe",Tri:"Triangulum",Tuc:"Tucana",UMa:"Ursa Major",Vel:"Vela",Vir:"Virgo",Vul:"Vulpecula"};
 function parse(pfx,txt){return txt.split("\n").map(l=>{const p=l.split("|");return{key:pfx+p[0],n:+p[0],alt:p[1],name:p[2],type:p[3],con:p[4],mag:p[5]===""?null:+p[5],ra:+p[6],dec:+p[7]}})}
 const CATS={M:{name:"Messier",rows:parse("M",M_DATA)},C:{name:"Caldwell",rows:parse("C",C_DATA)}};
+const NTYPE={G:["G","Galaxy"],GPair:["G","Galaxy pair"],GTrpl:["G","Galaxy triplet"],GGroup:["G","Galaxy group"],OCl:["OC","Open cluster"],"*Ass":["OC","Stellar association"],GCl:["GC","Globular cluster"],PN:["PN","Planetary nebula"],HII:["N","HII region"],EmN:["N","Emission nebula"],Neb:["N","Nebula"],RfN:["N","Reflection nebula"],"Cl+N":["N","Cluster with nebula"],DrkN:["N","Dark nebula"],SNR:["SNR","Supernova remnant"],"*":["O","Star"],"**":["O","Double star"],Nova:["O","Nova"],Other:["O","Other"]};
+if(window.NGC_DATA){const rows=[];for(const l of window.NGC_DATA.split("\n")){const p=l.split("|"),n=+p[0],ty=NTYPE[p[1]]||["O",p[1]],mg=p[5];
+  rows.push({key:"NGC"+n,n,lab:"NGC "+n,alt:p[8]?"M"+p[8]:"",name:p[7],type:ty[0],tlong:ty[1],con:p[4],mag:mg===""?null:parseFloat(mg),magB:/b$/.test(mg),ra:+p[2],dec:+p[3],size:p[6]?p[6].replace("x","'×")+"'":""})}
+  CATS.N={name:"NGC",rows,big:true}}
 const INFO_DATA=`M1|6500|6'×4'|The remnant of a supernova that Chinese astronomers recorded in 1054. At its centre a pulsar spins about 30 times a second and powers the glowing filaments.
 M2|37500|16'|One of the larger and richer globular clusters, holding roughly 150,000 stars in a tightly packed ball.
 M3|33900|18'|A bright globular cluster famous for its large population of variable stars, more than 200 of them.
@@ -816,13 +832,22 @@ function fmtLy(n){if(!n)return"";if(n>=1e6){const m=n/1e6;return(m>=100?Math.rou
 const BYKEY={};for(const c in CATS)for(const o of CATS[c].rows)BYKEY[o.key]=o;
 
 const ALIAS={},NAMES={};
-for(const o of Object.values(BYKEY)){
+for(const o of CATS.M.rows.concat(CATS.C.rows)){
   const m=o.alt.match(/^(NGC|IC)\s*(\d+)(?:\s+and\s+(\d+))?/i);
   if(m){ALIAS[m[1].toUpperCase()+m[2]]=o.key;if(m[3])ALIAS[m[1].toUpperCase()+m[3]]=o.key}
   else if(o.alt!=="Dark nebula")ALIAS[o.alt.toUpperCase().replace(/[\s\-]+/g,"")]=o.key;
   if(o.name){const n=o.name.toLowerCase();NAMES[n]=n in NAMES?null:o.key}
 }
-const tName=t=>{const b=BYKEY[t.key];return b?b.key+(b.name?" "+b.name:"")+(/^(NGC|IC) \d/.test(b.alt)?" ("+b.alt+")":""):t.label||t.key.replace(/^X:/,"")};
+const EQ={},NDUP={};
+const link=(a,b)=>{if(!BYKEY[a]||!BYKEY[b]||a===b)return;for(const[x,y]of[[a,b],[b,a]]){const l=EQ[x]||(EQ[x]=[]);if(!l.includes(y))l.push(y)}};
+if(CATS.N){
+  for(const o of CATS.N.rows){if(o.alt)link(o.key,o.alt);if(o.name){const n=o.name.toLowerCase();if(!(n in NAMES))NAMES[n]=o.key;else if(NAMES[n]&&NAMES[n].startsWith("NGC"))NAMES[n]=null}}
+  for(const k in ALIAS){const m=k.match(/^NGC(\d+)$/);if(m)link("NGC"+m[1],ALIAS[k])}
+  for(const l of(window.NGC_DUPS||"").split("\n")){const p=l.split("|");if(p[1])NDUP["NGC"+p[0]]=p[1]}
+  for(const o of CATS.N.rows){const c=(EQ[o.key]||[]).filter(k=>k[0]==="C");if(c.length)o.alt=[o.alt].concat(c).filter(Boolean).join(", ")}
+}
+const dn=o=>o.lab||o.key;
+const tName=t=>{const b=BYKEY[t.key];return b?dn(b)+(b.name?" "+b.name:"")+(/^(NGC|IC|M|C) ?\d/.test(b.alt)?" ("+b.alt+")":""):t.label||t.key.replace(/^X:/,"")};
 const MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],RAD=Math.PI/180,SYN=29.530588853;
 const jd=t=>t/86400000+2440587.5;
 const kindOf=o=>o.kind==="visual"?"visual":"imaged";
@@ -904,9 +929,9 @@ const blob=id=>window.APP_BLOB?window.APP_BLOB(id):"/_blob/"+encodeURIComponent(
 function fmtDate(d){const p=String(d||"").split("-");if(p.length!==3)return d||"Undated";return new Date(+p[0],p[1]-1,+p[2]).toLocaleDateString(undefined,{day:"numeric",month:"short",year:"numeric"})}
 function fmtRA(h){const hh=Math.floor(h),m=Math.round((h-hh)*60);return String(hh).padStart(2,"0")+"h "+String(m).padStart(2,"0")+"m"}
 function fmtDec(d){return(d<0?"−":"+")+Math.abs(d).toFixed(1)+"°"}
-function grouped(all){const g={};for(const o of S.obs){if(!all&&S.mode!=="any"&&kindOf(o)!==S.mode)continue;for(const t of o.targets)(g[t.key]=g[t.key]||[]).push(o)}for(const k in g)g[k].sort((a,b)=>(b.date||"").localeCompare(a.date||"")||(b.created||0)-(a.created||0));return g}
+function grouped(all){const g={};for(const o of S.obs){if(!all&&S.mode!=="any"&&kindOf(o)!==S.mode)continue;const ks=new Set();for(const t of o.targets){ks.add(t.key);for(const e of EQ[t.key]||[])ks.add(e)}for(const k of ks)(g[k]=g[k]||[]).push(o)}for(const k in g)g[k].sort((a,b)=>(b.date||"").localeCompare(a.date||"")||(b.created||0)-(a.created||0));return g}
 function coverOf(key,list){let first=null;for(const o of list||[])for(const p of o.photos||[]){if(p.id===S.covers[key])return p;first=first||p}return first}
-function labelOf(key,list){const o=BYKEY[key];if(o)return o.key;const t=list&&list[0]&&list[0].targets.find(t=>t.key===key);return(t&&t.label)||key.replace(/^X:/,"")}
+function labelOf(key,list){const o=BYKEY[key];if(o)return dn(o);const t=list&&list[0]&&list[0].targets.find(t=>t.key===key);return(t&&t.label)||key.replace(/^X:/,"")}
 
 /* ---------- symbols (star-atlas conventions) ---------- */
 function sym(t){
@@ -927,7 +952,7 @@ function render(){
   document.querySelectorAll(".tabs>[data-view]").forEach(b=>b.setAttribute("aria-selected",b.dataset.view===S.view));
   $("catBtn").setAttribute("aria-selected",!!CATS[S.view]);
   $("catBtn").textContent=CATS[S.view]?"Catalogs: "+CATS[S.view].name:"Catalogs";
-  $("catPop").innerHTML=Object.keys(CATS).map(k=>`<button data-view="${k}" aria-current="${S.view===k}">${CATS[k].name}<small>${CATS[k].rows.length}</small></button>`).join("");
+  $("catPop").innerHTML=Object.keys(CATS).map(k=>`<button data-view="${k}" aria-current="${S.view===k}">${CATS[k].name}<small>${CATS[k].rows.length.toLocaleString()}</small></button>`).join("");
   $("logBtn").hidden=!S.canWrite;
   const st=$("status");
   const msg=S.dbState==="none"?"Your saved observations aren't available in this view. Open the page in Claude while signed in to see and add to your log.":S.dbState==="error"?"The log couldn't be loaded. Reload the page to try again.":"";
@@ -941,9 +966,9 @@ function renderCat(){
   const out=o=>isLow(o)&&!g[o.key],nLow=all.filter(out).length,goal=all.length-nLow;
   const rows=S.set.hide?all.filter(o=>!out(o)):all;
   const seen=all.filter(o=>g[o.key]).length;
-  $("headline").textContent=`${seen} of ${goal} ${nLow?"reachable ":""}${cat.name} objects ${S.mode==="imaged"?"imaged":S.mode==="visual"?"observed visually":"observed"}`;
-  let sub=S.dbState==="wait"?"Loading your log…":seen===goal?"Catalog complete.":seen?`${goal-seen} to go.`:"Filled markers appear here as you log observations.";
-  if(nLow)sub+=` ${nLow} never rise${S.set.minAlt?" above "+S.set.minAlt+"°":""} from ${latLabel()}${S.set.hide?" and are hidden":""}.`;
+  $("headline").textContent=`${seen.toLocaleString()} of ${goal.toLocaleString()} ${nLow?"reachable ":""}${cat.name} objects ${S.mode==="imaged"?"imaged":S.mode==="visual"?"observed visually":"observed"}`;
+  let sub=S.dbState==="wait"?"Loading your log…":seen===goal?"Catalog complete.":seen?`${(goal-seen).toLocaleString()} to go.`:"Filled markers appear here as you log observations.";
+  if(nLow)sub+=` ${nLow.toLocaleString()} never rise${S.set.minAlt?" above "+S.set.minAlt+"°":""} from ${latLabel()}${S.set.hide?" and are hidden":""}.`;
   $("sub").textContent=sub;
   $("bar").style.width=(goal?100*seen/goal:0)+"%";
   /* chart */
@@ -956,9 +981,15 @@ function renderCat(){
     if(hi<90)s+=`<rect class="band" x="${L}" y="${T}" width="${PW}" height="${y(hi)-T}"/><text class="lab" x="${L+8}" y="${T+14}">out of reach from ${latLabel()}</text>`}
   let p="";for(let h=0;h<=24;h+=.25)p+=(h?"L":"M")+x(h).toFixed(1)+" "+y(23.44*Math.sin(h*Math.PI/12)).toFixed(1);
   s+=`<path class="ecl" d="${p}"/><text class="lab" x="${x(6)}" y="${y(23.44)-7}" text-anchor="middle">ecliptic</text>`;
+  $("chart").classList.toggle("big",!!cat.big);
+  if(cat.big){const P={u:"",s:"",p:"",f:""};S.pts=[];
+    for(const o of rows){const tn=S.tonight?tonight(o):null,f=(S.type&&o.type!==S.type)||(S.tonight&&!(tn&&tn.good)),X=x(o.ra),Y=y(o.dec),k=f?"f":g[o.key]?"s":S.plan[o.key]?"p":"u";
+      P[k]+="M"+X.toFixed(1)+" "+Y.toFixed(1)+"h0";if(!f)S.pts.push([X,Y,o.key])}
+    for(const k of["f","u","p","s"])if(P[k])s+=`<path class="dots ${k}" d="${P[k]}"/>`;
+  }else{S.pts=null;
   const order=rows.slice().sort((a,b)=>(g[a.key]?1:0)-(g[b.key]?1:0));
   for(const o of order){const tn=S.tonight?tonight(o):null,f=(S.type&&o.type!==S.type)||(S.tonight&&!(tn&&tn.good));
-    s+=`<g class="o${g[o.key]?" seen":S.plan[o.key]?" plan":""}${out(o)?" low":""}" data-act="open" data-key="${o.key}" transform="translate(${x(o.ra).toFixed(1)} ${y(o.dec).toFixed(1)})"${f?' opacity=".18"':""}><title>${esc(o.key+(o.name?" "+o.name:""))}</title><circle r="9" fill="transparent"/>${sym(o.type)}</g>`}
+    s+=`<g class="o${g[o.key]?" seen":S.plan[o.key]?" plan":""}${out(o)?" low":""}" data-act="open" data-key="${o.key}" transform="translate(${x(o.ra).toFixed(1)} ${y(o.dec).toFixed(1)})"${f?' opacity=".18"':""}><title>${esc(o.key+(o.name?" "+o.name:""))}</title><circle r="9" fill="transparent"/>${sym(o.type)}</g>`}}
   $("chart").innerHTML=s;
   $("chart").setAttribute("aria-label",`Sky chart of the ${cat.name} catalog by right ascension and declination. ${seen} of ${rows.length} observed.`);
   /* type legend / filter */
@@ -976,13 +1007,15 @@ function renderCat(){
     if(S.status==="todo"&&g[o.key])return false;
     if(S.status==="plan"&&!(S.plan[o.key]&&!g[o.key]))return false;
     if(S.tonight){const tn=tonight(o);if(!tn||!tn.good)return false}
-    if(q){const hay=(o.key+" "+o.key[0]+" "+o.n+" "+o.name+" "+o.alt+" "+o.con+" "+(CON[o.con]||"")+" "+TYPES[o.type][0]).toLowerCase();if(!hay.includes(q))return false}
+    if(q){const hay=o.hay||(o.hay=(o.key+" "+dn(o)+" "+o.key[0]+" "+o.n+" "+o.name+" "+o.alt+" "+o.con+" "+(CON[o.con]||"")+" "+(o.tlong||TYPES[o.type][0])).toLowerCase());if(!hay.includes(q))return false}
     return true});
   const ta=o=>{const t=tonight(o);return t?t.alt:-99};
   const cmp={tonight:(a,b)=>ta(b)-ta(a),num:(a,b)=>a.n-b.n,con:(a,b)=>(CON[a.con]||"").localeCompare(CON[b.con]||"")||a.n-b.n,ra:(a,b)=>a.ra-b.ra,mag:(a,b)=>(a.mag==null?99:a.mag)-(b.mag==null?99:b.mag)}[S.sort];
   list.sort(cmp);
-  $("grid").innerHTML=list.length?list.map(o=>{const l=g[o.key],c=coverOf(o.key,l),pl=S.plan[o.key]&&!l;
-    return`<button class="tile${l?" seen":""}${c?" pic":""}${out(o)?" low":""}${pl?" plan":""}" data-act="open" data-key="${o.key}" aria-label="${esc(o.key+(o.name?", "+o.name:"")+", "+TYPES[o.type][0]+(l?", observed":out(o)?", out of reach from your latitude":pl?", planned":", not yet observed"))}">${c?`<img loading="lazy" alt="" src="${blob(c.thumb||c.id)}">`:icon(o.type,!!l)}${pl?'<span class="tag">Planned</span>':""}${l&&l.length>1?`<span class="ct">${l.length}</span>`:""}<span class="des">${o.key}</span><span class="nm">${esc(o.name||CON[o.con]||"")}</span></button>`}).join("")
+  const sig=[S.view,S.type,S.status,S.q,S.sort,S.tonight,S.mode,S.set.hide].join("|");if(sig!==S.sig){S.sig=sig;S.lim=150}
+  const extra=list.length-S.lim;
+  $("grid").innerHTML=list.length?list.slice(0,S.lim).map(o=>{const l=g[o.key],c=coverOf(o.key,l),pl=S.plan[o.key]&&!l;
+    return`<button class="tile${l?" seen":""}${c?" pic":""}${out(o)?" low":""}${pl?" plan":""}" data-act="open" data-key="${o.key}" aria-label="${esc(dn(o)+(o.name?", "+o.name:"")+", "+(o.tlong||TYPES[o.type][0])+(l?", observed":out(o)?", out of reach from your latitude":pl?", planned":", not yet observed"))}">${c?`<img loading="lazy" alt="" src="${blob(c.thumb||c.id)}">`:icon(o.type,!!l)}${pl?'<span class="tag">Planned</span>':""}${l&&l.length>1?`<span class="ct">${l.length}</span>`:""}<span class="des${dn(o).length>5?" long":""}">${esc(dn(o))}</span><span class="nm">${esc(o.name||CON[o.con]||"")}</span></button>`}).join("")+(extra>0?`<button class="btn more" data-act="more">Show ${Math.min(300,extra).toLocaleString()} more of ${extra.toLocaleString()}</button>`:"")
     :`<p class="empty" style="grid-column:1/-1">No objects match these filters.</p>`;
 }
 function entryHTML(o,withTarget){
@@ -1045,12 +1078,12 @@ function dome(o){
   return`<figure><svg class="dome" viewBox="0 0 ${W} ${(cy+R*Math.sin(t)+26).toFixed(0)}" role="img" aria-label="Sky dome showing ${esc(o.key)} rising to ${Math.max(0,Math.round(top))} degrees">${g}</svg><figcaption>${cap}</figcaption></figure>`;
 }
 function renderDetail(){
-  const key=S.detail,o=BYKEY[key],list=grouped(true)[key]||[],tn=o?tonight(o):null,inf=o?INFO[key]:null,cov=coverOf(key,list);
+  const key=S.detail,o=BYKEY[key],list=grouped(true)[key]||[],tn=o?tonight(o):null,inf=o?INFO[key]||INFO[(EQ[key]||[]).find(k=>INFO[k])]:null,cov=coverOf(key,list);
   let h=`<div class="ihero${cov?"":" none"}">${cov?`<img alt="" src="${blob(cov.id)}">`:`<div>${o?`<svg viewBox="-10 -10 20 20" aria-hidden="true">${sym(o.type)}</svg>`:""}${list.length?"No photos on these observations":"No photo yet"}</div>`}<button class="btn iclose" data-act="closeDetail">Close</button></div>`;
-  h+=`<div class="ihead"><p class="des">${esc(o?o.key+(o.alt?" ("+o.alt+")":""):labelOf(key,list))}</p><h3>${esc(o?(o.name||o.key):labelOf(key,list))}</h3><p class="kind">${o?esc(TYPES[o.type][0]+" in "+(CON[o.con]||o.con)):"Outside the catalogs"}</p></div><div class="dbody">`;
+  h+=`<div class="ihead"><p class="des">${esc(o?dn(o)+(o.alt?" ("+o.alt+")":""):labelOf(key,list))}</p><h3>${esc(o?(o.name||dn(o)):labelOf(key,list))}</h3><p class="kind">${o?esc((o.tlong||TYPES[o.type][0])+" in "+(CON[o.con]||o.con)):"Outside the catalogs"}</p></div><div class="dbody">`;
   if(o){
     if(inf)h+=`<p class="idesc">${esc(inf.desc)}</p>`;
-    const rows=[["Type",TYPES[o.type][0]],["Constellation",CON[o.con]||o.con],["Distance",inf?fmtLy(inf.ly):""],["Right ascension",fmtRA(o.ra)],["Declination",fmtDec(o.dec)],["Apparent size",inf?inf.size:""],["Magnitude",o.mag==null?"":o.mag.toFixed(1)],["Also listed as",o.alt],["Best months",bestMonths(o)],
+    const rows=[["Type",o.tlong||TYPES[o.type][0]],["Constellation",CON[o.con]||o.con],["Distance",inf?fmtLy(inf.ly):""],["Right ascension",fmtRA(o.ra)],["Declination",fmtDec(o.dec)],["Apparent size",inf?inf.size:o.size||""],["Magnitude",o.mag==null?"":o.mag.toFixed(1)+(o.magB?" (blue)":"")],["Also listed as",o.alt],["Best months",bestMonths(o)],
       S.set.lat==null?null:["Highest from "+latLabel(),maxAlt(o)<=0?"Never rises":Math.round(maxAlt(o))+"°"+(isLow(o)?", below your limit":"")],
       tn?["Tonight",!tn.dark?"No darkness tonight":tn.alt<=0?"Not up in darkness":Math.round(tn.alt)+"° at "+fmtTime(tn.t)]:null].filter(r=>r&&r[1]);
     h+=`<div class="icols"><dl class="tdata">${rows.map(r=>`<div><dt>${r[0]}</dt><dd>${esc(r[1])}</dd></div>`).join("")}</dl><div class="domebox">${S.set.lat==null?`<p class="ihint">Set your latitude in Settings to see this object's path across your sky.</p>`:dome(o)}</div></div>`;
@@ -1130,6 +1163,7 @@ function parseTarget(str){
   const n=s.toUpperCase().replace(/^SHARPLESS\s*(2\s*-)?\s*/,"SH2").replace(/[\s\-]+/g,""),c=n.match(/^(NGC|IC)0*(\d+)/);
   const hit=c?ALIAS[c[1]+c[2]]:ALIAS[n]||NAMES[s.toLowerCase()];
   if(hit)return{key:hit,label:hit};
+  if(c&&c[1]==="NGC"){const k="NGC"+c[2],d=NDUP[k];if(BYKEY[k])return{key:k,label:"NGC "+c[2]};if(d)return BYKEY[d]?{key:d,label:labelOf(d)}:{key:d,label:d.replace(/^X:/,"").toUpperCase()}}
   if(c)return{key:"X:"+c[1].toLowerCase()+" "+c[2],label:c[1]+" "+c[2]};
   return{key:"X:"+s.toLowerCase(),label:s};
 }
@@ -1259,6 +1293,7 @@ document.addEventListener("click",ev=>{
   else if(act==="addGear"){const n=$("gName").value.trim();if(!n){$("gName").focus();return}S.gear=S.gear.filter(g=>g.name!==n).concat({type:$("gType").value,name:n});$("gName").value="";saveGear()}
   else if(act==="delGear"){const g=S.gear[+a.dataset.i];S.gear=S.gear.filter(x=>x!==g);if(g)RP.delete(g.name);saveGear()}
   else if(act==="delRig"){S.rigs=S.rigs.filter((r,i)=>i!==+a.dataset.i);saveGear()}
+  else if(act==="more"){S.lim+=300;renderCat()}
   else if(act==="export")exportBackup();
   else if(act==="import")$("bkFile").click();
   else if(act==="addSite"){const n=$("sName").value.trim();if(!n){$("sName").focus();return}S.sites=S.sites.filter(r=>r.name!==n).concat({name:n,bortle:+$("sBortle").value||null});$("sName").value="";$("sBortle").value="";saveGear()}
@@ -1280,6 +1315,10 @@ $("detail").addEventListener("click",e=>{if(e.target===$("detail"))$("detail").c
 $("detail").addEventListener("close",()=>{S.detail=null});
 $("formDlg").addEventListener("cancel",e=>{if(F.busy)e.preventDefault()});
 $("form").addEventListener("submit",save);
+$("chart").addEventListener("click",e=>{if(!S.pts||!S.pts.length)return;const sv=$("chart"),m=sv.getScreenCTM();if(!m)return;
+  const pt=sv.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;const p=pt.matrixTransform(m.inverse());let best=null,bd=144;
+  for(const q of S.pts){const d=(q[0]-p.x)**2+(q[1]-p.y)**2;if(d<bd){bd=d;best=q[2]}}
+  if(best){S.detail=best;renderDetail();if(!$("detail").open)$("detail").showModal()}});
 $("bkFile").addEventListener("change",e=>{const f=e.target.files[0];e.target.value="";if(f)importBackup(f)});
 for(const id of["fTarget","fSite","fGear","fFilter"]){$(id).addEventListener("input",e=>suggestFor(e.target));$(id).addEventListener("blur",()=>setTimeout(()=>{const u=document.getElementById("sg-"+id);if(u&&!u.contains(document.activeElement))u.hidden=true},200))}
 $("form").addEventListener("pointerdown",e=>{if(e.target.closest("[data-sg]"))e.preventDefault()});
@@ -1302,7 +1341,7 @@ $("night").addEventListener("click",()=>setNight(!document.documentElement.hasAt
 try{if(localStorage.getItem("night")==="1")setNight(true)}catch(e){}
 
 /* ---------- boot ---------- */
-SUG.fTarget=Object.values(BYKEY).map(o=>o.key+(o.name?" "+o.name:""));
+SUG.fTarget=Object.values(BYKEY).map(o=>dn(o)+(o.name?" "+o.name:""));
 try{applySet(JSON.parse(localStorage.getItem("obsSettings")||"null"))}catch(e){}
 render();
 (async()=>{
@@ -1318,7 +1357,7 @@ render();
       else if(d.id==="covers"){S.covers={};for(const c of v.list||[])S.covers[c.k]=c.id}}
     render()},()=>{});
   db.collection("observations").onSnapshot(snap=>{
-    S.obs=snap.docs.map(d=>{const o=Object.assign({},d.data(),{id:d.id});if(!Array.isArray(o.targets)||!o.targets.length)o.targets=[{key:o.target||"X:unknown",label:o.label||o.target||"Unknown"}];return o});S.dbState="ok";render();
+    S.obs=snap.docs.map(d=>{const o=Object.assign({},d.data(),{id:d.id});if(!Array.isArray(o.targets)||!o.targets.length)o.targets=[{key:o.target||"X:unknown",label:o.label||o.target||"Unknown"}];o.targets=o.targets.map(t=>{const m=/^X:ngc (\d+)$/.exec(t.key||"");if(m){const r=parseTarget("NGC "+m[1]);if(!r.key.startsWith("X:"))return r}return t});return o});S.dbState="ok";render();
   },()=>{S.dbState="error";render()});
 })();
 </script>

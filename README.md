@@ -31,3 +31,7 @@ Alternative with no account setup: drag this folder onto app.netlify.com/drop.
 ## Updating the app
 
 Upload the changed files to the repository again. In `sw.js`, change `VERSION` (for example to `observing-log-v2`) so phones pick up the new version; it applies the next time the app is opened while online.
+
+## Catalog data
+
+NGC data in `ngc.js` is derived from [OpenNGC](https://github.com/mattiaverga/OpenNGC) by Mattia Verga and is licensed [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). Messier and Caldwell descriptions, distances and sizes were written for this app and are approximate.
