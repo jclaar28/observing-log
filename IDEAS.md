@@ -17,7 +17,9 @@ Running list of ideas for the Observing log app. Newest ideas go at the top of "
 
 ## Parked
 
-- **IC and Sharpless catalogs**: IC is in the same OpenNGC file as NGC, so it's a small addition. Sharpless needs a separate list with coordinates.
+- **Sharpless catalog**: needs a separate list with coordinates. Several popular targets (Barnard's Loop, Medusa, Spaghetti, Tulip) are Sharpless objects and log as custom targets until then.
+- **Shared custom lists**: share a list with friends or the club, and follow other people's lists. Needs accounts and the server (see the cloud item).
+- **More curated lists**: ideas include Herschel 400, Messier marathon order, objects for a given filter or focal length, and club challenge lists.
 - **Multiple filter sets per entry**: for LRGB or narrowband sessions, so one observation can hold several sub sets with their own filter, count and length.
 - **Google Photos picker**: pick photos through Google's own picker. Needs a Google Cloud project and sign-in, and photos would still be copied to the phone.
 - **Google Play release**: wrap the app with Capacitor and build in Android Studio. Needs a developer account ($25), a closed-testing period and a privacy policy.
@@ -25,6 +27,7 @@ Running list of ideas for the Observing log app. Newest ideas go at the top of "
 
 ## Done
 
+- Lists menu with Catalogs (Messier, Caldwell, NGC, IC), 10 curated lists and custom lists; add to list from any object page; lists included in backups (2026-10-14)
 - Common names: about 270 names (curated plus OpenNGC), alternate names, group names such as Leo Triplet that log several objects (2026-10-14)
 - NGC catalog (7,572 objects from OpenNGC) with dot chart, paged grid and cross-matching to Messier and Caldwell (2026-10-14)
 - Offline installable app with on-phone storage, backup export and import (2026-10-13)

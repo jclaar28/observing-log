@@ -170,6 +170,21 @@ form label.pick,.setform label.pick{display:inline-flex;gap:6px;align-items:cent
 .tile .des.long{font-size:1.02rem}
 .more{grid-column:1/-1;justify-self:center;margin-top:6px}
 .setform a{color:var(--accent)}
+.tabs .pop{max-height:70vh;overflow:auto}
+.pop .mh{margin:10px 10px 2px;font-size:.78rem;color:var(--muted)}
+.pop .mh:first-child{margin-top:4px}
+.pop .newl{color:var(--accent)}
+#catBtn{max-width:min(62vw,360px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lhead{margin:0 0 16px}
+.lhead h2{font:italic 600 1.6rem/1.15 var(--serif);margin:0}
+.lhead .ld{margin:6px 0 0;max-width:68ch;color:var(--muted)}
+.lhead .acts{margin-top:12px}
+.lhead input{flex:1 1 220px;min-width:0;background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:7px 10px;font-size:.9rem}
+.lhead .addwrap{flex:1 1 260px;min-width:0;display:flex;flex-direction:column}
+.lhead .addwrap input{flex:none;width:100%}
+@media (max-width:520px){.tabs button{padding:8px 9px}#catBtn{max-width:40vw}}
+.inlists{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:10px;font-size:.875rem}
+.inlists select{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:5px 8px;font-size:.875rem}
 .empty{border:1px dashed var(--line);padding:28px 18px;color:var(--muted);text-align:center}
 .note{color:var(--muted);font-size:.9rem;margin:0 0 14px}
 
@@ -260,7 +275,7 @@ form textarea{min-height:88px;resize:vertical}
     <button class="btn primary" id="logBtn" data-act="new" hidden>Log observation</button>
     <div class="tabs" role="tablist">
       <div class="menu">
-        <button role="tab" id="catBtn" aria-haspopup="true" aria-expanded="false">Catalogs</button>
+        <button role="tab" id="catBtn" aria-haspopup="true" aria-expanded="false">Lists</button>
         <div class="pop" id="catPop" hidden></div>
       </div>
       <button role="tab" data-view="log">Logbook</button>
@@ -272,6 +287,7 @@ form textarea{min-height:88px;resize:vertical}
   <p class="note" id="status" hidden></p>
 
   <section id="catView">
+    <div class="lhead" id="listHead" hidden></div>
     <div class="progress"><h2 id="headline"></h2><p id="sub"></p>
       <div class="seg" id="modeSeg" role="group" aria-label="Count progress for"><button data-mode="any">Any</button><button data-mode="imaged">Imaged</button><button data-mode="visual">Visual</button></div></div>
     <div class="bar"><i id="bar"></i></div>
@@ -329,12 +345,22 @@ form textarea{min-height:88px;resize:vertical}
     <p class="hint" id="bkMsg" role="status"></p>
     </div>
     <h2>Catalog data</h2>
-    <p class="note">NGC data comes from <a href="https://github.com/mattiaverga/OpenNGC" target="_blank" rel="noopener">OpenNGC</a> by Mattia Verga, licensed <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a>. Messier and Caldwell descriptions, distances and sizes are approximate.</p>
+    <p class="note">NGC and IC data come from <a href="https://github.com/mattiaverga/OpenNGC" target="_blank" rel="noopener">OpenNGC</a> by Mattia Verga, licensed <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a>. Messier and Caldwell descriptions, distances and sizes are approximate.</p>
   </section>
 </div>
 
 <script src="local.js"></script>
 <dialog id="detail"><div id="detailBody"></div></dialog>
+
+<dialog id="listDlg">
+  <div class="dhead"><h3 id="listDlgTitle">New list</h3><button class="btn quiet" data-act="closeList">Cancel</button></div>
+  <form class="dbody" id="listForm" novalidate>
+    <label for="lName">Name</label><input id="lName" maxlength="80" autocomplete="off">
+    <label for="lDesc">Description</label><textarea id="lDesc" maxlength="400" placeholder="Optional"></textarea>
+    <p class="err" id="lErr" role="alert" hidden></p>
+    <div class="foot"><button type="button" class="btn quiet danger" id="lDelete" data-act="deleteList" hidden>Delete list</button><span style="flex:1"></span><button class="btn primary" type="submit">Save list</button></div>
+  </form>
+</dialog>
 
 <dialog id="formDlg">
   <div class="dhead"><h3 id="formTitle">Log observation</h3><button class="btn quiet" data-act="closeForm">Cancel</button></div>
@@ -378,6 +404,7 @@ form textarea{min-height:88px;resize:vertical}
 <p id="toast" role="status" hidden></p>
 
 <script src="ngc.js"></script>
+<script src="ic.js"></script>
 <script src="names.js"></script>
 <script>
 "use strict";
@@ -606,9 +633,11 @@ const CON={Ant:"Antlia",Aql:"Aquila",Ari:"Aries",CMi:"Canis Minor",Cae:"Caelum",
 function parse(pfx,txt){return txt.split("\n").map(l=>{const p=l.split("|");return{key:pfx+p[0],n:+p[0],alt:p[1],name:p[2],type:p[3],con:p[4],mag:p[5]===""?null:+p[5],ra:+p[6],dec:+p[7]}})}
 const CATS={M:{name:"Messier",rows:parse("M",M_DATA)},C:{name:"Caldwell",rows:parse("C",C_DATA)}};
 const NTYPE={G:["G","Galaxy"],GPair:["G","Galaxy pair"],GTrpl:["G","Galaxy triplet"],GGroup:["G","Galaxy group"],OCl:["OC","Open cluster"],"*Ass":["OC","Stellar association"],GCl:["GC","Globular cluster"],PN:["PN","Planetary nebula"],HII:["N","HII region"],EmN:["N","Emission nebula"],Neb:["N","Nebula"],RfN:["N","Reflection nebula"],"Cl+N":["N","Cluster with nebula"],DrkN:["N","Dark nebula"],SNR:["SNR","Supernova remnant"],"*":["O","Star"],"**":["O","Double star"],Nova:["O","Nova"],Other:["O","Other"]};
-if(window.NGC_DATA){const rows=[];for(const l of window.NGC_DATA.split("\n")){const p=l.split("|"),n=+p[0],ty=NTYPE[p[1]]||["O",p[1]],mg=p[5];
-  rows.push({key:"NGC"+n,n,lab:"NGC "+n,alt:p[8]?"M"+p[8]:"",name:p[7],type:ty[0],tlong:ty[1],con:p[4],mag:mg===""?null:parseFloat(mg),magB:/b$/.test(mg),ra:+p[2],dec:+p[3],size:p[6]?p[6].replace("x","'×")+"'":""})}
-  CATS.N={name:"NGC",rows,big:true}}
+function buildCat(data,pre,name){const rows=[];for(const l of data.split("\n")){const p=l.split("|"),n=+p[0],ty=NTYPE[p[1]]||["O",p[1]],mg=p[5];
+  rows.push({key:pre+n,n,lab:pre+" "+n,alt:p[8]?"M"+p[8]:"",name:p[7],type:ty[0],tlong:ty[1],con:p[4],mag:mg===""?null:parseFloat(mg),magB:/b$/.test(mg),ra:+p[2],dec:+p[3],size:p[6]?p[6].replace("x","'×")+"'":""})}
+  return{name,rows,big:true}}
+if(window.NGC_DATA)CATS.N=buildCat(window.NGC_DATA,"NGC","NGC");
+if(window.IC_DATA)CATS.I=buildCat(window.IC_DATA,"IC","IC");
 const INFO_DATA=`M1|6500|6'×4'|The remnant of a supernova that Chinese astronomers recorded in 1054. At its centre a pulsar spins about 30 times a second and powers the glowing filaments.
 M2|37500|16'|One of the larger and richer globular clusters, holding roughly 150,000 stars in a tightly packed ball.
 M3|33900|18'|A bright globular cluster famous for its large population of variable stars, more than 200 of them.
@@ -841,12 +870,11 @@ for(const o of CATS.M.rows.concat(CATS.C.rows)){
 }
 const EQ={},NDUP={};
 const link=(a,b)=>{if(!BYKEY[a]||!BYKEY[b]||a===b)return;for(const[x,y]of[[a,b],[b,a]]){const l=EQ[x]||(EQ[x]=[]);if(!l.includes(y))l.push(y)}};
-if(CATS.N){
-  for(const o of CATS.N.rows){if(o.alt)link(o.key,o.alt);if(o.name){const n=o.name.toLowerCase();if(!(n in NAMES))NAMES[n]=o.key;else if(NAMES[n]&&NAMES[n].startsWith("NGC"))NAMES[n]=null}}
-  for(const k in ALIAS){const m=k.match(/^NGC(\d+)$/);if(m)link("NGC"+m[1],ALIAS[k])}
-  for(const l of(window.NGC_DUPS||"").split("\n")){const p=l.split("|");if(p[1])NDUP["NGC"+p[0]]=p[1]}
-  for(const o of CATS.N.rows){const c=(EQ[o.key]||[]).filter(k=>k[0]==="C");if(c.length)o.alt=[o.alt].concat(c).filter(Boolean).join(", ")}
-}
+const BIG=[CATS.N,CATS.I].filter(Boolean);
+for(const cat of BIG)for(const o of cat.rows){if(o.alt)link(o.key,o.alt);if(o.name){const n=o.name.toLowerCase();if(!(n in NAMES))NAMES[n]=o.key;else if(NAMES[n]&&!/^[MC]\d/.test(NAMES[n]))NAMES[n]=null}}
+for(const k in ALIAS){const m=k.match(/^(NGC|IC)(\d+)$/);if(m)link(m[1]+m[2],ALIAS[k])}
+for(const[pre,d]of[["NGC",window.NGC_DUPS],["IC",window.IC_DUPS]])for(const l of(d||"").split("\n")){const p=l.split("|");if(p[1])NDUP[pre+p[0]]=p[1]}
+for(const cat of BIG)for(const o of cat.rows){const c=(EQ[o.key]||[]).filter(k=>/^C\d/.test(k));if(c.length)o.alt=[o.alt].concat(c).filter(Boolean).join(", ")}
 const dn=o=>o.lab||o.key;
 const nn=x=>String(x).toLowerCase().replace(/[\u2018\u2019]/g,"'").replace(/\s*\([^)]*\)\s*$/,"").replace(/^the /,"").replace(/\s+/g," ").trim();
 const NM={},ALTN={},NAMEDSUG=[];
@@ -887,9 +915,42 @@ function pickHTML(sel,attr){
   return rows.filter(r=>r[1].length).map(r=>`<div class="pickrow"><span>${r[0]}</span>${r[1].map(n=>`<label class="pick"><input type="checkbox" ${attr}="${esc(n)}"${sel.has(n)?" checked":""}>${esc(n)}</label>`).join("")}</div>`).join("");
 }
 const RP=new Set();
+const CURATED=[
+{id:"astro-top",name:"Popular astrophotography targets",desc:"The targets imagers come back to most, across every season. A mix of galaxies, nebulae and clusters that photograph well with most setups.",
+ items:"M31,M42,M45,M8,M16,M17,M20,M27,M33,M51,M81,M82,M101,M104,M13,M63,M106,M1,M78,Leo Triplet,C20,IC 5070,C49,IC 1805,IC 1848,NGC 1499,IC 434,NGC 2024,C33,C34,C27,NGC 281,IC 1396,NGC 7380,C11,C4,C9,NGC 2264,IC 443,NGC 2359,IC 410,C31,C14,C38"},
+{id:"beginner-imaging",name:"Beginner imaging targets",desc:"Bright, large and forgiving. Good first targets for a camera lens, small refractor or smart telescope, and most show up in short exposures.",
+ items:"M42,M31,M45,M8,M20,M16,M17,M13,M27,M81,M82,M51,M44,C14,C20,C49,M33,M3,M5,M11,M57,M35,M38"},
+{id:"beginner-visual",name:"First targets for a small telescope",desc:"Easy to find and rewarding at the eyepiece, even from suburban skies.",
+ items:"M42,M45,M44,M31,M13,M57,M27,C14,M3,M5,M11,M22,M15,M2,M92,M81,M82,M35,M36,M37,M38,M41,M6,M7,M8,M17,C41,C55,C59,C39"},
+{id:"narrowband",name:"Narrowband nebulae",desc:"Emission nebulae that cut through light pollution with dual-band or hydrogen-alpha, oxygen-III and sulfur-II filters.",
+ items:"IC 1805,IC 1848,NGC 281,IC 1396,NGC 7380,C27,C33,C34,C20,IC 5070,C49,C9,C11,IC 443,NGC 2359,NGC 2264,M8,M16,M17,M20,NGC 6334,NGC 6357,IC 2177,IC 410,IC 417,NGC 1931,NGC 1499,C31,IC 1795,NGC 2174,IC 434,NGC 7822,IC 1318"},
+{id:"galaxy-season",name:"Spring galaxy season",desc:"Galaxies well placed in the evening from March to June, when the bright Milky Way is low and the view opens out of our galaxy.",
+ items:"M51,M81,M82,M101,M106,M63,M64,M94,M65,M66,NGC 3628,M95,M96,M105,M104,M87,M84,M86,NGC 4435,NGC 4438,M49,M58,M59,M60,M61,M88,M89,M90,M91,M98,M99,M100,M108,M109,M102,C38,C32,NGC 4656,NGC 5907,C3,C21,C26,NGC 2903,NGC 4490,NGC 4567"},
+{id:"summer-milky-way",name:"Summer Milky Way",desc:"Clusters and nebulae along the summer Milky Way, from the star clouds of Sagittarius up to Cygnus.",
+ items:"M8,M20,M21,M16,M17,M18,M24,M25,M23,M22,M28,M11,M26,M6,M7,M4,M80,M19,M62,M27,M57,M56,M71,C20,IC 5070,C27,C33,C34,M29,M39,IC 1318,C19"},
+{id:"winter",name:"Winter favorites",desc:"Bright clusters and nebulae of the northern winter sky around Orion, Taurus, Auriga, Gemini and Monoceros.",
+ items:"M42,M43,M78,NGC 1977,IC 434,NGC 2024,M45,M1,C41,M35,M36,M37,M38,C31,IC 410,IC 417,NGC 1931,C49,C50,NGC 2264,C46,M41,M46,M47,M50,M93,IC 443,NGC 2174,NGC 2359,C39,NGC 1499,NGC 1909,M44,M67,C64"},
+{id:"planetaries",name:"Planetary nebula showpieces",desc:"Glowing shells around dying stars. Most are small, so they reward higher magnification and steady seeing.",
+ items:"M57,M27,M97,M76,C6,C22,C55,C63,C39,C59,C15,C2,NGC 6369,NGC 6905,NGC 6818,NGC 6537,NGC 1535,IC 418,NGC 6210,NGC 7008,NGC 6781,NGC 6572,NGC 2440,C74,C69,C56"},
+{id:"globulars",name:"Globular cluster tour",desc:"Ancient spheres of hundreds of thousands of stars. Best at medium to high power, where the edges break into individual stars.",
+ items:"M13,M92,M3,M5,M15,M2,M22,M4,M10,M12,M14,M9,M19,M62,M53,M80,M28,M54,M55,M56,M68,M69,M70,M71,M72,M75,M79,M107,M30,C25,C80,C106,C86,C93"},
+{id:"southern",name:"Southern sky showpieces",desc:"Highlights of the far southern sky, best from the southern hemisphere or low latitudes.",
+ items:"C80,C106,C92,C103,C94,C99,C77,C102,C91,C97,C100,C65,C72,C70,C86,C93,C101,C104,C105,C108,C76,C69,C74"}
+];
+const CUR={};
+function listRows(id,name,desc,items,kind,extra){const order=new Map();items.forEach((k,i)=>{if(BYKEY[k]&&!order.has(k))order.set(k,i)});
+  return Object.assign({id,name,desc,kind,order,rows:[...order.keys()].map(k=>BYKEY[k])},extra||{})}
+function curList(){const v=S.view;if(CATS[v])return CATS[v];
+  if(v.startsWith("cur:"))return CUR[v.slice(4)]||null;
+  if(v.startsWith("my:")){const l=S.lists.find(x=>x.id===v.slice(3));return l?listRows(l.id,l.name,l.desc,l.items||[],"my"):null}
+  return null}
+const keysOf=k=>[k].concat(EQ[k]||[]);
+const inItems=(items,k)=>keysOf(k).some(x=>items.includes(x));
+const newId=()=>"l"+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+async function saveList(l){if(!db||!S.canWrite)return false;try{await db.collection("lists").doc(l.id).set({name:l.name,desc:l.desc||"",items:l.items||[],created:l.created||Date.now(),src:l.src||""});return true}catch(e){toast(explain(e));return false}}
 const SUG={};
 function suggestFor(inp){
-  const id=inp.id,multi=id==="fTarget",raw=inp.value,part=(multi?raw.split(/[,;]/).pop():raw).trim().toLowerCase();
+  const id=inp.id,multi=id==="fTarget"||id==="lAdd",raw=inp.value,part=(multi?raw.split(/[,;]/).pop():raw).trim().toLowerCase();
   let ul=document.getElementById("sg-"+id);
   if(!ul){ul=document.createElement("ul");ul.id="sg-"+id;ul.className="sugg";ul.setAttribute("role","listbox");inp.insertAdjacentElement("afterend",ul)}
   const list=SUG[id]||[];let hits=[];
@@ -902,7 +963,7 @@ function suggestFor(inp){
 }
 function hideSuggest(){document.querySelectorAll(".sugg").forEach(u=>{u.hidden=true})}
 /* ---------- state ---------- */
-const S={view:"M",status:"all",type:"",q:"",sort:"num",obs:[],loaded:false,dbState:"wait",canWrite:false,detail:null,set:{lat:null,lon:null,minAlt:0,hide:false},mode:"any",tonight:false,plan:{},covers:{},rigs:[],sites:[],gear:[]};
+const S={view:"M",status:"all",type:"",q:"",sort:"num",obs:[],loaded:false,dbState:"wait",canWrite:false,detail:null,set:{lat:null,lon:null,minAlt:0,hide:false},mode:"any",tonight:false,plan:{},covers:{},rigs:[],sites:[],gear:[],lists:[]};
 const maxAlt=o=>90-Math.abs(S.set.lat-o.dec);
 const isLow=o=>S.set.lat!=null&&maxAlt(o)<S.set.minAlt;
 const latLabel=()=>Math.abs(S.set.lat).toFixed(1)+"° "+(S.set.lat<0?"S":"N");
@@ -954,25 +1015,41 @@ const icon=(t,seen)=>`<svg viewBox="-10 -10 20 20" class="${seen?"seen":""}" ari
 /* ---------- render ---------- */
 function render(){
   document.querySelectorAll(".tabs>[data-view]").forEach(b=>b.setAttribute("aria-selected",b.dataset.view===S.view));
-  $("catBtn").setAttribute("aria-selected",!!CATS[S.view]);
-  $("catBtn").textContent=CATS[S.view]?"Catalogs: "+CATS[S.view].name:"Catalogs";
-  $("catPop").innerHTML=Object.keys(CATS).map(k=>`<button data-view="${k}" aria-current="${S.view===k}">${CATS[k].name}<small>${CATS[k].rows.length.toLocaleString()}</small></button>`).join("");
+  const cl=curList();
+  $("catBtn").setAttribute("aria-selected",!!cl);
+  $("catBtn").textContent=cl?cl.name:"Lists";
+  const mi=(v,n,c)=>`<button data-view="${esc(v)}" aria-current="${S.view===v}">${esc(n)}<small>${c.toLocaleString()}</small></button>`;
+  $("catPop").innerHTML='<p class="mh">Catalogs</p>'+Object.keys(CATS).map(k=>mi(k,CATS[k].name,CATS[k].rows.length)).join("")+
+    '<p class="mh">Curated</p>'+CURATED.map(c=>mi("cur:"+c.id,c.name,CUR[c.id].rows.length)).join("")+
+    '<p class="mh">My lists</p>'+S.lists.map(l=>mi("my:"+l.id,l.name,(l.items||[]).length)).join("")+
+    (S.canWrite?'<button class="newl" data-act="newList">New list</button>':(S.lists.length?"":'<button disabled>No lists yet</button>'));
   $("logBtn").hidden=!S.canWrite;
   const st=$("status");
   const msg=S.dbState==="none"?"Your saved observations aren't available in this view. Open the page in Claude while signed in to see and add to your log.":S.dbState==="error"?"The log couldn't be loaded. Reload the page to try again.":"";
   st.hidden=!msg;st.textContent=msg;
-  $("catView").hidden=!CATS[S.view];$("logView").hidden=S.view!=="log";$("setView").hidden=S.view!=="set";$("statView").hidden=S.view!=="stats";
+  $("catView").hidden=!cl;$("logView").hidden=S.view!=="log";$("setView").hidden=S.view!=="set";$("statView").hidden=S.view!=="stats";
   if(S.view==="log")renderLog();else if(S.view==="set")syncSet();else if(S.view==="stats")renderStats();else renderCat();
   if(S.detail&&$("detail").open)renderDetail();
 }
+function renderListHead(cat){
+  const el=$("listHead"),sig=cat.kind?[cat.kind,cat.id,cat.name,cat.desc,S.canWrite].join("|"):"";
+  el.hidden=!cat.kind;if(!cat.kind){S.lhSig="";return}if(sig===S.lhSig)return;S.lhSig=sig;
+  let h=`<h2>${esc(cat.name)}</h2>${cat.desc?`<p class="ld">${esc(cat.desc)}</p>`:""}`;
+  if(cat.kind==="cur"&&S.canWrite)h+=`<div class="acts"><button class="btn" data-act="copyList">Copy to my lists</button></div>`;
+  if(cat.kind==="my"&&S.canWrite)h+=`<div class="acts"><div class="addwrap"><input id="lAdd" autocomplete="off" autocapitalize="off" enterkeyhint="done" placeholder="Add objects: M31, Heart Nebula, NGC 7000" aria-label="Add objects to this list"></div><button class="btn" data-act="addToList">Add</button><button class="btn quiet" data-act="editList">Edit list</button></div>`;
+  el.innerHTML=h;
+}
 function renderCat(){
-  const cat=CATS[S.view],g=grouped(),all=cat.rows;
+  const cat=curList(),g=grouped(),all=cat.rows;
+  renderListHead(cat);
+  $("sort").options[0].text=cat.order?"List order":"By number";
   const out=o=>isLow(o)&&!g[o.key],nLow=all.filter(out).length,goal=all.length-nLow;
   const rows=S.set.hide?all.filter(o=>!out(o)):all;
   const seen=all.filter(o=>g[o.key]).length;
-  $("headline").textContent=`${seen.toLocaleString()} of ${goal.toLocaleString()} ${nLow?"reachable ":""}${cat.name} objects ${S.mode==="imaged"?"imaged":S.mode==="visual"?"observed visually":"observed"}`;
+  $("headline").textContent=`${seen.toLocaleString()} of ${goal.toLocaleString()} ${nLow?"reachable ":""}${cat.kind?"objects":cat.name+" objects"} ${S.mode==="imaged"?"imaged":S.mode==="visual"?"observed visually":"observed"}`;
   let sub=S.dbState==="wait"?"Loading your log…":seen===goal?"Catalog complete.":seen?`${(goal-seen).toLocaleString()} to go.`:"Filled markers appear here as you log observations.";
   if(nLow)sub+=` ${nLow.toLocaleString()} never rise${S.set.minAlt?" above "+S.set.minAlt+"°":""} from ${latLabel()}${S.set.hide?" and are hidden":""}.`;
+  if(!all.length){$("headline").textContent="No objects yet";sub=cat.kind==="my"?"Add objects with the box above, or use Add to list on any object's page.":""}
   $("sub").textContent=sub;
   $("bar").style.width=(goal?100*seen/goal:0)+"%";
   /* chart */
@@ -1014,7 +1091,7 @@ function renderCat(){
     if(q){const hay=o.hay||(o.hay=(o.key+" "+dn(o)+" "+o.key[0]+" "+o.n+" "+o.name+" "+o.alt+" "+o.con+" "+(CON[o.con]||"")+" "+(o.tlong||TYPES[o.type][0])+" "+[o.key].concat(EQ[o.key]||[]).map(k=>(ALTN[k]||[]).join(" ")).join(" ")).toLowerCase());if(!hay.includes(q))return false}
     return true});
   const ta=o=>{const t=tonight(o);return t?t.alt:-99};
-  const cmp={tonight:(a,b)=>ta(b)-ta(a),num:(a,b)=>a.n-b.n,con:(a,b)=>(CON[a.con]||"").localeCompare(CON[b.con]||"")||a.n-b.n,ra:(a,b)=>a.ra-b.ra,mag:(a,b)=>(a.mag==null?99:a.mag)-(b.mag==null?99:b.mag)}[S.sort];
+  const cmp={tonight:(a,b)=>ta(b)-ta(a),num:cat.order?(a,b)=>cat.order.get(a.key)-cat.order.get(b.key):(a,b)=>a.n-b.n,con:(a,b)=>(CON[a.con]||"").localeCompare(CON[b.con]||"")||a.n-b.n,ra:(a,b)=>a.ra-b.ra,mag:(a,b)=>(a.mag==null?99:a.mag)-(b.mag==null?99:b.mag)}[S.sort];
   list.sort(cmp);
   const sig=[S.view,S.type,S.status,S.q,S.sort,S.tonight,S.mode,S.set.hide].join("|");if(sig!==S.sig){S.sig=sig;S.lim=150}
   const extra=list.length-S.lim;
@@ -1087,12 +1164,15 @@ function renderDetail(){
   h+=`<div class="ihead"><p class="des">${esc(o?dn(o)+(o.alt?" ("+o.alt+")":""):xl.replace(xn?" "+xn:"",""))}</p><h3>${esc(o?(o.name||dn(o)):xn||xl)}</h3><p class="kind">${o?esc((o.tlong||TYPES[o.type][0])+" in "+(CON[o.con]||o.con)):esc("Not in the app's catalogs yet"+(xa.length?". Also called "+xa.join(", "):""))}</p></div><div class="dbody">`;
   if(o){
     if(inf)h+=`<p class="idesc">${esc(inf.desc)}</p>`;
-    const rows=[["Type",o.tlong||TYPES[o.type][0]],["Constellation",CON[o.con]||o.con],["Distance",inf?fmtLy(inf.ly):""],["Right ascension",fmtRA(o.ra)],["Declination",fmtDec(o.dec)],["Apparent size",inf?inf.size:o.size||""],["Magnitude",o.mag==null?"":o.mag.toFixed(1)+(o.magB?" (blue)":"")],["Also listed as",o.alt],["Also called",[key].concat(EQ[key]||[]).flatMap(k=>ALTN[k]||[]).filter((x,i,a)=>nn(x)!==nn(o.name||"")&&a.findIndex(y=>nn(y)===nn(x))===i).join(", ")],["Best months",bestMonths(o)],
+    const rows=[["Type",o.tlong||TYPES[o.type][0]],["Constellation",CON[o.con]||o.con],["Distance",inf?fmtLy(inf.ly):""],["Right ascension",fmtRA(o.ra)],["Declination",fmtDec(o.dec)],["Apparent size",inf?inf.size:o.size||""],["Magnitude",o.mag==null?"":o.mag.toFixed(1)+(o.magB?" (blue)":"")],["Also listed as",o.alt],["On curated lists",CURATED.filter(c=>keysOf(key).some(k=>CUR[c.id].order.has(k))).map(c=>c.name).join(", ")],["Also called",[key].concat(EQ[key]||[]).flatMap(k=>ALTN[k]||[]).filter((x,i,a)=>nn(x)!==nn(o.name||"")&&a.findIndex(y=>nn(y)===nn(x))===i).join(", ")],["Best months",bestMonths(o)],
       S.set.lat==null?null:["Highest from "+latLabel(),maxAlt(o)<=0?"Never rises":Math.round(maxAlt(o))+"°"+(isLow(o)?", below your limit":"")],
       tn?["Tonight",!tn.dark?"No darkness tonight":tn.alt<=0?"Not up in darkness":Math.round(tn.alt)+"° at "+fmtTime(tn.t)]:null].filter(r=>r&&r[1]);
     h+=`<div class="icols"><dl class="tdata">${rows.map(r=>`<div><dt>${r[0]}</dt><dd>${esc(r[1])}</dd></div>`).join("")}</dl><div class="domebox">${S.set.lat==null?`<p class="ihint">Set your latitude in Settings to see this object's path across your sky.</p>`:dome(o)}</div></div>`;
   }
   if(S.canWrite)h+=`<div class="acts" style="margin:0"><button class="btn primary" data-act="new" data-key="${esc(key)}">Log observation of ${esc(labelOf(key,list))}</button>${o?`<button class="btn" data-act="plan" data-key="${esc(key)}" aria-pressed="${!!S.plan[key]}">${S.plan[key]?"Remove from plan":"Add to plan"}</button>`:""}</div>`;
+  if(o&&S.canWrite){const mine=S.lists.filter(l=>inItems(l.items||[],key)),rest=S.lists.filter(l=>!inItems(l.items||[],key));
+    h+=`<div class="inlists">${mine.length?`<ul class="chips" style="margin:0">`:""}${mine.map(l=>`<li>${esc(l.name)}<button type="button" data-act="unlist" data-list="${esc(l.id)}" aria-label="Remove from ${esc(l.name)}">×</button></li>`).join("")}${mine.length?"</ul>":""}
+      <select id="addListSel" aria-label="Add to list"><option value="">${mine.length?"Add to another list…":"Add to list…"}</option>${rest.map(l=>`<option value="${esc(l.id)}">${esc(l.name)}</option>`).join("")}<option value="__new">New list…</option></select></div>`}
   h+=list.length?list.map(e=>entryHTML(e,false)).join(""):`<p class="empty" style="margin-top:14px">Not observed yet.</p>`;
   $("detailBody").innerHTML=h+"</div>";
 }
@@ -1117,7 +1197,7 @@ async function exportBackup(){
     const Z=await loadZip(),z=new Z(),ids=new Set();
     for(const o of S.obs)for(const p of o.photos||[]){ids.add(p.id);if(p.thumb)ids.add(p.thumb)}
     z.file("data.json",JSON.stringify({app:"observing-log",version:1,exported:new Date().toISOString(),
-      observations:S.obs,settings:{main:S.set,gear:{rigs:S.rigs,sites:S.sites,items:S.gear},plan:{keys:Object.keys(S.plan)},covers:{list:Object.keys(S.covers).map(k=>({k,id:S.covers[k]}))}}},null,1));
+      observations:S.obs,lists:S.lists,settings:{main:S.set,gear:{rigs:S.rigs,sites:S.sites,items:S.gear},plan:{keys:Object.keys(S.plan)},covers:{list:Object.keys(S.covers).map(k=>({k,id:S.covers[k]}))}}},null,1));
     let i=0,miss=0;
     for(const id of ids){bkMsg(`Packing photo ${++i} of ${ids.size}…`);const b=await PLAT.getBlob(id);if(b)z.file("photos/"+id,b);else miss++}
     bkMsg("Compressing…");
@@ -1152,6 +1232,7 @@ async function importBackup(file){
     const uni=(a,b)=>{const m=new Map();for(const x of(a||[]).concat(b||[]))if(x&&x.name&&!m.has(x.name))m.set(x.name,x);return[...m.values()]};
     if(st.gear){S.rigs=uni(S.rigs,st.gear.rigs);S.sites=uni(S.sites,st.gear.sites);S.gear=uni(S.gear,st.gear.items);await db.doc("settings/gear").set({rigs:S.rigs,sites:S.sites,items:S.gear})}
     if(st.plan){for(const k of st.plan.keys||[])S.plan[k]=1;await db.doc("settings/plan").set({keys:Object.keys(S.plan)})}
+    for(const l of j.lists||[])if(l&&l.id&&l.name&&!S.lists.some(x=>x.id===l.id)){const b=Object.assign({},l);delete b.id;await db.collection("lists").doc(l.id).set(b)}
     if(st.covers){for(const c of st.covers.list||[])if(!S.covers[c.k])S.covers[c.k]=c.id;await db.doc("settings/covers").set({list:Object.keys(S.covers).map(k=>({k,id:S.covers[k]}))})}
     bkMsg(`Imported ${added} observation${added===1?"":"s"}${skipped?`, skipped ${skipped} already in your log`:""}.`);
   }catch(e){
@@ -1168,7 +1249,7 @@ function parseTarget(str){
   const hit=c?ALIAS[c[1]+c[2]]:ALIAS[n];
   if(hit)return{key:hit,label:hit};
   if(!c&&!/^(messier|caldwell|m|c)\s*\d/i.test(s)){const g=NM[nn(s)];if(g&&g.length===1)return Object.assign({},g[0])}
-  if(c&&c[1]==="NGC"){const k="NGC"+c[2],d=NDUP[k];if(BYKEY[k])return{key:k,label:"NGC "+c[2]};if(d)return BYKEY[d]?{key:d,label:labelOf(d)}:{key:d,label:d.replace(/^X:/,"").toUpperCase()}}
+  if(c){const k=c[1]+c[2],d=NDUP[k];if(BYKEY[k])return{key:k,label:c[1]+" "+c[2]};if(d)return BYKEY[d]?{key:d,label:labelOf(d)}:{key:d,label:d.replace(/^X:/,"").toUpperCase()}}
   if(c)return{key:"X:"+c[1].toLowerCase()+" "+c[2],label:c[1]+" "+c[2]};
   return{key:"X:"+s.toLowerCase(),label:s};
 }
@@ -1273,7 +1354,7 @@ async function removeObs(id,box){
 /* ---------- events ---------- */
 function catMenu(open){$("catPop").hidden=!open;$("catBtn").setAttribute("aria-expanded",open)}
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("catPop").hidden){catMenu(false);$("catBtn").focus()}});
-document.addEventListener("click",ev=>{
+document.addEventListener("click",async ev=>{
   if(ev.target.closest("#catBtn")){catMenu($("catPop").hidden);return}
   catMenu(false);
   const tab=ev.target.closest("[data-view]");if(tab){S.view=tab.dataset.view;S.type="";render();return}
@@ -1300,6 +1381,15 @@ document.addEventListener("click",ev=>{
   else if(act==="delGear"){const g=S.gear[+a.dataset.i];S.gear=S.gear.filter(x=>x!==g);if(g)RP.delete(g.name);saveGear()}
   else if(act==="delRig"){S.rigs=S.rigs.filter((r,i)=>i!==+a.dataset.i);saveGear()}
   else if(act==="more"){S.lim+=300;renderCat()}
+  else if(act==="newList")openListDlg("new");
+  else if(act==="editList"){const l=S.lists.find(x=>"my:"+x.id===S.view);if(l)openListDlg("edit",l)}
+  else if(act==="closeList")$("listDlg").close();
+  else if(act==="deleteList"){if(!LD.confirm){LD.confirm=true;a.textContent="Confirm delete";return}
+    const id=LD.id;$("listDlg").close();try{await db.collection("lists").doc(id).delete();S.lists=S.lists.filter(x=>x.id!==id);if(S.view==="my:"+id)S.view="M";render()}catch(e){toast(explain(e))}}
+  else if(act==="addToList")addFromBox();
+  else if(act==="copyList"){const c=CUR[S.view.slice(4)];if(!c)return;const l={id:newId(),name:c.name,desc:c.desc,items:[...c.order.keys()],created:Date.now(),src:"cur:"+c.id};
+    if(await saveList(l)){S.lists=S.lists.concat(l);S.view="my:"+l.id;render();toast("Copied to My lists. Edit it freely; the curated list stays as it was.")}}
+  else if(act==="unlist"){const l=S.lists.find(x=>x.id===a.dataset.list);if(l){const items=(l.items||[]).filter(k=>!keysOf(S.detail).includes(k));await saveList(Object.assign({},l,{items}))}}
   else if(act==="export")exportBackup();
   else if(act==="import")$("bkFile").click();
   else if(act==="addSite"){const n=$("sName").value.trim();if(!n){$("sName").focus();return}S.sites=S.sites.filter(r=>r.name!==n).concat({name:n,bortle:+$("sBortle").value||null});$("sName").value="";$("sBortle").value="";saveGear()}
@@ -1321,6 +1411,18 @@ $("detail").addEventListener("click",e=>{if(e.target===$("detail"))$("detail").c
 $("detail").addEventListener("close",()=>{S.detail=null});
 $("formDlg").addEventListener("cancel",e=>{if(F.busy)e.preventDefault()});
 $("form").addEventListener("submit",save);
+$("listForm").addEventListener("submit",async e=>{e.preventDefault();const name=$("lName").value.trim(),desc=$("lDesc").value.trim();
+  if(!name){$("lErr").textContent="Give the list a name.";$("lErr").hidden=false;$("lName").focus();return}
+  const old=LD.mode==="edit"?S.lists.find(x=>x.id===LD.id):null;
+  const l=old?Object.assign({},old,{name,desc}):{id:newId(),name,desc,items:LD.pendingKey?[LD.pendingKey]:[],created:Date.now()};
+  if(await saveList(l)){$("listDlg").close();if(!old){S.lists=S.lists.concat(l);if(!LD.pendingKey){S.view="my:"+l.id}}else S.lists=S.lists.map(x=>x.id===l.id?l:x);render()}});
+$("detail").addEventListener("change",async e=>{if(e.target.id!=="addListSel")return;const v=e.target.value;e.target.value="";if(!v)return;
+  if(v==="__new"){openListDlg("new",null,S.detail);return}
+  const n=await addKeysToList(v,[S.detail]);const l=S.lists.find(x=>x.id===v);if(n&&l)toast(`Added to ${l.name}.`)});
+$("catView").addEventListener("input",e=>{if(e.target.id==="lAdd")suggestFor(e.target)});
+$("catView").addEventListener("keydown",e=>{if(e.target.id==="lAdd"&&e.key==="Enter"){e.preventDefault();addFromBox()}});
+$("catView").addEventListener("pointerdown",e=>{if(e.target.closest("[data-sg]"))e.preventDefault()});
+$("catView").addEventListener("click",e=>{const b=e.target.closest("[data-sg]");if(!b||b.dataset.sg!=="lAdd")return;const inp=$("lAdd"),parts=inp.value.split(/[,;]/);parts[parts.length-1]=b.dataset.v;inp.value=parts.join(",");addFromBox()});
 $("chart").addEventListener("click",e=>{if(!S.pts||!S.pts.length)return;const sv=$("chart"),m=sv.getScreenCTM();if(!m)return;
   const pt=sv.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;const p=pt.matrixTransform(m.inverse());let best=null,bd=144;
   for(const q of S.pts){const d=(q[0]-p.x)**2+(q[1]-p.y)**2;if(d<bd){bd=d;best=q[2]}}
@@ -1342,6 +1444,17 @@ $("formDlg").addEventListener("drop",e=>{e.preventDefault();if(e.dataTransfer)ad
 $("q").addEventListener("input",e=>{S.q=e.target.value;renderCat()});
 $("sort").addEventListener("change",e=>{S.sort=e.target.value;renderCat()});
 ["sLat","sLon","sAlt","sHide"].forEach(id=>$(id).addEventListener("change",saveSet));
+let LD={mode:"new",id:null,pendingKey:null,confirm:false};
+function openListDlg(mode,l,pendingKey){LD={mode,id:l?l.id:null,pendingKey:pendingKey||null,confirm:false};
+  $("listDlgTitle").textContent=mode==="edit"?"Edit list":"New list";$("lName").value=l?l.name:"";$("lDesc").value=l?l.desc||"":"";
+  $("lErr").hidden=true;$("lDelete").hidden=mode!=="edit";$("lDelete").textContent="Delete list";$("listDlg").showModal();$("lName").focus()}
+async function addKeysToList(id,keys){const l=S.lists.find(x=>x.id===id);if(!l)return 0;const items=(l.items||[]).slice();let n=0;
+  for(const k of keys)if(!inItems(items,k)){items.push(k);n++}
+  if(n&&await saveList(Object.assign({},l,{items})))return n;return 0}
+async function addFromBox(){const inp=$("lAdd");if(!inp||!inp.value.trim())return;const id=S.view.slice(3),keys=[],bad=[];
+  for(const part of inp.value.split(/[,;\n]+/)){if(!part.trim())continue;for(const t of parseTargets(part)){if(BYKEY[t.key])keys.push(t.key);else bad.push(part.trim())}}
+  const n=await addKeysToList(id,keys);inp.value="";const u=document.getElementById("sg-lAdd");if(u)u.hidden=true;
+  toast((n?`Added ${n} object${n===1?"":"s"}.`:keys.length?"Already on this list.":"")+(bad.length?` Not added: ${[...new Set(bad)].join(", ")}. Lists can hold catalog objects only.`:""))}
 function setNight(on){if(on)document.documentElement.setAttribute("data-night","1");else document.documentElement.removeAttribute("data-night");$("night").setAttribute("aria-pressed",on);try{localStorage.setItem("night",on?"1":"")}catch(e){}}
 $("night").addEventListener("click",()=>setNight(!document.documentElement.hasAttribute("data-night")));
 try{if(localStorage.getItem("night")==="1")setNight(true)}catch(e){}
@@ -1349,12 +1462,15 @@ try{if(localStorage.getItem("night")==="1")setNight(true)}catch(e){}
 /* ---------- boot ---------- */
 for(const k in NAMES)if(NAMES[k])NM[nn(k)]=[{key:NAMES[k],label:NAMES[k]}];
 for(const o of Object.values(BYKEY))if(o.name)addAlt(o.key,o.name);
-for(const l of(window.NAMES_DATA||"").split("\n")){const i=l.lastIndexOf("|");if(i<1)continue;const name=l.slice(0,i),ds=l.slice(i+1).split(",");
+let curatedName=true;const named=new Set(),replaced=[];
+for(const l of(window.NAMES_DATA||"").split("\n")){if(l==="--openngc--"){curatedName=false;continue}const i=l.lastIndexOf("|");if(i<1)continue;const name=l.slice(0,i),ds=l.slice(i+1).split(",");
   const ts=ds.map(d=>{const t=parseTarget(d);if(t.key.startsWith("X:")&&ds.length===1)t.label=t.label+" "+name;return t});
-  NM[nn(name)]=ts;if(ts.length===1){addAlt(ts[0].key,name);const r=BYKEY[ts[0].key];if(r&&!r.name){r.name=name;r.hay=null}}
+  NM[nn(name)]=ts;if(ts.length===1){addAlt(ts[0].key,name);const r=BYKEY[ts[0].key];if(r&&(!r.name||(curatedName&&r.lab&&!named.has(r.key)))){if(r.name&&nn(r.name)!==nn(name))replaced.push([r.key,r.name]);r.name=name;r.hay=null;named.add(r.key)}}
   const own=ts.length===1&&BYKEY[ts[0].key]&&nn(BYKEY[ts[0].key].name)===nn(name);
   if(!own)NAMEDSUG.push(name+" ("+ts.map(t=>BYKEY[t.key]?dn(BYKEY[t.key]):t.label.replace(" "+name,"")).join(", ")+")")}
-SUG.fTarget=Object.values(BYKEY).map(o=>dn(o)+(o.name?" "+o.name:"")).concat(NAMEDSUG);
+for(const[k,old]of replaced){const g=NM[nn(old)];if(!g||(g.length===1&&g[0].key===k))addAlt(k,old);else if(ALTN[k])ALTN[k]=ALTN[k].filter(x=>nn(x)!==nn(old))}
+SUG.fTarget=Object.values(BYKEY).map(o=>dn(o)+(o.name?" "+o.name:"")).concat(NAMEDSUG);SUG.lAdd=SUG.fTarget;
+for(const c of CURATED){const keys=[];for(const part of c.items.split(","))for(const t of parseTargets(part))keys.push(t.key);CUR[c.id]=listRows(c.id,c.name,c.desc,keys,"cur");const miss=keys.filter(k=>!BYKEY[k]);if(miss.length)console.warn("Curated list "+c.id+" skipped",miss)}
 try{applySet(JSON.parse(localStorage.getItem("obsSettings")||"null"))}catch(e){}
 render();
 (async()=>{
@@ -1369,8 +1485,9 @@ render();
       else if(d.id==="plan"){S.plan={};for(const k of v.keys||[])S.plan[k]=1}
       else if(d.id==="covers"){S.covers={};for(const c of v.list||[])S.covers[c.k]=c.id}}
     render()},()=>{});
+  db.collection("lists").onSnapshot(sn=>{S.lists=sn.docs.map(d=>Object.assign({},d.data(),{id:d.id})).sort((a,b)=>(a.created||0)-(b.created||0));S.lhSig="";render()},()=>{});
   db.collection("observations").onSnapshot(snap=>{
-    S.obs=snap.docs.map(d=>{const o=Object.assign({},d.data(),{id:d.id});if(!Array.isArray(o.targets)||!o.targets.length)o.targets=[{key:o.target||"X:unknown",label:o.label||o.target||"Unknown"}];o.targets=o.targets.map(t=>{const m=/^X:ngc (\d+)$/.exec(t.key||"");if(m){const r=parseTarget("NGC "+m[1]);if(!r.key.startsWith("X:"))return r}return t});return o});S.dbState="ok";render();
+    S.obs=snap.docs.map(d=>{const o=Object.assign({},d.data(),{id:d.id});if(!Array.isArray(o.targets)||!o.targets.length)o.targets=[{key:o.target||"X:unknown",label:o.label||o.target||"Unknown"}];o.targets=o.targets.map(t=>{const m=/^X:(ngc|ic) (\d+)$/.exec(t.key||"");if(m){const r=parseTarget(m[1]+" "+m[2]);if(!r.key.startsWith("X:"))return r}return t});return o});S.dbState="ok";render();
   },()=>{S.dbState="error";render()});
 })();
 </script>

@@ -34,4 +34,4 @@ Upload the changed files to the repository again. In `sw.js`, change `VERSION` (
 
 ## Catalog data
 
-NGC data in `ngc.js` and part of the name list in `names.js` are derived from [OpenNGC](https://github.com/mattiaverga/OpenNGC) by Mattia Verga and is licensed [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). Messier and Caldwell descriptions, distances and sizes were written for this app and are approximate.
+NGC and IC data in `ngc.js` and `ic.js`, and part of the name list in `names.js` are derived from [OpenNGC](https://github.com/mattiaverga/OpenNGC) by Mattia Verga and is licensed [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). Messier and Caldwell descriptions, distances and sizes were written for this app and are approximate.

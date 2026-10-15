@@ -198,6 +198,7 @@ Hyades|C41
 Double Cluster|C14
 h Persei|NGC 869
 chi Persei|NGC 884
+--openngc--
 30 Dor Cluster|NGC 2070
 47 Tuc Cluster|NGC 104
 Alnilam|NGC 1990
