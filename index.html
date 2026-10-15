@@ -274,7 +274,7 @@ form label.pick,.setform label.pick{display:inline-flex;gap:6px;align-items:cent
 .xf{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .xf select{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:7px 10px;font-size:.9rem;max-width:100%}
 #xFilters{margin-top:-4px}
-.lhero{margin:0 0 6px}
+.lhero{margin:0 0 18px}
 .lhero h2{font:italic 600 2rem/1.1 var(--serif);margin:0}
 .lhero p{margin:6px 0 0;color:var(--muted)}
 .lsec{font:italic 600 1.35rem/1.2 var(--serif);margin:26px 0 4px}
@@ -292,22 +292,29 @@ form label.pick,.setform label.pick{display:inline-flex;gap:6px;align-items:cent
 .lcard.lnew{border-style:dashed;background:none;justify-content:center}
 .lcard.lnew .lt{color:var(--accent)}
 .lhead .back{font-size:.9rem;margin-bottom:6px;display:inline-block}
-.builder>.ihint{margin:0 0 12px}
-.builder .chartslot{margin-top:22px}
-.phead .back{font-size:.9rem;display:block;margin-bottom:4px}
-.psum{color:var(--muted);margin:-4px 0 16px;font-size:.92rem}
-.phero{border:1px solid var(--line);background:var(--surface);border-radius:4px;padding:16px 16px 4px;margin-bottom:6px}
-.phero .pnt{font:italic 600 1.6rem/1.15 var(--serif);margin:0}
-.phero .pverd{margin:4px 0 12px;color:var(--muted);max-width:62ch}
-.phero .facts{border-bottom:0;margin-bottom:0}
-.nights button{position:relative}
+.plan .lhero h2,.setform .lhero h2,.stats .lhero h2{font:italic 600 2rem/1.1 var(--serif);margin:0}
+.setform .lhero+h2{margin-top:0}
+.phd.lhero{margin-bottom:16px}
+.lhero p{max-width:62ch}
+.phd{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:flex-end;justify-content:space-between;margin-bottom:16px}
+.phero{border:1px solid var(--line);background:var(--surface);border-radius:4px;padding:16px;margin:14px 0 6px}
+.phero .pnt{font:italic 600 1.35rem/1.2 var(--serif);margin:0}
+.phero .pverd{margin:4px 0 10px;color:var(--muted);max-width:62ch}
+.pfacts{display:flex;flex-wrap:wrap;gap:4px 18px;margin:6px 0 0;font-size:.9rem}
+.pfacts b{font-weight:500;color:var(--muted);margin-right:4px}
 .nights .nq{display:block;height:3px;background:var(--line);margin-top:6px}
 .nights .nq i{display:block;height:100%;background:var(--accent-fill)}
-.pcards .lcard{min-height:150px}
-.pcards .lfoot{color:var(--accent)}
-#pDetails .facts{margin-top:0}
-#pDetails .lsec,#pHome .lsec{margin-top:24px}
-#pChartBox{margin-bottom:8px}
+.nights{grid-template-columns:repeat(8,minmax(84px,1fr))}
+.pother{display:flex;flex-direction:column;gap:2px;justify-content:center;position:relative;background:var(--surface);border:1px dashed var(--line);border-radius:4px;padding:8px;font-size:.78rem;color:var(--muted);margin:0;cursor:pointer}
+.pother b{color:var(--ink);font-size:.9rem;font-weight:500}
+.pother.on{border:1px solid var(--accent-fill);border-style:solid}
+.pother input{position:absolute;inset:0;opacity:0;width:100%;cursor:pointer}
+.secrow{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-top:22px}
+.secrow .lsec{margin:0}
+.pempty p{margin:0 0 10px}.pempty p:last-child{margin:0}
+#bOut>.hint{margin:6px 0 0}
+#pChartBox{margin:16px 0 8px}
+#buildDlg .dbody{padding-top:10px}
 .bgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px 12px}
 .bgrid label{display:flex;flex-direction:column;gap:4px;font-size:.82rem;color:var(--muted)}
 .bgrid select{background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:7px 8px;font-size:.92rem;color:var(--ink);width:100%}
@@ -458,6 +465,7 @@ form textarea{min-height:88px;resize:vertical}
   <section id="statView" class="stats" hidden></section>
 
   <section id="setView" class="setform" hidden>
+    <div class="lhero"><h2>Settings</h2><p>Your site, horizon, gear and backups.</p></div>
     <h2>Observing site</h2>
     <p class="note">Set your latitude to mark catalog objects that never rise high enough to observe.</p>
     <label for="sLat">Latitude in degrees</label>
@@ -523,6 +531,11 @@ form textarea{min-height:88px;resize:vertical}
     <label class="check" id="sessPlan" hidden><input type="checkbox" id="sessUsePlan" checked><span id="sessPlanTxt"></span></label>
     <div class="foot"><button class="btn primary" type="submit">Save session</button></div>
   </form>
+</dialog>
+
+<dialog id="buildDlg">
+  <div class="dhead"><h3>Build a plan</h3><button class="btn quiet" data-act="bClose">Cancel</button></div>
+  <div class="dbody"><div id="bForm"></div><div class="foot"><button class="btn primary" data-act="bBuild">Build plan</button></div></div>
 </dialog>
 
 <dialog id="listDlg">
@@ -1530,7 +1543,8 @@ function entryHTML(o,withTarget){
 }
 function renderStats(){
   const el=$("statView"),ob=S.obs;
-  if(!ob.length){el.innerHTML=`<p class="empty">${S.dbState==="wait"?"Loading your log…":"Stats appear once you have logged an observation."}</p>`;return}
+  const hd=`<div class="lhero"><h2>Stats</h2><p>Your observing so far, by month, target, gear and site.</p></div>`;
+  if(!ob.length){el.innerHTML=hd+`<p class="empty">${S.dbState==="wait"?"Loading your log…":"Stats appear once you have logged an observation."}</p>`;return}
   const nights=new Set(ob.map(o=>o.date).filter(Boolean)),objs=new Set();let photos=0,integ=0,vis=0;
   const add=(m,k,v)=>{if(k&&v)m[k]=(m[k]||0)+v},top=m=>Object.entries(m).sort((a,b)=>b[1]-a[1]).slice(0,5);
   const rigs={},sites={},tg={},filt={},gearT={};
@@ -1539,14 +1553,14 @@ function renderStats(){
   for(let i=11;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1),k=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");months.push({lab:MON[d.getMonth()],n:[...nights].filter(x=>x.startsWith(k)).length})}
   const mx=Math.max(1,...months.map(m=>m.n));
   const rank=(title,rows,fmt)=>rows.length?`<h3>${title}</h3><ol class="rank">${rows.map(r=>`<li><span>${esc(r[0])}</span><b>${fmt?fmt(r[1]):r[1]}</b></li>`).join("")}</ol>`:"";
-  el.innerHTML=`<dl class="facts"><div><dt>Nights out</dt><dd>${nights.size}</dd></div><div><dt>Observations</dt><dd>${ob.length-vis} imaged, ${vis} visual</dd></div><div><dt>Different targets</dt><dd>${objs.size}</dd></div><div><dt>Photos</dt><dd>${photos}</dd></div><div><dt>Total integration</dt><dd>${integ?fmtDur(integ):"None logged"}</dd></div></dl>
+  el.innerHTML=hd+`<dl class="facts"><div><dt>Nights out</dt><dd>${nights.size}</dd></div><div><dt>Observations</dt><dd>${ob.length-vis} imaged, ${vis} visual</dd></div><div><dt>Different targets</dt><dd>${objs.size}</dd></div><div><dt>Photos</dt><dd>${photos}</dd></div><div><dt>Total integration</dt><dd>${integ?fmtDur(integ):"None logged"}</dd></div></dl>
   <h3>Nights out per month</h3><div class="months">${months.map(m=>`<div title="${m.lab}: ${m.n}"><b>${m.n||""}</b><i style="height:${Math.round(100*m.n/mx)}%"></i>${m.lab}</div>`).join("")}</div>
   ${rank("Most-used rigs",top(rigs))}${rank("Most-used gear",top(gearT))}${rank("Sites",top(sites))}${rank("Most observed targets",top(tg))}${rank("Integration by filter",top(filt),fmtDur)}`;
 }
 function renderLog(){
   const list=S.obs.slice().sort((a,b)=>(b.date||"").localeCompare(a.date||"")||(b.created||0)-(a.created||0));
   const photos=list.reduce((n,o)=>n+(o.photos?o.photos.length:0),0);
-  $("logView").innerHTML=`<div class="progress"><h2>${list.length} observation${list.length===1?"":"s"}, ${photos} photo${photos===1?"":"s"}</h2></div>`+
+  $("logView").innerHTML=`<div class="lhero"><h2>Logbook</h2><p>${list.length} observation${list.length===1?"":"s"}, ${photos} photo${photos===1?"":"s"}, newest first.</p></div>`+
     (list.length?list.map(o=>entryHTML(o,true)).join(""):`<p class="empty">${S.dbState==="wait"?"Loading your log…":"Nothing logged yet. "+(S.canWrite?"Use Log observation to add your first night, with photos.":"")}</p>`);
 }
 function dome(o){
@@ -1784,7 +1798,7 @@ async function removeObs(id,box){
 function catMenu(open){const p=$("catPop");if(!p)return;p.hidden=!open;$("catBtn").setAttribute("aria-expanded",open);if(open){const r=$("catBtn").getBoundingClientRect();p.style.top=(r.bottom+4)+"px";p.style.left=Math.max(8,Math.min(r.left,innerWidth-Math.max(p.offsetWidth,220)-8))+"px"}}
 
 document.addEventListener("click",async ev=>{
-  const tab=ev.target.closest("[data-view]");if(tab){if(tab.dataset.view==="plan"&&tab.closest(".tabs"))S.pSub="";S.view=tab.dataset.view;S.type="";render();return}
+  const tab=ev.target.closest("[data-view]");if(tab){S.view=tab.dataset.view;S.type="";render();return}
   const ty=ev.target.closest("[data-type]");if(ty){S.type=S.type===ty.dataset.type?"":ty.dataset.type;renderCat();return}
   const md=ev.target.closest("[data-mode]");if(md){S.mode=md.dataset.mode;renderCat();return}
   if(ev.target.closest("#tonightBtn")){if(S.set.lat==null){S.view="set";render();$("setMsg").textContent="Set your latitude to use Up tonight.";$("sLat").focus()}else{S.tonight=!S.tonight;renderCat()}return}
@@ -1803,7 +1817,7 @@ document.addEventListener("click",async ev=>{
   else if(act==="zoom"){const o=S.obs.find(x=>x.id===a.dataset.oid),p=o&&o.photos&&o.photos[+a.dataset.i];if(!p)return;LB=p;$("lbImg").src=blob(p.id);$("lbCap").textContent=p.cap||"";lbBtn();$("lightbox").showModal()}
   else if(act==="closeLb")$("lightbox").close();
   else if(act==="setCover"){if(!S.detail||!LB)return;S.covers[S.detail]=LB.id;putDoc("covers",{list:Object.keys(S.covers).map(k=>({k,id:S.covers[k]}))});render();lbBtn()}
-  else if(act==="plan"){const k=a.dataset.key;if(S.plan[k])delete S.plan[k];else S.plan[k]=1;putDoc("plan",{keys:Object.keys(S.plan)});render()}
+  else if(act==="plan"){planToggle(a.dataset.key);render()}
   else if(act==="addRig"){const n=$("rName").value.trim();if(!n){$("rName").focus();return}if(!RP.size){toast("Tick at least one piece of gear for this rig.");return}S.rigs=S.rigs.filter(r=>r.name!==n).concat({name:n,items:[...RP]});RP.clear();$("rName").value="";saveGear()}
   else if(act==="addGear"){const n=$("gName").value.trim();if(!n){$("gName").focus();return}const t=$("gType").value,nv=id=>{const x=parseFloat($(id).value);return x>0?x:null},g={type:t,name:n};
     if(t==="Telescope"){g.fl=nv("gFl");g.ap=nv("gAp")}if(t==="Camera"){g.sw=nv("gSw");g.sh=nv("gSh");g.px=nv("gPx")}if(/Reducer|Barlow/.test(t))g.fac=nv("gFac");
@@ -1915,7 +1929,7 @@ render();
     for(const d of sn.docs){const v=d.data()||{};
       if(d.id==="main"){if(!d.metadata.hasPendingWrites)applySet(v)}
       else if(d.id==="gear"){S.rigs=(v.rigs||[]).map(x=>Object.assign({},x));S.sites=(v.sites||[]).map(x=>Object.assign({},x));S.gear=(v.items||[]).map(x=>Object.assign({},x))}
-      else if(d.id==="plan"){S.plan={};for(const k of v.keys||[])S.plan[k]=1}
+      else if(d.id==="plan")planLoad(v)
       else if(d.id==="covers"){S.covers={};for(const c of v.list||[])S.covers[c.k]=c.id}
       else if(d.id==="session"){S.session=v.active?Object.assign({},v):null}}
     render()},()=>{});

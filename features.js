@@ -99,90 +99,51 @@ function nightVerdict(N){const h=N.moonless/60,lit=N.moonLit||0;
   if(h>=3)return`About ${Math.round(h)} hours without the Moon. Save the faint targets for then.`;
   if(lit>.6)return"A bright Moon most of the night. Good for the Moon itself, planets, double stars and clusters, or narrowband imaging.";
   return"Little moonless darkness. Bright clusters, planets and double stars will show best."}
-function nightTitle(ds){const t=tonightStr();if(ds===t)return"Tonight";const d=new Date(ds+"T12:00"),k=Math.round((d-new Date(t+"T12:00"))/864e5);
-  return k===1?"Tomorrow night":d.toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"})}
-const PSUBS={details:"Night details",build:"List builder",browse:"Object browser"};
-function planCards(N){const ss=(CATS.S?CATS.S.rows:[]).filter(o=>o.tlong==="Planet"&&o.mag!=null&&o.mag<6).map(o=>({o,r:objNight(o,N)})).filter(x=>x.r&&x.r.up>=30);
-  const B=S.B,card=(s,t,d,f)=>`<button class="lcard pcard" ${s.startsWith("lists")?`data-act="pMyLists"`:`data-act="pSub" data-s="${s}"`}><span class="lt">${t}</span><span class="ldsc">${d}</span><span class="lfoot">${f}</span></button>`;
-  return card("details","Night details","Twilight and Moon times, planets and showpieces that are up, and an all-sky view.",ss.length?esc(ss.map(x=>x.o.lab).join(", "))+" up":"No bright planets up")
-   +card("build","List builder","Pick your window, equipment and aim, and get a suggested schedule to tweak and save.",B&&B.built&&B.picks.length?`${B.picks.length} objects on your current list`:"Build a list in seconds")
-   +card("browse","Object browser","Browse any catalog or list with rise, set and best times, and chart what you pick.",Object.keys(S.plan).length?`${Object.keys(S.plan).length} planned objects`:"Every catalog and list")
-   +card("lists","My lists",S.canWrite?"Create, edit and rename your own lists, or copy a curated list to change it.":"Your own observing lists.",`${S.lists.length} list${S.lists.length===1?"":"s"}`)}
+function nightTitle(ds){const t=tonightStr();const d=new Date(ds+"T12:00"),full=d.toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"});
+  return ds===t?"Tonight, "+full:full}
 function renderPlan(){
   const el=$("planView");
-  if(S.set.lat==null){el.dataset.built="";el.innerHTML=`<h2>Plan a night</h2><p class="empty">Set your latitude in Settings to plan a night. Longitude makes the times more accurate.</p>`;return}
-  if(!S.pDate)S.pDate=tonightStr();if(!S.pSrc)S.pSrc=Object.keys(S.plan).length?"plan":"cur:astro-top";if(!PSUBS[S.pSub])S.pSub="";
-  const N=nightAt(S.pDate),sub=S.pSub;
-  if(!el.dataset.built){el.dataset.built="1";el.innerHTML=`<div class="phead"><div><button class="linkish back" data-act="pSub" data-s="" id="pBack">Plan</button><h2 id="pTitle">Plan a night</h2></div>
-    <div class="acts"><input type="date" id="pDate" aria-label="Night of"><button class="btn" data-act="pToday">Tonight</button>${S.canWrite?'<button class="btn primary" data-act="sessStart">Start session</button>':""}</div></div>
-    <p class="psum" id="pSum"></p>
-    <div id="pHome"><div class="phero"><p class="pnt" id="pNightT"></p><p class="pverd" id="pVerd"></p><dl class="facts" id="pFacts"></dl></div>
-      <h3 class="lsec">The week ahead</h3><div class="nights" id="pNights"></div>
-      <h3 class="lsec">Plan</h3><div class="lgrid pcards" id="pCards"></div></div>
-    <section id="pDetails" hidden><dl class="facts" id="pFacts2"></dl><div class="chartslot" data-for="details"></div><p class="ihint">Altitude through the night for the Moon (dashed) and planets. Shaded bands are twilight.</p>
-      <h3 class="lsec">Planets and the Moon</h3><div id="pPlanets"></div><h3 class="lsec">Showpieces well placed</h3><div id="pShow"></div>
-      <h3 class="lsec">Sky view</h3>
-      <div class="tools"><input type="range" id="skyT" min="0" max="144" step="1" aria-label="Time"><span id="skyTl"></span><label class="check"><input type="checkbox" id="skyLines" checked> Constellation lines</label></div>
-      <div class="skybox"><svg id="skySvg" viewBox="0 0 640 640" role="img" aria-label="All-sky view"></svg></div>
-      <p class="ihint">Looking straight up: north at the top, east on the left. Tap an object to open it.</p></section>
-    <section class="builder" id="pBuild" hidden><p class="ihint">Tell it when you're out and what you're after, and it suggests targets in a sensible order. Keep, swap or remove any of them, then save the result.</p>
-      <div id="bForm"></div><div id="bOut"></div>
-      <div class="badd" id="bAddWrap" hidden><div class="addwrap"><input id="bAdd" autocomplete="off" autocapitalize="off" enterkeyhint="done" placeholder="Add your own: M13, Ring Nebula, Saturn" aria-label="Add objects to the list"></div><button class="btn" data-act="bAddBtn">Add</button></div>
-      <div class="chartslot" data-for="build"></div></section>
-    <section id="pBrowse" hidden><div class="tools"><select id="pSrc" aria-label="Objects to plan from"></select><span class="xf" id="pFilters"></span><label class="check"><input type="checkbox" id="pWell" checked> Only objects up for an hour or more in darkness</label></div>
-      <div class="chartslot" data-for="browse"></div><div id="pRows"></div></section>
-    <div class="chartbox" id="pChartBox"><svg id="pChart" viewBox="0 0 960 320" role="img"></svg></div>`}
-  $("pDate").value=S.pDate;$("pBack").hidden=!sub;$("pTitle").textContent=sub?PSUBS[sub]:"Plan a night";
-  for(const[id,k]of[["pHome",""],["pDetails","details"],["pBuild","build"],["pBrowse","browse"]])$(id).hidden=sub!==k;
-  const slot=sub&&el.querySelector(`.chartslot[data-for="${sub}"]`),cb=$("pChartBox");if(slot){if(cb.parentNode!==slot)slot.appendChild(cb);cb.hidden=false}else cb.hidden=true;
-  const ev=N.ev,f=[["Sunset",fmtT(ev.sunset)],["Dark",ev.dusk?fmtT(ev.dusk)+" – "+fmtT(ev.dawn):"No full darkness"],["Sunrise",fmtT(ev.sunrise)],
-    ["Moon",moonLine(N)],["Moonless darkness",N.moonless?fmtDur(N.moonless*60):"None"]];
-  const fh=f.map(r=>`<div><dt>${r[0]}</dt><dd>${esc(r[1])}</dd></div>`).join("");
-  $("pSum").hidden=!sub||sub==="details";$("pSum").textContent=sub?`${nightTitle(S.pDate)}${S.pDate===tonightStr()?"":""}: dark ${ev.dusk?fmtT(ev.dusk)+" to "+fmtT(ev.dawn):"never fully"}, Moon ${moonLine(N)}.`:"";
-  if(!sub){$("pNightT").textContent=nightTitle(S.pDate)+(S.pDate===tonightStr()?", "+new Date(S.pDate+"T12:00").toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"}):"");
-    $("pVerd").textContent=nightVerdict(N);$("pFacts").innerHTML=fh;
-    let nh="";const t0=new Date(Date.now()-12*3600e3);
-    for(let i=0;i<7;i++){const d=new Date(t0);d.setDate(d.getDate()+i);const ds=dstr(d),M=nightAt(ds),q=M?Math.min(1,M.moonless/600):0;
-      nh+=`<button data-act="pNight" data-d="${ds}" aria-pressed="${ds===S.pDate}"><b>${i===0?"Tonight":d.toLocaleDateString(undefined,{weekday:"short",day:"numeric"})}</b><span>${M&&M.moonLit!=null?Math.round(M.moonLit*100)+"% moon":""}</span><span>${M?fmtDur(M.moonless*60)+" moonless":""}</span><i class="nq"><i style="width:${Math.round(q*100)}%"></i></i></button>`}
-    $("pNights").innerHTML=nh;$("pCards").innerHTML=planCards(N);S.planRowsCache=null;return}
-  if(sub==="details"){$("pFacts2").innerHTML=fh;renderDetails(N);return}
-  if(sub==="build"){renderBuilder(N);const BB=S.B;cb.hidden=!(BB&&BB.picks.length);if(BB&&BB.picks.length)drawPlanChart(N,BB.picks.map(p=>({o:BYKEY[p.key],r:BYKEY[p.key]&&objNight(BYKEY[p.key],N)})).filter(x=>x.r));return}
-  // object browser
-  $("pSrc").innerHTML=planSources().map(([v,n])=>`<option value="${esc(v)}"${v===S.pSrc?" selected":""}>${esc(n)}${v==="plan"?` (${Object.keys(S.plan).length})`:""}</option>`).join("");
-  const g=grouped(true),sess=S.session&&S.session.active?S.session:null;
-  const src=planRows(S.pSrc);$("pFilters").innerHTML=filterHTML(true,src);
-  let rows=src.filter(o=>extraFilter(o,true)).map(o=>({o,r:objNight(o,N)})).filter(x=>x.r);
-  if($("pWell").checked)rows=rows.filter(x=>x.r.up>=60);
-  if(planRowsBig())rows=rows.sort((a,b)=>b.r.up-a.r.up||(a.o.mag||99)-(b.o.mag||99)).slice(0,60);
-  rows.sort((a,b)=>a.r.pt-b.r.pt);
-  if(!S.pChart||S.pChartSrc!==S.pSrc+S.pDate+filterSig()){S.pChart=new Set(rows.slice(0,6).map(x=>x.o.key));S.pChartSrc=S.pSrc+S.pDate+filterSig()}
-  $("pRows").innerHTML=rows.length?rows.map(x=>planRowHTML(x,N,g,sess,true)).join(""):`<p class="empty">No objects from this list are well placed that night. Try another list or turn off the filter.</p>`;
-  drawPlanChart(N,rows.filter(x=>S.pChart.has(x.o.key)));S.planRowsCache=rows}
-function planRowHTML({o,r},N,g,sess,chartBtn){const w=moonWarn(r,N),done=g[o.key],inS=sess&&(g[o.key]||[]).some(e=>e.session===sess.id);
-  return`<div class="prow${done?" seen":""}"><button class="pname" data-act="open" data-key="${esc(o.key)}">${esc(dn(o))}${o.name?` <small>${esc(o.name)}</small>`:""}</button>
-      <span class="pmeta">${esc(o.tlong||TYPES[o.type][0])}${done?", observed":""}${inS?", logged this session":""}</span>
-      <span>Best ${fmtT(r.pt)} at ${Math.round(r.peak)}°</span>
-      <span>${r.up?`Up ${fmtT(r.first)} – ${fmtT(r.last)} (${fmtDur(r.up*60)})`:"Not above your horizon in darkness"}</span>
-      <span class="${w?"warn":""}">${o.ss&&o.lab==="Moon"?(N.moonLit!=null?Math.round(N.moonLit*100)+"% lit":""):`Moon ${Math.round(r.sep)}° away${w?", bright and close":""}`}</span>
-      ${chartBtn?`<button class="btn quiet" data-act="pChartT" data-key="${esc(o.key)}" aria-pressed="${S.pChart.has(o.key)}">On chart</button>`:"<span></span>"}</div>`}
-function renderDetails(N){const g=grouped(true),sess=sessActive();
-  const pl=(CATS.S?CATS.S.rows:[]).filter(o=>/^(Planet|Moon)$/.test(o.tlong)).map(o=>({o,r:objNight(o,N)})).filter(x=>x.r);
-  const up=pl.filter(x=>x.r.up>0).sort((a,b)=>a.r.pt-b.r.pt),down=pl.filter(x=>!x.r.up);
-  $("pPlanets").innerHTML=(up.length?up.map(x=>planRowHTML(x,N,g,sess,false)).join(""):`<p class="empty">No planets above your horizon in darkness.</p>`)+(down.length?`<p class="ihint">Not up in darkness: ${esc(down.map(x=>x.o.lab).join(", "))}.</p>`:"");
-  const cc=bCurCount(),sh=(CUR.visual?CUR.visual.rows:[]).filter(o=>!o.ss&&!o.lunar).map(o=>({o,r:objNight(o,N)})).filter(x=>x.r&&x.r.up>=120&&x.r.peak>=30)
-    .sort((a,b)=>(cc[b.o.key]||0)+b.r.peak/30-(cc[a.o.key]||0)-a.r.peak/30).slice(0,10).sort((a,b)=>a.r.pt-b.r.pt);
-  $("pShow").innerHTML=sh.length?sh.map(x=>planRowHTML(x,N,g,sess,false)).join("")+`<p class="ihint"><button class="linkish" data-act="pSub" data-s="build">Build a full list for the night</button></p>`:`<p class="empty">No showpieces are well placed that night.</p>`;
-  drawPlanChart(N,up);
+  if(S.set.lat==null){el.dataset.built="";el.innerHTML=`<div class="lhero"><h2>Plan</h2><p>Pick a night and build a plan for it.</p></div><p class="empty">Set your latitude in Settings to plan a night. Longitude makes the times more accurate.</p>`;return}
+  if(!S.pDate)S.pDate=tonightStr();
+  const N=nightAt(S.pDate),B=bState();
+  if(!el.dataset.built){el.dataset.built="1";el.innerHTML=`<div class="lhero phd"><div><h2>Plan</h2><p>Pick a night, then build a plan for it.</p></div>${S.canWrite?'<button class="btn" data-act="sessStart">Start session</button>':""}</div>
+    <div class="nights" id="pNights"></div>
+    <div class="phero"><p class="pnt" id="pNightT"></p><p class="pverd" id="pVerd"></p><p class="pfacts" id="pFacts"></p><p class="pfacts" id="pPlanets"></p></div>
+    <div class="secrow"><h3 class="lsec">Your plan</h3><button class="btn" data-act="bOpen" id="bOpenBtn">Build a plan</button></div>
+    <div id="bOut"></div>
+    <div class="badd" id="bAddWrap"><div class="addwrap"><input id="bAdd" autocomplete="off" autocapitalize="off" enterkeyhint="done" placeholder="Add an object: M13, Ring Nebula, Saturn" aria-label="Add objects to your plan"></div><button class="btn" data-act="bAddBtn">Add</button></div>
+    <div class="chartbox" id="pChartBox"><svg id="pChart" viewBox="0 0 960 320" role="img"></svg></div>
+    <h3 class="lsec">Sky view</h3>
+    <div class="tools"><input type="range" id="skyT" min="0" max="144" step="1" aria-label="Time"><span id="skyTl"></span><label class="check"><input type="checkbox" id="skyLines" checked> Constellation lines</label></div>
+    <div class="skybox"><svg id="skySvg" viewBox="0 0 640 640" role="img" aria-label="All-sky view"></svg></div>
+    <p class="ihint">Looking straight up: north at the top, east on the left. Your planned objects are marked. Tap one to open it.</p>`}
+  // week strip, with any other date at the end
+  let nh="";const t0=new Date(Date.now()-12*3600e3),days=[];
+  for(let i=0;i<7;i++){const d=new Date(t0);d.setDate(d.getDate()+i);days.push(dstr(d))}
+  for(const[i,ds]of days.entries()){const d=new Date(ds+"T12:00"),M=nightAt(ds),q=M?Math.min(1,M.moonless/600):0;
+    nh+=`<button data-act="pNight" data-d="${ds}" aria-pressed="${ds===S.pDate}"><b>${i===0?"Tonight":d.toLocaleDateString(undefined,{weekday:"short",day:"numeric"})}</b><span>${M&&M.moonLit!=null?Math.round(M.moonLit*100)+"% moon":""}</span><span>${M?fmtDur(M.moonless*60)+" dark":""}</span><i class="nq"><i style="width:${Math.round(q*100)}%"></i></i></button>`}
+  const other=!days.includes(S.pDate);
+  $("pNights").innerHTML=nh+`<label class="pother${other?" on":""}"><b>${other?new Date(S.pDate+"T12:00").toLocaleDateString(undefined,{month:"short",day:"numeric"}):"Other night"}</b><input type="date" id="pDate" value="${S.pDate}" aria-label="Pick another night"></label>`;
+  // night summary
+  const ev=N.ev;$("pNightT").textContent=nightTitle(S.pDate);$("pVerd").textContent=nightVerdict(N);
+  $("pFacts").innerHTML=[ev.dusk?`<b>Dark</b> ${fmtT(ev.dusk)} – ${fmtT(ev.dawn)}`:"<b>No full darkness</b>",`<b>Moon</b> ${esc(moonLine(N))}`,`<b>Moonless</b> ${N.moonless?fmtDur(N.moonless*60):"none"}`,`<b>Sunset</b> ${fmtT(ev.sunset)}`,`<b>Sunrise</b> ${fmtT(ev.sunrise)}`].map(x=>`<span>${x}</span>`).join("");
+  const pl=(CATS.S?CATS.S.rows:[]).filter(o=>o.tlong==="Planet"&&o.mag!=null&&o.mag<8).map(o=>({o,r:objNight(o,N)})).filter(x=>x.r&&x.r.up>=30).sort((a,b)=>a.r.pt-b.r.pt);
+  $("pPlanets").innerHTML=pl.length?`<b>Planets</b> `+pl.map(x=>`<button class="linkish" data-act="open" data-key="${esc(x.o.key)}">${esc(x.o.lab)}</button> best ${fmtT(x.r.pt)}`).join(", "):"<b>Planets</b> none up in darkness";
+  // the plan
+  renderPlanList(N);
+  const rows=B.picks.map(p=>({o:BYKEY[p.key],r:BYKEY[p.key]&&objNight(BYKEY[p.key],N)})).filter(x=>x.r);
+  $("pChartBox").hidden=!rows.length;if(rows.length)drawPlanChart(N,rows);
+  $("bOpenBtn").textContent="Build a new plan";$("bOpenBtn").hidden=!B.picks.length;
+  S.planRowsCache=rows;
   const sl=$("skyT"),i0=N.smp.findIndex(x=>x.sun<-12),i1=N.smp.length-1-[...N.smp].reverse().findIndex(x=>x.sun<-12);
   sl.min=Math.max(0,i0-6);sl.max=Math.min(144,i1+6);
   if(S.skyIdx==null||S.skyDate!==S.pDate){const now=Date.now(),k=N.smp.findIndex(x=>x.t>=now);S.skyIdx=k>=+sl.min&&k<=+sl.max?k:Math.min(+sl.max,Math.max(+sl.min,60));S.skyDate=S.pDate}
-  sl.value=S.skyIdx;S.planRowsCache=up.concat(sh);drawSky(N)}
+  sl.value=S.skyIdx;drawSky(N)}
 function moonLine(N){const ev=N.ev,end=N.base+86400e3,inN=t=>t&&t>N.base&&t<end,parts=[];
   if(N.moonLit!=null)parts.push(Math.round(N.moonLit*100)+"% lit");
   const evs=[["rises",ev.moonrise],["sets",ev.moonset]].filter(x=>inN(x[1])).sort((a,b)=>a[1]-b[1]);
   if(evs.length)parts.push(evs.map(x=>x[0]+" "+fmtTime(x[1])).join(", "));else{const m=N.smp[72];parts.push(m.moon>0?"up all night":"down all night")}
   return parts.join(", ")}
-function planRowsBig(){const v=S.pSrc;return v==="N"||v==="I"}
 function drawPlanChart(N,rows){
   const W=960,H=320,L=40,R=16,T=12,B=30,smp=N.smp,i0=Math.max(0,smp.findIndex(x=>x.sun<0)-3),i1=Math.min(144,smp.length-[...smp].reverse().findIndex(x=>x.sun<0)+2);
   const t0=smp[i0].t,t1=smp[i1].t,x=t=>L+(t-t0)/(t1-t0)*(W-L-R),y=a=>T+(90-Math.max(0,Math.min(90,a)))/90*(H-T-B);
@@ -240,11 +201,11 @@ function openSess(edit){
   v("sDate2",ss?ss.date:(S.view==="plan"&&S.pDate)||tonightStr());v("sSite2",ss?ss.site:(S.obs[0]&&S.obs.slice().sort((a,b)=>(b.created||0)-(a.created||0))[0].site)||"");
   $("sRig2").innerHTML='<option value="">No saved rig</option>'+S.rigs.map(r=>`<option>${esc(r.name)}</option>`).join("");v("sRig2",ss?ss.rig:"");
   v("sKind2",ss?ss.kind:"imaged");v("sBortle2",ss?ss.bortle:"");v("sSqm2",ss?ss.sqm:"");v("sSee2",ss?ss.seeing:"");v("sTra2",ss?ss.transp:"");v("sNotes2",ss?ss.notes:"");
-  $("sessPlan").hidden=!!ss||S.view!=="plan"||!S.pSub;const bk=S.pSub==="build"?bPlanKeys():null;$("sessPlanTxt").textContent=S.view!=="plan"||!S.pSub?"":bk?`Use the ${bk.length} objects on your built list as the session's checklist`:S.planRowsCache?`Use the ${S.planRowsCache.length} objects on this plan as the session's checklist`:"";
+  const bk=bPlanKeys();$("sessPlan").hidden=!!ss||!bk;$("sessPlanTxt").textContent=bk?`Use the ${bk.length} object${bk.length===1?"":"s"} in your plan as the session's checklist`:"";
   $("sessDlg").showModal()}
 async function saveSess(e){
   e.preventDefault();const old=sessActive(),site=$("sSite2").value.trim(),st=S.sites.find(x=>x.name===site),rig=$("sRig2").value,r=S.rigs.find(x=>x.name===rig);
-  const ss=Object.assign({},old||{id:newId(),started:Date.now(),plan:$("sessUsePlan").checked&&S.view==="plan"?((S.pSub==="build"&&bPlanKeys())||(S.planRowsCache||[]).map(x=>x.o.key)):[]},{active:true,date:$("sDate2").value||tonightStr(),site,rig,items:r?rigItems(r):[],kind:$("sKind2").value,
+  const ss=Object.assign({},old||{id:newId(),started:Date.now(),plan:$("sessUsePlan").checked?(bPlanKeys()||[]):[]},{active:true,date:$("sDate2").value||tonightStr(),site,rig,items:r?rigItems(r):[],kind:$("sKind2").value,
     bortle:+$("sBortle2").value||(st&&st.bortle)||null,sqm:parseFloat($("sSqm2").value)||null,seeing:+$("sSee2").value||null,transp:+$("sTra2").value||null,notes:$("sNotes2").value.trim()});
   S.session=ss;putDoc("session",ss);$("sessDlg").close();render();toast(old?"Session updated.":"Session started. New observations use these details.")}
 async function quickLog(key){
@@ -308,8 +269,9 @@ function featuresInit(){
   $("fDate").addEventListener("input",()=>{F.dateTouched=true});
   $("fFits").addEventListener("change",e=>{const fs=[...e.target.files];e.target.value="";if(fs.length)fitsFill(fs)});
   $("planView").addEventListener("change",e=>{if(bChange(e))return;const id=e.target.id;
-    if(id==="pDate"&&e.target.value){S.pDate=e.target.value;renderPlan()}else if(id==="pSrc"){S.pSrc=e.target.value;renderPlan()}else if(id==="pWell")renderPlan();else if(id==="skyLines"){const N=nightAt(S.pDate);if(N)drawSky(N)}});
+    if(id==="pDate"&&e.target.value){S.pDate=e.target.value;renderPlan()}else if(id==="skyLines"){const N=nightAt(S.pDate);if(N)drawSky(N)}});
   $("planView").addEventListener("input",e=>{if(e.target.id==="bAdd"){SUG.bAdd=SUG.fTarget;suggestFor(e.target);return}if(e.target.id==="skyT"){S.skyIdx=+e.target.value;const N=nightAt(S.pDate);if(N)drawSky(N)}});
+  $("buildDlg").addEventListener("change",bChange);
   $("planView").addEventListener("keydown",e=>{if(e.target.id==="bAdd"&&e.key==="Enter"){e.preventDefault();featureAct("bAddBtn",e.target)}});
   $("planView").addEventListener("pointerdown",e=>{if(e.target.closest("[data-sg]"))e.preventDefault()});
   $("planView").addEventListener("click",e=>{const b=e.target.closest("[data-sg]");if(!b||b.dataset.sg!=="bAdd")return;e.stopPropagation();$("bAdd").value=b.dataset.v;featureAct("bAddBtn",b)},true);
@@ -323,11 +285,8 @@ async function featureAct(act,a){
   if(/^b[A-Z]/.test(act)&&await bAct(act,a))return true;
   switch(act){
     case"fClear":S.f_season=S.f_scope=S.f_frame=S.f_type="";render();return true;
-    case"pSub":S.pSub=a.dataset.s||"";renderPlan();window.scrollTo(0,0);return true;
-    case"pMyLists":S.view="lists";render();setTimeout(()=>{const h=$("myLists");if(h)h.scrollIntoView({block:"start"})},0);return true;
     case"pToday":S.pDate=tonightStr();renderPlan();return true;
     case"pNight":S.pDate=a.dataset.d;renderPlan();return true;
-    case"pChartT":{if(S.B)S.B.chart=false;const k=a.dataset.key;if(S.pChart.has(k))S.pChart.delete(k);else S.pChart.add(k);renderPlan();return true}
     case"sessStart":openSess(false);return true;
     case"sessEdit":openSess(true);return true;
     case"sessEnd":if(a.dataset.confirm){S.session=null;putDoc("session",{active:false});render();toast("Session ended.")}else{a.dataset.confirm="1";a.textContent="Confirm end";setTimeout(()=>{if(a.isConnected){a.textContent="End session";delete a.dataset.confirm}},4000)}return true;
@@ -445,16 +404,17 @@ function bAdd(text){const B=bState(),N=nightAt(S.pDate);if(!N)return;const keys=
   for(const part of text.split(/[,;\n]+/)){if(!part.trim())continue;for(const t of parseTargets(part)){if(BYKEY[t.key])keys.push(t.key);else bad.push(part.trim())}}
   let n=0;const taken=new Set(B.picks.map(p=>p.slot));
   for(const k of keys){if(B.picks.some(p=>keysOf(p.key).includes(k)))continue;B.skip.delete(k);const sl=bFreeSlot(k,N,B,taken);taken.add(sl);B.picks.push({key:k,slot:sl,pin:true,why:["added by you"]});n++}
-  B.picks.sort((a,b)=>a.slot-b.slot);B.built=true;
-  toast((n?`Added ${n} to the list.`:keys.length?"Already on the list.":"")+(bad.length?` Not found: ${[...new Set(bad)].join(", ")}.`:""))}
+  B.picks.sort((a,b)=>a.slot-b.slot);if(n)planSave();
+  toast((n?`Added ${n} to your plan.`:keys.length?"Already in your plan.":"")+(bad.length?` Not found: ${[...new Set(bad)].join(", ")}.`:""))}
 function bBest(key,N,W,k){const o=BYKEY[key],r=o&&objNight(o,N);if(!r)return 0;let bi=W.st,ba=-99;for(let i=W.st;i<=W.end;i++)if(r.alts[i]>ba){ba=r.alts[i];bi=i}return Math.round((bi-W.st)/k)}
 function bOpt(v,cur,label){return`<option value="${esc(String(v))}"${String(v)===String(cur)?" selected":""}>${esc(label)}</option>`}
-function renderBuilder(N){
+function renderBuildForm(N){
   const B=bState(),W=bWindow(N,B),el=$("bForm");if(!el)return;B.start=W.st;
   const times=[];for(let i=W.i0;i<=W.iE;i+=3)times.push(i);if(!times.includes(W.st))times.push(W.st),times.sort((a,b)=>a-b);
-  const fo=filterOpts(),scopes=fo.scope.filter(x=>x[0]),rigs=S.rigs.filter(r=>rigOptics(r));
+  const fo=filterOpts(),scopes=fo.scope.filter(x=>x[0]),rigs=S.rigs.filter(r=>rigOptics(r)),pins=B.picks.filter(p=>p.pin).length,room=Math.max(1,Math.floor((W.end-W.st)/Math.max(1,Math.round(B.per/10))));
   if(!BPER[B.method].some(x=>x[0]===B.per))B.per=B.method==="visual"?15:60;
-  el.innerHTML=`<div class="bgrid">
+  el.innerHTML=`<p class="hint" style="margin:0 0 12px">${esc(nightTitle(S.pDate))}. ${fmtTime(N.smp[W.st].t)} to ${fmtTime(N.smp[Math.min(W.end,N.smp.length-1)].t)}, room for about ${room} object${room===1?"":"s"}.</p>
+  <div class="bgrid">
     <label>Start<select id="bStart">${times.map(i=>bOpt(i,W.st,fmtTime(N.smp[i].t))).join("")}</select></label>
     <label>For<select id="bLen">${BLEN.map(([v,n])=>bOpt(v,B.len,n)).join("")}</select></label>
     <label>Observing<select id="bMethod">${bOpt("visual",B.method,"Visually")}${bOpt("imaged",B.method,"Imaging")}</select></label>
@@ -462,49 +422,66 @@ function renderBuilder(N){
       :`<label>Rig<select id="bRig">${bOpt("",B.rig,rigs.length?"Any, don't check framing":"No rig with focal length and sensor")}${rigs.map(r=>bOpt(r.name,B.rig,r.name)).join("")}</select></label>`}
     <label>Time per object<select id="bPer">${BPER[B.method].map(([v,n])=>bOpt(v,B.per,n)).join("")}</select></label>
     <label>Aim<select id="bGoal">${BGOALS.map(([v,n])=>bOpt(v,B.goal,n)).join("")}</select></label>
-    ${B.goal==="list"?`<label>List<select id="bSrc">${planSources().filter(x=>x[0]!=="plan"||Object.keys(S.plan).length).map(([v,n])=>bOpt(v,B.src,n)).join("")}</select></label>`:""}
+    ${B.goal==="list"?`<label>List<select id="bSrc">${planSources().filter(x=>x[0]!=="plan").map(([v,n])=>bOpt(v,B.src,n)).join("")}</select></label>`:""}
   </div>
   <div class="bchecks">
     ${B.goal!=="unseen"?`<label class="check"><input type="checkbox" id="bSeen"${B.skipSeen?" checked":""}> Skip objects I've observed</label>`:""}
     <label class="check"><input type="checkbox" id="bMix"${B.mix?" checked":""}> Mix object types</label>
     <label class="check"><input type="checkbox" id="bMoon"${B.moon?" checked":""}> Keep away from the Moon</label>
     ${B.method==="visual"?`<label class="check"><input type="checkbox" id="bPlanets"${B.planets?" checked":""}> Include the Moon and planets</label>`:""}
+    ${pins?`<label class="check"><input type="checkbox" id="bKeepPins"${B.keepPins!==false?" checked":""}> Keep the ${pins} object${pins===1?"":"s"} marked Keep</label>`:""}
   </div>
-  <div class="acts"><button class="btn primary" data-act="bBuild">${B.built?"Build a new list":"Build list"}</button>
-  <span class="ihint">${fmtTime(N.smp[W.st].t)} to ${fmtTime(N.smp[Math.min(W.end,N.smp.length-1)].t)}, room for about ${Math.max(1,Math.floor((W.end-W.st)/Math.max(1,Math.round(B.per/10))))} object${Math.floor((W.end-W.st)/Math.max(1,Math.round(B.per/10)))===1?"":"s"}.${B.method==="imaged"&&!rigs.length?" Add focal length and sensor size to a rig in Settings to check framing.":""}</span></div>`;
-  const out=$("bOut");$("bAddWrap").hidden=!B.built;
-  if(!B.built){out.innerHTML="";return}if(B.sig!==W.st+"|"+Math.max(1,Math.round(B.per/10))){const t=new Set();for(const p of B.picks){p.slot=null}for(const p of B.picks){p.slot=bFreeSlot(p.key,N,B,t);t.add(p.slot)}B.picks.sort((a,b)=>a.slot-b.slot);B.sig=W.st+"|"+Math.max(1,Math.round(B.per/10))}
-  if(!B.picks.length){out.innerHTML=`<p class="empty">Nothing suitable is up then. Try a later start, a longer window, or a different aim.</p>`;return}
+  ${B.method==="imaged"&&!rigs.length?`<p class="hint">Add focal length and sensor size to a rig in Settings to check framing.</p>`:""}`}
+function bReslot(N,B){const W=bWindow(N,B),sig=W.st+"|"+Math.max(1,Math.round(B.per/10));
+  if(B.sig!==sig||B.picks.some(p=>p.slot==null)){const t=new Set();if(B.sig!==sig)for(const p of B.picks)p.slot=null;for(const p of B.picks)if(p.slot!=null)t.add(p.slot);
+    for(const p of B.picks)if(p.slot==null){p.slot=bFreeSlot(p.key,N,B,t);t.add(p.slot)}B.picks.sort((a,b)=>a.slot-b.slot);B.sig=sig}}
+function renderPlanList(N){
+  const B=bState(),W=bWindow(N,B),out=$("bOut");bReslot(N,B);
+  if(!B.picks.length){out.innerHTML=`<div class="empty pempty"><p>Nothing planned for this night yet.</p><p><button class="btn primary" data-act="bOpen">Build a plan</button></p><p class="hint">Or add objects below, or tap Plan on any object in Lists.</p></div>`;return}
   const{k,n}=bSlots(N,B),g=grouped(true),ts=B.picks.map(p=>W.st+p.slot*k);
   const over=Math.max(0,...B.picks.map(p=>p.slot+1))-n,free=n-B.picks.filter(p=>p.slot<n).length;
-  out.innerHTML=`<ol class="blist">${B.picks.map((p,i)=>{const o=BYKEY[p.key];if(!o)return"";const r=objNight(o,N),a=ts[i],x=N.smp[Math.min(a,N.smp.length-1)];
+  out.innerHTML=`<p class="hint">${fmtTime(N.smp[W.st].t)} to ${fmtTime(N.smp[Math.min(W.end,N.smp.length-1)].t)}, about ${B.per>=60?(B.per/60)+" h":B.per+" min"} each. <button class="linkish" data-act="bOpen">Change</button></p>
+    <ol class="blist">${B.picks.map((p,i)=>{const o=BYKEY[p.key];if(!o)return"";const r=objNight(o,N),a=ts[i],x=N.smp[Math.min(a,N.smp.length-1)];
       const al=r?r.alts[Math.min(a+Math.floor(k/2),N.smp.length-1)]:null,low=al!=null&&x&&al<limitAt(azOf(r.ra,r.dec,x.lst,N.lat));
       const why=(p.why||[]).concat(p.moon?["Moon is close"]:[]),seen=g[o.key];
       return`<li class="brow${p.pin?" pinned":""}"><span class="bt">${x?fmtTime(x.t):""}</span>
         <span class="bn"><button class="pname" data-act="open" data-key="${esc(o.key)}">${esc(dn(o))}${o.name?` <small>${esc(o.name)}</small>`:""}</button>
         <span class="pmeta">${esc(o.tlong||TYPES[o.type][0])}${o.con?" in "+esc(CON[o.con]||o.con):""}${al!=null?`, <span class="${low?"warn":""}">${low?"below your horizon then":Math.round(al)+"° up"}</span>`:""}${seen?", observed":""}${why.length?". "+esc(why.join(", ").replace(/^./,c=>c.toUpperCase())):""}</span></span>
-        <span class="bacts"><button class="btn quiet" data-act="bPin" data-i="${i}" aria-pressed="${!!p.pin}" title="Keep this one when you reroll">Keep</button><button class="btn quiet" data-act="bSwap" data-i="${i}" title="Replace with another suggestion">Swap</button><button class="btn quiet" data-act="bDrop" data-i="${i}" aria-label="Remove ${esc(dn(o))}">Remove</button></span></li>`}).join("")}</ol>
+        <span class="bacts"><button class="btn quiet" data-act="bPin" data-i="${i}" aria-pressed="${!!p.pin}" title="Keep this one when you reroll or rebuild">Keep</button><button class="btn quiet" data-act="bSwap" data-i="${i}" title="Replace with another suggestion">Swap</button><button class="btn quiet" data-act="bDrop" data-i="${i}" aria-label="Remove ${esc(dn(o))}">Remove</button></span></li>`}).join("")}</ol>
     ${over>0?`<p class="hint warn">This runs ${fmtDur(over*k*600)} past your end time.</p>`:free>0?`<p class="hint">${free} slot${free===1?"":"s"} free. <button class="linkish" data-act="bFill">Fill with suggestions</button></p>`:""}
     <div class="acts"><button class="btn" data-act="bReroll" title="New suggestions, keeping the ones marked Keep">Reroll</button>
-      ${S.canWrite?`<button class="btn" data-act="bSave">Save as my list</button><button class="btn" data-act="bSess">Start session with this list</button>`:""}
-</div>`}
+      ${S.canWrite?`<button class="btn" data-act="bSave">Save as a list</button>`:""}<button class="btn quiet" data-act="bClear">Clear plan</button></div>`}
 function bChange(e){const B=bState(),t=e.target,id=t.id;if(!id||!/^b[A-Z]/.test(id))return false;
   const m={bStart:["start",Number],bLen:["len",Number],bMethod:["method",String],bScope:["scope",String],bRig:["rig",String],bPer:["per",Number],bGoal:["goal",String],bSrc:["src",String]};
-  if(m[id])B[m[id][0]]=m[id][1](t.value);else if(id==="bSeen")B.skipSeen=t.checked;else if(id==="bMix")B.mix=t.checked;else if(id==="bMoon")B.moon=t.checked;else if(id==="bPlanets")B.planets=t.checked;else return false;
-  if(id==="bMethod"){B.per=B.method==="visual"?15:60;B.start=null}renderPlan();return true}
+  if(m[id])B[m[id][0]]=m[id][1](t.value);else if(id==="bSeen")B.skipSeen=t.checked;else if(id==="bMix")B.mix=t.checked;else if(id==="bMoon")B.moon=t.checked;else if(id==="bPlanets")B.planets=t.checked;else if(id==="bKeepPins")B.keepPins=t.checked;else return false;
+  if(id==="bMethod"){B.per=B.method==="visual"?15:60;B.start=null}const N=nightAt(S.pDate);if(N)renderBuildForm(N);return true}
 function bSaveName(){const B=bState(),d=new Date(S.pDate+"T12:00");return`${d.toLocaleDateString(undefined,{month:"short",day:"numeric"})}: ${(BGOALS.find(x=>x[0]===B.goal)||["",""])[1].split(":")[0]}`}
 async function bAct(act,a){const B=bState(),i=+a.dataset.i;
   switch(act){
-    case"bBuild":B.skip=new Set();B.seed=0;B.picks=[];bBuild(false);break;
+    case"bOpen":{const N=nightAt(S.pDate);if(!N)return true;B.keepPins=true;renderBuildForm(N);$("buildDlg").showModal();return true}
+    case"bClose":$("buildDlg").close();return true;
+    case"bBuild":B.skip=new Set();B.seed=0;B.picks=B.keepPins!==false?B.picks.filter(p=>p.pin):[];bBuild(false);$("buildDlg").close();
+      if(!B.picks.length)toast("Nothing suitable is up then. Try a later start, a longer window or a different aim.");break;
     case"bReroll":B.seed=(B.seed||0)+1;for(const p of B.picks)if(!p.pin)B.skip.add(p.key);bBuild(false);if(B.picks.filter(p=>!p.pin).length===0){B.skip=new Set(B.picks.map(p=>p.key));bBuild(false)}break;
     case"bFill":bBuild(true);break;
     case"bPin":if(B.picks[i])B.picks[i].pin=!B.picks[i].pin;break;
     case"bSwap":bSwap(i);break;
     case"bDrop":if(B.picks[i]){B.skip.add(B.picks[i].key);B.picks.splice(i,1)}break;
-    case"bChart":B.chart=!B.chart;break;
-    case"bSave":{const l={id:newId(),name:bSaveName(),desc:`Built for the night of ${fmtDate(S.pDate)}. ${B.method==="visual"?"Visual":"Imaging"}, about ${B.per} minutes per object, in suggested order.`,items:B.picks.map(p=>p.key),created:Date.now(),src:"builder"};
+    case"bClear":if(a.dataset.confirm){B.picks=[];B.skip=new Set()}else{a.dataset.confirm="1";a.textContent="Confirm clear";setTimeout(()=>{if(a.isConnected){a.textContent="Clear plan";delete a.dataset.confirm}},4000);return true}break;
+    case"bSave":{const l={id:newId(),name:bSaveName(),desc:`Planned for the night of ${fmtDate(S.pDate)}, in suggested order.`,items:B.picks.map(p=>p.key),created:Date.now(),src:"plan"};
       if(await saveList(l)){S.lists=S.lists.concat(l);toast(`Saved to My lists as "${l.name}".`)}return true}
-    case"bSess":openSess(false);return true;
     default:return false}
-  renderPlan();return true}
-function bPlanKeys(){const B=S.B;return B&&B.built&&B.picks.length?B.picks.map(p=>p.key):null}
+  planSave();renderPlan();return true}
+/* the plan is stored as one document and mirrored into S.plan for markers and the Planned filter */
+function planSave(){const B=bState();S.plan={};S.planT=Date.now();for(const p of B.picks)S.plan[p.key]=1;
+  putDoc("plan",{t:S.planT,keys:B.picks.map(p=>p.key),items:B.picks.map(p=>({key:p.key,slot:p.slot,pin:!!p.pin,why:p.why||[],moon:!!p.moon})),sig:B.sig||"",
+    cfg:{method:B.method,scope:B.scope,rig:B.rig,per:B.per,len:B.len,goal:B.goal,src:B.src,skipSeen:B.skipSeen,mix:B.mix,moon:B.moon,planets:B.planets}})}
+function planLoad(v){if(S.planT&&!(v.t>S.planT))return;const B=bState();S.plan={};if(v.t)S.planT=v.t;
+  B.picks=(v.items||(v.keys||[]).map(k=>({key:k,slot:null,pin:true}))).filter(p=>p&&BYKEY[p.key]).map(p=>Object.assign({},p));
+  for(const p of B.picks)S.plan[p.key]=1;if(v.cfg)Object.assign(B,v.cfg);B.sig=v.sig||null}
+function planToggle(k){const B=bState();const i=B.picks.findIndex(p=>keysOf(p.key).includes(k));
+  if(i>=0){B.picks.splice(i,1);toast(`Removed ${labelOf(k)} from your plan.`)}
+  else{const N=nightAt(S.pDate||tonightStr());let sl=null;if(N){const t=new Set(B.picks.map(p=>p.slot));sl=bFreeSlot(k,N,B,t)}B.skip.delete(k);
+    B.picks.push({key:k,slot:sl,pin:true,why:["added by you"]});B.picks.sort((a,b)=>(a.slot??99)-(b.slot??99));toast(`Added ${labelOf(k)} to your plan.`)}
+  planSave()}
+function bPlanKeys(){const B=S.B;return B&&B.picks.length?B.picks.map(p=>p.key):null}
