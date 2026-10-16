@@ -416,7 +416,6 @@ function renderBuildForm(N){
   const B=bState(),W=bWindow(N,B),el=$("bForm");if(!el)return;B.start=W.st;
   const times=[];for(let i=W.i0;i<=W.iE;i+=3)times.push(i);if(!times.includes(W.st))times.push(W.st),times.sort((a,b)=>a-b);
   const fo=filterOpts(),scopes=fo.scope.filter(x=>x[0]),rigs=S.rigs.filter(r=>rigOptics(r)),pins=B.picks.filter(p=>p.pin).length,room=bSlots(N,B).n;
-  const counts=B.method==="visual"?[3,4,5,6,8,10,12,15,20]:[1,2,3,4,5,6];
   el.innerHTML=`<p class="hint" style="margin:0 0 12px">${esc(nightTitle(S.pDate))}. ${fmtTime(N.smp[W.st].t)} to ${fmtTime(N.smp[Math.min(W.end,N.smp.length-1)].t)}, ${room} object${room===1?"":"s"}, about ${fmtEach(B.per)} each.</p>
   <div class="bgrid">
     <label>Start<select id="bStart">${times.map(i=>bOpt(i,W.st,fmtTime(N.smp[i].t))).join("")}</select></label>
@@ -424,7 +423,7 @@ function renderBuildForm(N){
     <label>Observing<select id="bMethod">${bOpt("visual",B.method,"Visually")}${bOpt("imaged",B.method,"Imaging")}</select></label>
     ${B.method==="visual"?`<label>With<select id="bScope">${scopes.map(([v,n])=>bOpt(v,B.scope,n)).join("")}</select></label>`
       :`<label>Rig<select id="bRig">${bOpt("",B.rig,rigs.length?"Any, don't check framing":"No rig with focal length and sensor")}${rigs.map(r=>bOpt(r.name,B.rig,r.name)).join("")}</select></label>`}
-    <label>How many objects<select id="bCount">${bOpt("",B.count||"",`Suggested: ${B.nAuto}`)}${counts.map(c=>bOpt(c,B.count||"",String(c))).join("")}</select></label>
+    <label>How many objects<input id="bCount" type="number" min="1" max="40" step="1" inputmode="numeric" value="${esc(String(B.count||""))}" placeholder="Suggested: ${B.nAuto}"></label>
     <label>Aim<select id="bGoal">${BGOALS.map(([v,n])=>bOpt(v,B.goal,n)).join("")}</select></label>
     ${B.goal==="list"?`<label>List<select id="bSrc">${planSources().filter(x=>x[0]!=="plan").map(([v,n])=>bOpt(v,B.src,n)).join("")}</select></label>`:""}
   </div>
@@ -456,7 +455,7 @@ function renderPlanList(N){
     <div class="acts"><button class="btn" data-act="bReroll" title="New suggestions, keeping the ones marked Keep">Reroll</button>
       ${S.canWrite?`<button class="btn" data-act="bSave">Save as a list</button>`:""}<button class="btn quiet" data-act="bClear">Clear plan</button></div>`}
 function bChange(e){const B=bState(),t=e.target,id=t.id;if(!id||!/^b[A-Z]/.test(id))return false;
-  const m={bStart:["start",Number],bLen:["len",Number],bMethod:["method",String],bScope:["scope",String],bRig:["rig",String],bCount:["count",String],bGoal:["goal",String],bSrc:["src",String]};
+  const m={bStart:["start",Number],bLen:["len",Number],bMethod:["method",String],bScope:["scope",String],bRig:["rig",String],bCount:["count",v=>{const n=Math.round(+v);return n>0?String(Math.min(40,n)):""}],bGoal:["goal",String],bSrc:["src",String]};
   if(m[id])B[m[id][0]]=m[id][1](t.value);else if(id==="bSeen")B.skipSeen=t.checked;else if(id==="bMix")B.mix=t.checked;else if(id==="bMoon")B.moon=t.checked;else if(id==="bPlanets")B.planets=t.checked;else if(id==="bKeepPins")B.keepPins=t.checked;else return false;
   if(id==="bMethod"){B.count="";B.start=null}const N=nightAt(S.pDate);if(N)renderBuildForm(N);return true}
 function bSaveName(){const B=bState(),d=new Date(S.pDate+"T12:00");return`${d.toLocaleDateString(undefined,{month:"short",day:"numeric"})}: ${(BGOALS.find(x=>x[0]===B.goal)||["",""])[1].split(":")[0]}`}
