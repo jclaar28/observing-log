@@ -341,7 +341,7 @@ const BGOALS=[["show","Showpieces"],["outreach","Public outreach: bright crowd-p
 const BPER={visual:[[10,"10 min"],[15,"15 min"],[20,"20 min"],[30,"30 min"],[45,"45 min"]],imaged:[[30,"30 min"],[60,"1 hour"],[90,"1.5 hours"],[120,"2 hours"],[180,"3 hours"],[240,"4 hours"]]};
 const BLEN=[[60,"1 hour"],[90,"1.5 hours"],[120,"2 hours"],[180,"3 hours"],[240,"4 hours"],[0,"Until dawn"]];
 function bState(){if(S.B)return S.B;const tel=S.gear.find(g=>g.type==="Telescope"&&g.ap),rig=S.rigs.find(r=>rigOptics(r));
-  return S.B={method:"visual",scope:tel?String(tel.ap):"200",rig:rig?rig.name:"",per:15,len:180,start:null,goal:"show",src:"cur:visual",skipSeen:false,mix:true,moon:true,planets:true,seed:0,picks:[],skip:new Set(),chart:true}}
+  return S.B={count:"",method:"visual",scope:tel?String(tel.ap):"200",rig:rig?rig.name:"",per:15,len:180,start:null,goal:"show",src:"cur:visual",skipSeen:false,mix:true,moon:true,planets:true,seed:0,picks:[],skip:new Set(),chart:true}}
 function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 function bWindow(N,B){const smp=N.smp,i0=smp.findIndex(x=>x.sun<-6),iE=smp.length-1-[...smp].reverse().findIndex(x=>x.sun<-6);
   const dark=B.method==="imaged"&&smp.some(x=>x.sun<-18)?smp.findIndex(x=>x.sun<-18):smp.findIndex(x=>x.sun<-12),dawn=smp.length-1-[...smp].reverse().findIndex(x=>x.sun<-12);
@@ -379,7 +379,11 @@ function bSlotFit(o,r,N,B,a,b){const smp=N.smp,need=o.ss||o.ds?-6:B.method==="im
   let s=Math.min(alt,60)/20;if(later<alt&&later<limitAt(0)+15)s+=.8;
   let moonPen=0;const mi=Math.floor((a+b)/2);if(B.moon&&smp[mi]&&smp[mi].moon>0){let f=BMOONF[o.type]||0;if(B.method==="imaged"&&/^(N|SNR)$/.test(o.type))f*=.3;moonPen=f*(N.moonLit||0)*Math.max(0,(70-r.sep)/70)*5}
   return{s:s-moonPen,alt,moonPen}}
-function bSlots(N,B){const W=bWindow(N,B),k=Math.max(1,Math.round(B.per/10));return{W,k,n:Math.max(1,Math.min(40,Math.floor((W.end-W.st)/k)))}}
+/* how many objects: a suggested count from the window and method, unless the user picks one; time per object follows from it */
+function bAuto(B,span){const h=span/6;return B.method==="visual"?Math.min(12,Math.max(3,Math.round(h*3))):Math.min(4,Math.max(1,Math.round(h/1.5)))}
+function bSync(N,B){const W=bWindow(N,B),span=Math.max(1,W.end-W.st);B.nAuto=bAuto(B,span);const n=+B.count||B.nAuto;B.per=Math.max(10,Math.floor(span/n)*10);return W}
+const fmtEach=m=>m>=60?(m%60?Math.floor(m/60)+" h "+m%60+" min":m/60+" h"):m+" min";
+function bSlots(N,B){bSync(N,B);const W=bWindow(N,B),k=Math.max(1,Math.round(B.per/10));return{W,k,n:Math.max(1,Math.min(40,+B.count||B.nAuto,Math.floor((W.end-W.st)/k)))}}
 function bFit(key,N,B,W,k,i){const o=BYKEY[key],r=o&&objNight(o,N);return r?bSlotFit(o,r,N,B,W.st+i*k,W.st+(i+1)*k):null}
 function bFreeSlot(key,N,B,taken){const{W,k,n}=bSlots(N,B);let best=-1,bs=-1e9;for(let i=0;i<n;i++){if(taken.has(i))continue;const f=bFit(key,N,B,W,k,i),v=f?f.s:-50-Math.abs(i-bBest(key,N,W,k));if(v>bs){bs=v;best=i}}
   if(best<0){best=n;while(taken.has(best))best++}return best}
@@ -411,16 +415,16 @@ function bOpt(v,cur,label){return`<option value="${esc(String(v))}"${String(v)==
 function renderBuildForm(N){
   const B=bState(),W=bWindow(N,B),el=$("bForm");if(!el)return;B.start=W.st;
   const times=[];for(let i=W.i0;i<=W.iE;i+=3)times.push(i);if(!times.includes(W.st))times.push(W.st),times.sort((a,b)=>a-b);
-  const fo=filterOpts(),scopes=fo.scope.filter(x=>x[0]),rigs=S.rigs.filter(r=>rigOptics(r)),pins=B.picks.filter(p=>p.pin).length,room=Math.max(1,Math.floor((W.end-W.st)/Math.max(1,Math.round(B.per/10))));
-  if(!BPER[B.method].some(x=>x[0]===B.per))B.per=B.method==="visual"?15:60;
-  el.innerHTML=`<p class="hint" style="margin:0 0 12px">${esc(nightTitle(S.pDate))}. ${fmtTime(N.smp[W.st].t)} to ${fmtTime(N.smp[Math.min(W.end,N.smp.length-1)].t)}, room for about ${room} object${room===1?"":"s"}.</p>
+  const fo=filterOpts(),scopes=fo.scope.filter(x=>x[0]),rigs=S.rigs.filter(r=>rigOptics(r)),pins=B.picks.filter(p=>p.pin).length,room=bSlots(N,B).n;
+  const counts=B.method==="visual"?[3,4,5,6,8,10,12,15,20]:[1,2,3,4,5,6];
+  el.innerHTML=`<p class="hint" style="margin:0 0 12px">${esc(nightTitle(S.pDate))}. ${fmtTime(N.smp[W.st].t)} to ${fmtTime(N.smp[Math.min(W.end,N.smp.length-1)].t)}, ${room} object${room===1?"":"s"}, about ${fmtEach(B.per)} each.</p>
   <div class="bgrid">
     <label>Start<select id="bStart">${times.map(i=>bOpt(i,W.st,fmtTime(N.smp[i].t))).join("")}</select></label>
     <label>For<select id="bLen">${BLEN.map(([v,n])=>bOpt(v,B.len,n)).join("")}</select></label>
     <label>Observing<select id="bMethod">${bOpt("visual",B.method,"Visually")}${bOpt("imaged",B.method,"Imaging")}</select></label>
     ${B.method==="visual"?`<label>With<select id="bScope">${scopes.map(([v,n])=>bOpt(v,B.scope,n)).join("")}</select></label>`
       :`<label>Rig<select id="bRig">${bOpt("",B.rig,rigs.length?"Any, don't check framing":"No rig with focal length and sensor")}${rigs.map(r=>bOpt(r.name,B.rig,r.name)).join("")}</select></label>`}
-    <label>Time per object<select id="bPer">${BPER[B.method].map(([v,n])=>bOpt(v,B.per,n)).join("")}</select></label>
+    <label>How many objects<select id="bCount">${bOpt("",B.count||"",`Suggested: ${B.nAuto}`)}${counts.map(c=>bOpt(c,B.count||"",String(c))).join("")}</select></label>
     <label>Aim<select id="bGoal">${BGOALS.map(([v,n])=>bOpt(v,B.goal,n)).join("")}</select></label>
     ${B.goal==="list"?`<label>List<select id="bSrc">${planSources().filter(x=>x[0]!=="plan").map(([v,n])=>bOpt(v,B.src,n)).join("")}</select></label>`:""}
   </div>
@@ -432,7 +436,7 @@ function renderBuildForm(N){
     ${pins?`<label class="check"><input type="checkbox" id="bKeepPins"${B.keepPins!==false?" checked":""}> Keep the ${pins} object${pins===1?"":"s"} marked Keep</label>`:""}
   </div>
   ${B.method==="imaged"&&!rigs.length?`<p class="hint">Add focal length and sensor size to a rig in Settings to check framing.</p>`:""}`}
-function bReslot(N,B){const W=bWindow(N,B),sig=W.st+"|"+Math.max(1,Math.round(B.per/10));
+function bReslot(N,B){bSync(N,B);const W=bWindow(N,B),sig=W.st+"|"+Math.max(1,Math.round(B.per/10));
   if(B.sig!==sig||B.picks.some(p=>p.slot==null)){const t=new Set();if(B.sig!==sig)for(const p of B.picks)p.slot=null;for(const p of B.picks)if(p.slot!=null)t.add(p.slot);
     for(const p of B.picks)if(p.slot==null){p.slot=bFreeSlot(p.key,N,B,t);t.add(p.slot)}B.picks.sort((a,b)=>a.slot-b.slot);B.sig=sig}}
 function renderPlanList(N){
@@ -440,7 +444,7 @@ function renderPlanList(N){
   if(!B.picks.length){out.innerHTML=`<div class="empty pempty"><p>Nothing planned for this night yet.</p><p><button class="btn primary" data-act="bOpen">Build a plan</button></p><p class="hint">Or add objects below, or tap Plan on any object in Lists.</p></div>`;return}
   const{k,n}=bSlots(N,B),g=grouped(true),ts=B.picks.map(p=>W.st+p.slot*k);
   const over=Math.max(0,...B.picks.map(p=>p.slot+1))-n,free=n-B.picks.filter(p=>p.slot<n).length;
-  out.innerHTML=`<p class="hint">${fmtTime(N.smp[W.st].t)} to ${fmtTime(N.smp[Math.min(W.end,N.smp.length-1)].t)}, about ${B.per>=60?(B.per/60)+" h":B.per+" min"} each. <button class="linkish" data-act="bOpen">Change</button></p>
+  out.innerHTML=`<p class="hint">${fmtTime(N.smp[W.st].t)} to ${fmtTime(N.smp[Math.min(W.end,N.smp.length-1)].t)}, about ${fmtEach(B.per)} each. <button class="linkish" data-act="bOpen">Change</button></p>
     <ol class="blist">${B.picks.map((p,i)=>{const o=BYKEY[p.key];if(!o)return"";const r=objNight(o,N),a=ts[i],x=N.smp[Math.min(a,N.smp.length-1)];
       const al=r?r.alts[Math.min(a+Math.floor(k/2),N.smp.length-1)]:null,low=al!=null&&x&&al<limitAt(azOf(r.ra,r.dec,x.lst,N.lat));
       const why=(p.why||[]).concat(p.moon?["Moon is close"]:[]),seen=g[o.key];
@@ -452,9 +456,9 @@ function renderPlanList(N){
     <div class="acts"><button class="btn" data-act="bReroll" title="New suggestions, keeping the ones marked Keep">Reroll</button>
       ${S.canWrite?`<button class="btn" data-act="bSave">Save as a list</button>`:""}<button class="btn quiet" data-act="bClear">Clear plan</button></div>`}
 function bChange(e){const B=bState(),t=e.target,id=t.id;if(!id||!/^b[A-Z]/.test(id))return false;
-  const m={bStart:["start",Number],bLen:["len",Number],bMethod:["method",String],bScope:["scope",String],bRig:["rig",String],bPer:["per",Number],bGoal:["goal",String],bSrc:["src",String]};
+  const m={bStart:["start",Number],bLen:["len",Number],bMethod:["method",String],bScope:["scope",String],bRig:["rig",String],bCount:["count",String],bGoal:["goal",String],bSrc:["src",String]};
   if(m[id])B[m[id][0]]=m[id][1](t.value);else if(id==="bSeen")B.skipSeen=t.checked;else if(id==="bMix")B.mix=t.checked;else if(id==="bMoon")B.moon=t.checked;else if(id==="bPlanets")B.planets=t.checked;else if(id==="bKeepPins")B.keepPins=t.checked;else return false;
-  if(id==="bMethod"){B.per=B.method==="visual"?15:60;B.start=null}const N=nightAt(S.pDate);if(N)renderBuildForm(N);return true}
+  if(id==="bMethod"){B.count="";B.start=null}const N=nightAt(S.pDate);if(N)renderBuildForm(N);return true}
 function bSaveName(){const B=bState(),d=new Date(S.pDate+"T12:00");return`${d.toLocaleDateString(undefined,{month:"short",day:"numeric"})}: ${(BGOALS.find(x=>x[0]===B.goal)||["",""])[1].split(":")[0]}`}
 async function bAct(act,a){const B=bState(),i=+a.dataset.i;
   switch(act){
@@ -475,7 +479,7 @@ async function bAct(act,a){const B=bState(),i=+a.dataset.i;
 /* the plan is stored as one document and mirrored into S.plan for markers and the Planned filter */
 function planSave(){const B=bState();S.plan={};S.planT=Date.now();for(const p of B.picks)S.plan[p.key]=1;
   putDoc("plan",{t:S.planT,keys:B.picks.map(p=>p.key),items:B.picks.map(p=>({key:p.key,slot:p.slot,pin:!!p.pin,why:p.why||[],moon:!!p.moon})),sig:B.sig||"",
-    cfg:{method:B.method,scope:B.scope,rig:B.rig,per:B.per,len:B.len,goal:B.goal,src:B.src,skipSeen:B.skipSeen,mix:B.mix,moon:B.moon,planets:B.planets}})}
+    cfg:{method:B.method,scope:B.scope,rig:B.rig,count:B.count||"",len:B.len,goal:B.goal,src:B.src,skipSeen:B.skipSeen,mix:B.mix,moon:B.moon,planets:B.planets}})}
 function planLoad(v){if(S.planT&&!(v.t>S.planT))return;const B=bState();S.plan={};if(v.t)S.planT=v.t;
   B.picks=(v.items||(v.keys||[]).map(k=>({key:k,slot:null,pin:true}))).filter(p=>p&&BYKEY[p.key]).map(p=>Object.assign({},p));
   for(const p of B.picks)S.plan[p.key]=1;if(v.cfg)Object.assign(B,v.cfg);B.sig=v.sig||null}
